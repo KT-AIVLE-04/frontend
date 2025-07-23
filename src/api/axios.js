@@ -84,7 +84,6 @@ api.interceptors.response.use(
         // refreshToken도 만료된 경우 로그아웃
         processQueue(refreshError, null)
         store.dispatch(logout())
-        window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
