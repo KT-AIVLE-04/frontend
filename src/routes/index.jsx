@@ -21,11 +21,19 @@ const NotFoundRoute = () => {
   return isAuthenticated ? <Navigate to={ROUTES.DASHBOARD} replace/> : <Navigate to={ROUTES.LOGIN} replace/>
 }
 
+// 이미 로그인돼엇으면 dashboard로 이동
+const AlreadyLoggedInRoute = () => {
+  const {isAuthenticated} = useSelector((state) => state.auth)
+  return isAuthenticated ? <Navigate to={ROUTES.DASHBOARD} replace/> : <Outlet/>
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path={ROUTES.LOGIN} element={<Login/>}/>
-      <Route path={ROUTES.REGISTER} element={<Register/>}/>
+      <Route element={<AlreadyLoggedInRoute/>}>
+        <Route path={ROUTES.LOGIN} element={<Login/>}/>
+        <Route path={ROUTES.REGISTER} element={<Register/>}/>
+      </Route>
       <Route element={<ProtectedRoute/>}>
         <Route element={<MainLayout/>}>
           <Route path={ROUTES.DASHBOARD} element={<Dashboard/>}/>
