@@ -1,15 +1,15 @@
-import { delay, http, HttpResponse } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 export const handlers = [
-  // 전역 딜레이 미들웨어
-  http.all('*', async () => {
-    await delay(2000);
-  }),
+  // // 전역 딜레이 미들웨어
+  // http.all('*', async () => {
+  //   await delay(2000);
+  // }),
   
   http.post('/api/members/new', async ({request}) => {
-    const {loginId, password} = await request.json()
+    const {email, password} = await request.json()
 
-    if (!loginId || !password) {
+    if (!email || !password) {
       return HttpResponse.json({
         isSuccess: false,
         message: '아이디와 비밀번호를 입력해주세요.',
@@ -25,9 +25,9 @@ export const handlers = [
 
   // 로그인
   http.post('/api/members/login', async ({request}) => {
-    const {loginId, password} = await request.json()
+    const {email, password} = await request.json()
 
-    if (!loginId || !password) {
+    if (!email || !password) {
       return HttpResponse.json({
         isSuccess: false,
         message: '아이디와 비밀번호를 입력해주세요.',
@@ -327,34 +327,28 @@ export const handlers = [
     const url = new URL(request.url)
     const dateRange = url.searchParams.get('dateRange') || 'last7'
     
-    const stats = {
-      totalStores: 3,
-      totalContents: 12,
-      totalPosts: 8,
-      totalViews: 1254,
-      recentActivities: [
-        {
-          type: 'content',
-          message: '새로운 숏폼 콘텐츠가 생성되었습니다.',
-          time: '10분 전'
-        },
-        {
-          type: 'store',
-          message: '카페 매장 정보가 업데이트되었습니다.',
-          time: '1시간 전'
-        },
-        {
-          type: 'sns',
-          message: '인스타그램에 콘텐츠가 게시되었습니다.',
-          time: '3시간 전'
-        },
-        {
-          type: 'analytics',
-          message: '주간 성과 보고서가 준비되었습니다.',
-          time: '1일 전'
-        }
-      ]
-    }
+    const stats = [
+      {
+        type: 'views',
+        value: 1254,
+        change: '+12.5%'
+      },
+      {
+        type: 'likes',
+        value: 342,
+        change: '+8.3%'
+      },
+      {
+        type: 'comments',
+        value: 87,
+        change: '+15.2%'
+      },
+      {
+        type: 'shares',
+        value: 54,
+        change: '+5.7%'
+      }
+    ]
 
     return HttpResponse.json({
       isSuccess: true,
