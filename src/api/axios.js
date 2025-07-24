@@ -29,7 +29,7 @@ const processQueue = (error, token = null) => {
 
 // 요청 인터셉터
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = store.getState().auth.token
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -45,7 +45,7 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     // 401 에러이고 아직 재시도하지 않은 요청인 경우
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/refresh')) {
       
       // 이미 토큰 갱신 중인 경우, 대기열에 추가
       if (isRefreshing) {
@@ -70,7 +70,7 @@ api.interceptors.response.use(
         }
 
         // refreshToken으로 새로운 accessToken 발급
-        const response = await authApi.refresh()
+        const response = await authApi.refresh(refreshToken)
         const { token } = response.data
         store.dispatch(updateToken({ token }))
 

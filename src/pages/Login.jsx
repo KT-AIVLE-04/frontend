@@ -20,9 +20,9 @@ export function Login() {
 
     try {
       const response = await authApi.login(formData);
-      const { token, user } = response.data;
+      const { token, refreshToken } = response.data;
       
-      dispatch(login({ user, token }));
+      dispatch(login({ token, refreshToken }));
       navigate('/');
       
     } catch (error) {

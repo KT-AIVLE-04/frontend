@@ -6,6 +6,6 @@ export const authApi = {
   register: (data) => api.post(`${BASE_URL}/new`, data),
   login: (data) => api.post(`${BASE_URL}/login`, data),
   logout: () => api.post(`${BASE_URL}/logout`),
-  refresh: () => api.post(`${BASE_URL}/refresh`),
+  refresh: (refreshToken) => api.post(`${BASE_URL}/refresh`, {refreshToken}),
   getMe: () => api.get(`${BASE_URL}/me`)
 } 
