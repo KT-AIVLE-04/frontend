@@ -20,11 +20,14 @@ export function Login() {
 
     try {
       const response = await authApi.login(formData);
-      const { token, refreshToken } = response.data;
-      
-      dispatch(login({ token, refreshToken }));
-      navigate('/');
-      
+      const { result } = response.data;
+      if (result) {
+        const { token, refreshToken } = result;
+        dispatch(login({ token, refreshToken }));
+        navigate('/');
+      } else {
+        throw new Error('로그인 실패');
+      }
     } catch (error) {
       console.error('로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';

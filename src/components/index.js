@@ -1,4 +1,3 @@
-export * from './AuthInitializer';
 export * from './Button';
 export * from './ContentCard';
 export { DataTable } from './DataTable';

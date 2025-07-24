@@ -24,6 +24,7 @@ const authSlice = createSlice({
       localStorage.removeItem('refreshToken')
     },
     updateToken: (state, action) => {
+      console.log('updateToken', action.payload)
       const {token} = action.payload
       state.token = token
       state.isAuthenticated = true
