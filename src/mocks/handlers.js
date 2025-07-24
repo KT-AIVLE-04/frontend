@@ -1,7 +1,11 @@
-import { http, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw';
 
 export const handlers = [
-  // 회원가입
+  // 전역 딜레이 미들웨어
+  http.all('*', async () => {
+    await delay(2000);
+  }),
+  
   http.post('/api/members/new', async ({request}) => {
     const {loginId, password} = await request.json()
 
