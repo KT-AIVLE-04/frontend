@@ -21,15 +21,15 @@ export function SnsIntegration() {
       
       // 연동된 계정 목록
       const accountsResponse = await snsApi.getConnectedAccounts();
-      setConnectedAccounts(accountsResponse.data || []);
+      setConnectedAccounts(accountsResponse.data?.result || []);
       
       // 예약 게시물 목록
       const postsResponse = await snsApi.getScheduledPosts();
-      setScheduledPosts(postsResponse.data || []);
+      setScheduledPosts(postsResponse.data?.result || []);
       
       // 최적화 제안
       const suggestionsResponse = await snsApi.getOptimizationSuggestions();
-      setSuggestions(suggestionsResponse.data || []);
+      setSuggestions(suggestionsResponse.data?.result || []);
       
     } catch (error) {
       console.error('SNS 데이터 로딩 실패:', error);

@@ -1,7 +1,7 @@
 import { ChevronDown, Filter, Image as ImageIcon, Search, Video } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../api/content';
-import { ErrorPage } from '../components';
+import { ContentCard, ErrorPage, LoadingSpinner } from '../components';
 
 export function ContentManagement() {
   const [activeTab, setActiveTab] = useState('videos');
@@ -26,7 +26,7 @@ export function ContentManagement() {
       };
       
       const response = await contentApi.getContents(params);
-      setVideos(response.data || []);
+      setVideos(response.data?.result || []);
     } catch (error) {
       console.error('콘텐츠 목록 로딩 실패:', error);
       setError('콘텐츠 목록을 불러오는데 실패했습니다.');

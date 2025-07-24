@@ -1,7 +1,7 @@
 import { Pencil, Plus, Store, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { storeApi } from '../api/store';
-import { ErrorPage } from '../components';
+import { Button, DataTable, ErrorPage, FormField, LoadingSpinner } from '../components';
 
 export function StoreManagement() {
   const [showAddStore, setShowAddStore] = useState(false);

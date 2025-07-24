@@ -4,7 +4,7 @@ import { authApi } from '../api/auth';
 import { Button, FormField } from '../components';
 import { login } from '../store/authSlice';
 
-export function Login({ onLogin, onRegisterClick }) {
+export function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -22,16 +22,9 @@ export function Login({ onLogin, onRegisterClick }) {
       const response = await authApi.login(formData);
       const { token, user } = response.data;
       
-      // 토큰을 로컬 스토리지에 저장
-      localStorage.setItem('token', token);
-      
-      // Redux store에 로그인 상태 업데이트
       dispatch(login({ user, token }));
+      navigate('/');
       
-      // 로그인 성공 콜백 호출
-      if (onLogin) {
-        onLogin();
-      }
     } catch (error) {
       console.error('로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
@@ -52,6 +45,10 @@ export function Login({ onLogin, onRegisterClick }) {
       setError('');
     }
   };
+
+  const onRegisterClick = () => {
+    navigate(ROUTES.REGISTER);
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
