@@ -1,7 +1,39 @@
 import { ArrowUp, BarChart3, Calendar, Frown, Meh, MessageSquare, Share2, Smile, ThumbsUp, TrendingUp, Users } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { analyticsApi } from '../api/analytics';
-import { ErrorPage } from '../components';
+import { ErrorPage, LoadingSpinner, ProgressBar, StatCard } from '../components';
+
+// 통계 카드 생성자 함수
+const createStatCard = (type, value, change) => {
+  const config = {
+    views: {
+      title: '총 조회수',
+      icon: <BarChart3 size={20} className="text-blue-600" />
+    },
+    likes: {
+      title: '좋아요',
+      icon: <ThumbsUp size={20} className="text-green-600" />
+    },
+    comments: {
+      title: '댓글',
+      icon: <MessageSquare size={20} className="text-purple-600" />
+    },
+    shares: {
+      title: '공유',
+      icon: <Share2 size={20} className="text-orange-600" />
+    }
+  };
+
+  const trend = change.startsWith('+') ? 'up' : change.startsWith('-') ? 'down' : 'neutral';
+  
+  return {
+    title: config[type]?.title || type,
+    value: value?.toLocaleString() || '0',
+    change: change || '+0%',
+    trend: trend,
+    icon: config[type]?.icon || <BarChart3 size={20} className="text-gray-600" />
+  };
+};
 
 export function Analytics() {
   const [dateRange, setDateRange] = useState('last7');
@@ -21,54 +53,30 @@ export function Analytics() {
         
         // 개요 통계 데이터
         const statsResponse = await analyticsApi.getDashboardStats(dateRange);
-        const statsData = statsResponse.data;
+        const statsData = statsResponse.data?.result;
         
-        setOverviewStats([
-          {
-            title: '총 조회수',
-            value: statsData.totalViews?.toLocaleString() || '0',
-            change: statsData.viewsChange || '+0%',
-            trend: statsData.viewsTrend || 'up',
-            icon: <BarChart3 size={20} className="text-blue-600" />
-          },
-          {
-            title: '좋아요',
-            value: statsData.totalLikes?.toLocaleString() || '0',
-            change: statsData.likesChange || '+0%',
-            trend: statsData.likesTrend || 'up',
-            icon: <ThumbsUp size={20} className="text-green-600" />
-          },
-          {
-            title: '댓글',
-            value: statsData.totalComments?.toLocaleString() || '0',
-            change: statsData.commentsChange || '+0%',
-            trend: statsData.commentsTrend || 'up',
-            icon: <MessageSquare size={20} className="text-purple-600" />
-          },
-          {
-            title: '공유',
-            value: statsData.totalShares?.toLocaleString() || '0',
-            change: statsData.sharesChange || '+0%',
-            trend: statsData.sharesTrend || 'up',
-            icon: <Share2 size={20} className="text-orange-600" />
-          }
-        ]);
+        // 생성자 함수를 사용해서 통계 카드 생성
+        const stats = statsData.map(stat => 
+          createStatCard(stat.type, stat.value, stat.change)
+        );
+        
+        setOverviewStats(stats);
 
         // 콘텐츠 성과 데이터
         const performanceResponse = await analyticsApi.getContentPerformance({ dateRange });
-        setContentPerformance(performanceResponse.data || []);
+        setContentPerformance(performanceResponse.data?.result || []);
 
         // 댓글 감성 분석 데이터
         const sentimentResponse = await analyticsApi.getCommentSentiment({ dateRange });
-        setCommentSentiment(sentimentResponse.data || []);
+        setCommentSentiment(sentimentResponse.data?.result || []);
 
         // 팔로워 트렌드 데이터
         const trendResponse = await analyticsApi.getFollowerTrend({ dateRange });
-        setFollowerTrend(trendResponse.data || {});
+        setFollowerTrend(trendResponse.data?.result || {});
 
         // 최적 게시 시간 데이터
         const postingTimeResponse = await analyticsApi.getOptimalPostingTime();
-        setOptimalPostingTime(postingTimeResponse.data || {});
+        setOptimalPostingTime(postingTimeResponse.data?.result || {});
 
       } catch (error) {
         console.error('분석 데이터 로딩 실패:', error);
