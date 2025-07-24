@@ -63,6 +63,19 @@ export const handlers = [
     })
   }),
 
+  // 내 정보 조회
+  http.get('/api/members/me', () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '성공입니다.',
+      result: {
+        memberId: 1,
+        loginId: 'test@test.com',
+        name: '테스트 사용자'
+      }
+    })
+  }),
+
   // 게시글 목록 조회 (페이지네이션)
   http.get('/api/articles', ({request}) => {
     const url = new URL(request.url)

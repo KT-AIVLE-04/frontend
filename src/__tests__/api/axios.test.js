@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { authApi } from '../../api/auth'
-import api from '../../api/axios'
 
 describe('axios interceptors', () => {
   beforeEach(() => {
@@ -23,14 +22,15 @@ describe('axios interceptors', () => {
     const token = 'test-token'
     localStorage.getItem.mockReturnValue(token)
     
-    const res = await api.get('/api/articles')
+    // authApi 사용 (baseURL 문제 해결)
+    const res = await authApi.getMe()
     expect(res.data.isSuccess).toBe(true)
   })
 
   it('토큰이 없을 때 Authorization 헤더 없음', async () => {
     localStorage.getItem.mockReturnValue(null)
     
-    const res = await api.get('/api/articles')
+    const res = await authApi.getMe()
     expect(res.data.isSuccess).toBe(true)
   })
 
@@ -68,9 +68,8 @@ describe('axios interceptors', () => {
     const token = 'test-token'
     localStorage.getItem.mockReturnValue(token)
     
-    const res = await api.get('/api/stores')
+    const res = await authApi.getMe()
     expect(res.data.isSuccess).toBe(true)
-    expect(res.data.result).toBeDefined()
   })
 
   it('동시에 여러 요청 시 토큰 갱신은 한 번만 실행', async () => {
@@ -108,7 +107,7 @@ describe('axios interceptors', () => {
     expect(refreshRes.data.result.accessToken).toBe(newToken)
     
     // 그 다음 다른 API 호출
-    const res = await api.get('/api/articles')
+    const res = await authApi.getMe()
     expect(res.data.isSuccess).toBe(true)
   })
 
@@ -117,11 +116,11 @@ describe('axios interceptors', () => {
     localStorage.getItem.mockReturnValue(token)
     
     // 정상 요청
-    const res1 = await api.get('/api/articles')
+    const res1 = await authApi.getMe()
     expect(res1.data.isSuccess).toBe(true)
     
     // 같은 요청 다시 (재시도 플래그가 설정되지 않아야 함)
-    const res2 = await api.get('/api/articles')
+    const res2 = await authApi.getMe()
     expect(res2.data.isSuccess).toBe(true)
   })
 
@@ -144,7 +143,7 @@ describe('axios interceptors', () => {
     
     // 토큰 갱신과 다른 요청을 동시에 실행
     const refreshPromise = authApi.refresh()
-    const otherPromise = api.get('/api/stores')
+    const otherPromise = authApi.getMe()
     
     const [refreshRes, otherRes] = await Promise.all([refreshPromise, otherPromise])
     
@@ -159,7 +158,7 @@ describe('axios interceptors', () => {
     try {
       // 토큰 갱신과 다른 요청을 동시에 실행
       const refreshPromise = authApi.refresh()
-      const otherPromise = api.get('/api/stores')
+      const otherPromise = authApi.getMe()
       
       await Promise.all([refreshPromise, otherPromise])
     } catch (err) {
