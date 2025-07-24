@@ -1,10 +1,13 @@
+import { useDispatch } from 'react-redux'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Sidebar } from '../components/Sidebar'
+import { logout } from '../store/authSlice'
 import { NAV_ITEMS, ROUTE_MAPPING, ROUTES } from './routes'
 
 export const MainLayout = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   
   const getActivePage = () => {
     const path = location.pathname
@@ -20,7 +23,7 @@ export const MainLayout = () => {
   const handleNavigate = (pageId) => {
     if (pageId === 'login') {
       // 로그아웃 로직
-      navigate(ROUTES.LOGIN)
+      dispatch(logout())
       return
     }
     
