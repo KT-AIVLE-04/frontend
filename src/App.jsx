@@ -4,8 +4,9 @@ import { BrowserRouter as Router } from 'react-router-dom'
 import { authApi } from './api/auth'
 import { LoadingSpinner } from './components'
 import AppRoutes from './routes'
-import { updateToken } from './store/authSlice'
+import { logout, updateToken } from './store/authSlice'
 import { store } from './store/store'
+
 
 function AuthProvider({ children }) {
   const dispatch = useDispatch()

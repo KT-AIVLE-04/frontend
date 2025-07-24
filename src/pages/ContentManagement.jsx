@@ -1,7 +1,7 @@
 import { ChevronDown, Filter, Image as ImageIcon, Search, Video } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../api/content';
-import { ContentCard, ErrorPage, LoadingSpinner } from '../components';
+import { ContentCard, EmptyState, ErrorPage, LoadingSpinner } from '../components';
 
 export function ContentManagement() {
   const [activeTab, setActiveTab] = useState('videos');
