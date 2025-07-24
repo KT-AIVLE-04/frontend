@@ -1,0 +1,53 @@
+# main-deploy-work.yml
+name: main
+
+on:
+  push:
+    branches:
+      # - main    # main 브랜치에서 push 이벤트가 일어났을 때 실행
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@main
+
+      - name: Cache node modules  # node modules 캐싱
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.OS }}-main-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-build-
+            ${{ runner.OS }}-
+            
+      # Github Repository Secrets를 통해 환경 변수 파일을 생성합니다.
+      - name: Generate Environment Variables File for Production
+        run: |
+          echo "VITE_API_URL=$VITE_API_URL" >> .env.production
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} 
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+          aws-region: ap-northeast-2
+          
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+        env:
+                  CI: ""
+
+      - name: Deploy
+        run: |
+          aws s3 cp \
+          --recursive \
+          --region ap-northeast-2 \
+          dist s3://big-pj
