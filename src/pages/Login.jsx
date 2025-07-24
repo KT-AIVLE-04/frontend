@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/auth';
 import { Button, FormField } from '../components';
+import { ROUTES } from '../routes/routes';
 import { login } from '../store/authSlice';
 
 export function Login() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({  
     email: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
