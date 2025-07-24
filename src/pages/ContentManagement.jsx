@@ -1,7 +1,7 @@
-import { ChevronDown, Filter, Image as ImageIcon, Search, Video } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { contentApi } from '../api/content';
-import { ContentCard, EmptyState, ErrorPage, LoadingSpinner } from '../components';
+import {ChevronDown, Filter, Image as ImageIcon, Search, Video} from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {contentApi} from '../api/content';
+import {ContentCard, EmptyStateBox, ErrorPage, LoadingSpinner} from '../components';
 
 export function ContentManagement() {
   const [activeTab, setActiveTab] = useState('videos');
@@ -24,7 +24,7 @@ export function ContentManagement() {
         sortBy,
         search: searchTerm
       };
-      
+
       const response = await contentApi.getContents(params);
       setVideos(response.data?.result || []);
     } catch (error) {
@@ -64,45 +64,45 @@ export function ContentManagement() {
   };
 
   if (error) {
-    return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error} />;
+    return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error}/>;
   }
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner/>;
   }
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">콘텐츠 관리</h1>
-      
+
       {/* 탭 메뉴 */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="flex space-x-8">
-          <button 
+          <button
             onClick={() => setActiveTab('videos')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'videos' 
-                ? 'border-blue-500 text-blue-600' 
+              activeTab === 'videos'
+                ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             숏폼/영상 ({videos.length})
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('images')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'images' 
-                ? 'border-blue-500 text-blue-600' 
+              activeTab === 'images'
+                ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
             이미지 (0)
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('posts')}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'posts' 
-                ? 'border-blue-500 text-blue-600' 
+              activeTab === 'posts'
+                ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
@@ -116,26 +116,27 @@ export function ContentManagement() {
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-gray-400" />
+              <Search size={18} className="text-gray-400"/>
             </div>
             <form onSubmit={handleSearch}>
-              <input 
-                type="text" 
-                placeholder="콘텐츠 검색..." 
+              <input
+                type="text"
+                placeholder="콘텐츠 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </form>
           </div>
         </div>
         <div className="flex space-x-2">
-          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-            <Filter size={16} className="mr-2" />
+          <button
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <Filter size={16} className="mr-2"/>
             필터
-            <ChevronDown size={16} className="ml-1" />
+            <ChevronDown size={16} className="ml-1"/>
           </button>
-          <select 
+          <select
             className="px-4 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -155,8 +156,10 @@ export function ContentManagement() {
               key={video.id}
               content={video}
               onDownload={handleDownload}
-              onShare={() => {}}
-              onEdit={() => {}}
+              onShare={() => {
+              }}
+              onEdit={() => {
+              }}
               onDelete={handleDelete}
             />
           ))}
@@ -164,22 +167,24 @@ export function ContentManagement() {
       )}
 
       {activeTab === 'images' && (
-        <EmptyState
+        <EmptyStateBox
           icon={ImageIcon}
           title="이미지가 없습니다"
           description="생성된 이미지가 여기에 표시됩니다"
           actionText="이미지 생성하기"
-          onAction={() => {}}
+          onAction={() => {
+          }}
         />
       )}
 
       {activeTab === 'posts' && (
-        <EmptyState
+        <EmptyStateBox
           icon={Video}
           title="게시글이 없습니다"
           description="생성된 게시글이 여기에 표시됩니다"
           actionText="게시글 생성하기"
-          onAction={() => {}}
+          onAction={() => {
+          }}
         />
       )}
     </div>
