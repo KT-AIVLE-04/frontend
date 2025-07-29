@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Provider, useDispatch } from 'react-redux'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { BrowserRouter as Router, useLocation } from 'react-router-dom'
 import { authApi } from './api/auth'
 import { LoadingSpinner } from './components'
 import AppRoutes from './routes'
-import { logout, updateToken } from './store/authSlice'
+import { login, logout, updateToken } from './store/authSlice'
 import { store } from './store/store'
 
 
 function AuthProvider({ children }) {
   const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(true)
+  const location = useLocation()
 
   const checkLogin = async () => {
     const refreshToken = localStorage.getItem('refreshToken')
@@ -33,9 +34,66 @@ function AuthProvider({ children }) {
     }
   }
 
+  // OAuth 콜백에서 URL 파라미터로 받은 토큰 처리
+  const handleOAuthCallback = () => {
+    const urlParams = new URLSearchParams(location.search)
+    console.log(urlParams)
+    const accessToken = urlParams.get('accessToken')
+    const refreshToken = urlParams.get('refreshToken')
+    const error = urlParams.get('error')
+
+    if (error) {
+      console.error('OAuth 인증 실패:', error)
+      return
+    }
+    console.log(accessToken, refreshToken)
+
+    if (accessToken && refreshToken) {
+      // OAuth 토큰으로 로그인 처리
+      dispatch(login({ accessToken, refreshToken }))
+      
+      // URL에서 토큰 파라미터 제거
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, document.title, newUrl)
+    }
+  }
+
   useEffect(() => {
-    checkLogin()
-  }, [])
+    const initializeAuth = async () => {
+      const refreshToken = localStorage.getItem('refreshToken')
+      if (!refreshToken) {
+        return
+      }
+
+      try {
+        const response = await authApi.refresh(refreshToken)
+        
+        if (response.data?.result?.accessToken) {
+          dispatch(updateToken({ accessToken: response.data.result.accessToken }))
+        }
+      } catch (error) {
+        console.error('Token refresh failed:', error)
+        dispatch(logout())
+      }
+    }
+
+    initializeAuth()
+  }, [dispatch])
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const accessToken = urlParams.get('accessToken')
+    const refreshToken = urlParams.get('refreshToken')
+
+    // URL에서 토큰을 받은 경우 처리
+    if (accessToken && refreshToken) {
+      console.log(accessToken, refreshToken)
+      
+      if (accessToken && refreshToken) {
+        dispatch(login({ accessToken, refreshToken }))
+      }
+    }
+  }, [dispatch])
 
   if (isLoading) {
     return <LoadingSpinner />
@@ -47,11 +105,11 @@ function AuthProvider({ children }) {
 function App() {
   return (
     <Provider store={store}>
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <AppRoutes />
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </Provider>
   )
 }
