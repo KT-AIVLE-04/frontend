@@ -59,41 +59,9 @@ function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (!refreshToken) {
-        return
-      }
-
-      try {
-        const response = await authApi.refresh(refreshToken)
-        
-        if (response.data?.result?.accessToken) {
-          dispatch(updateToken({ accessToken: response.data.result.accessToken }))
-        }
-      } catch (error) {
-        console.error('Token refresh failed:', error)
-        dispatch(logout())
-      }
-    }
-
-    initializeAuth()
-  }, [dispatch])
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const accessToken = urlParams.get('accessToken')
-    const refreshToken = urlParams.get('refreshToken')
-
-    // URL에서 토큰을 받은 경우 처리
-    if (accessToken && refreshToken) {
-      console.log(accessToken, refreshToken)
-      
-      if (accessToken && refreshToken) {
-        dispatch(login({ accessToken, refreshToken }))
-      }
-    }
-  }, [dispatch])
+    checkLogin()
+    handleOAuthCallback()
+  }, [])
 
   if (isLoading) {
     return <LoadingSpinner />

@@ -10,8 +10,6 @@ const initialState = {
   user: null,
   accessToken: null,
   refreshToken: getRefreshToken(),
-  loading: false,
-  error: null
 }
 
 const authSlice = createSlice({
@@ -23,7 +21,6 @@ const authSlice = createSlice({
       state.isAuthenticated = true
       state.accessToken = accessToken
       state.refreshToken = refreshToken
-      state.error = null
       localStorage.setItem('refreshToken', refreshToken)
     },
     logout: (state) => {
@@ -31,19 +28,12 @@ const authSlice = createSlice({
       state.user = null
       state.accessToken = null
       state.refreshToken = null
-      state.error = null
       localStorage.removeItem('refreshToken')
     },
     updateToken: (state, action) => {
       console.log('updateToken', action.payload)
       const {accessToken} = action.payload
       state.accessToken = accessToken
-    },
-    setLoading: (state, action) => {
-      state.loading = action.payload
-    },
-    setError: (state, action) => {
-      state.error = action.payload
     }
   }
 })
