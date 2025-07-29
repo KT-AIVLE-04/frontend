@@ -23,7 +23,7 @@ function AuthProvider({ children }) {
       const response = await authApi.refresh(refreshToken)
       console.log(response)
       if (response.data?.result?.accessToken) {
-        dispatch(updateToken({ token: response.data.result.accessToken }))
+        dispatch(updateToken({ accessToken: response.data.result.accessToken }))
       }else{
         dispatch(logout())
       }

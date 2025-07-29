@@ -18,9 +18,9 @@ describe('axios interceptors', () => {
     })
   })
 
-  it('토큰이 있을 때 Authorization 헤더 추가', async () => {
-    const token = 'test-token'
-    localStorage.getItem.mockReturnValue(token)
+  it('요청 헤더에 토큰 추가', async () => {
+    const accessToken = 'test-token'
+    localStorage.getItem.mockReturnValue(accessToken)
     
     // authApi 사용 (baseURL 문제 해결)
     const res = await authApi.getMe()
@@ -53,7 +53,7 @@ describe('axios interceptors', () => {
     }
   })
 
-  it('토큰 갱신 실패 시 에러', async () => {
+  it('refreshToken이 유효하지 않으면 에러', async () => {
     const refreshToken = 'invalid-refresh-token'
     localStorage.getItem.mockReturnValue(refreshToken)
     
@@ -65,8 +65,8 @@ describe('axios interceptors', () => {
   })
 
   it('성공적인 요청은 그대로 반환', async () => {
-    const token = 'test-token'
-    localStorage.getItem.mockReturnValue(token)
+    const accessToken = 'test-token'
+    localStorage.getItem.mockReturnValue(accessToken)
     
     const res = await authApi.getMe()
     expect(res.data.isSuccess).toBe(true)
@@ -93,18 +93,18 @@ describe('axios interceptors', () => {
   })
 
   it('토큰 갱신 후 원래 요청 재시도', async () => {
-    const originalToken = 'old-token'
+    const originalAccessToken = 'old-token'
     const refreshToken = 'mock-refresh-token'
-    const newToken = 'new-mock-access-token'
+    const newAccessToken = 'new-mock-access-token'
     
     localStorage.getItem
-      .mockReturnValueOnce(originalToken) // 첫 번째 요청
+      .mockReturnValueOnce(originalAccessToken) // 첫 번째 요청
       .mockReturnValueOnce(refreshToken)  // 토큰 갱신
-      .mockReturnValueOnce(newToken)      // 재시도 요청
+      .mockReturnValueOnce(newAccessToken)      // 재시도 요청
     
     // 먼저 토큰 갱신
     const refreshRes = await authApi.refresh()
-    expect(refreshRes.data.result.accessToken).toBe(newToken)
+    expect(refreshRes.data.result.accessToken).toBe(newAccessToken)
     
     // 그 다음 다른 API 호출
     const res = await authApi.getMe()
@@ -112,8 +112,8 @@ describe('axios interceptors', () => {
   })
 
   it('이미 재시도한 요청은 다시 시도하지 않음', async () => {
-    const token = 'test-token'
-    localStorage.getItem.mockReturnValue(token)
+    const accessToken = 'test-token'
+    localStorage.getItem.mockReturnValue(accessToken)
     
     // 정상 요청
     const res1 = await authApi.getMe()
@@ -125,8 +125,8 @@ describe('axios interceptors', () => {
   })
 
   it('401이 아닌 에러는 토큰 갱신 없이 그대로 전달', async () => {
-    const token = 'test-token'
-    localStorage.getItem.mockReturnValue(token)
+    const accessToken = 'test-token'
+    localStorage.getItem.mockReturnValue(accessToken)
     
     try {
       // 잘못된 데이터로 register 시도 (400 에러)
