@@ -75,19 +75,8 @@ export const useAuth = () => {
       setIsLoading(false)
       return
     }
-    
-    checkLogin()
-  }, [isAuthenticated])
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    if (oauthParams) {
-      handleOAuthCallback(oauthParams)
-    }
-  }, [oauthParams, isAuthenticated])
+    oauthParams ? handleOAuthCallback(oauthParams) : checkLogin();
+  }, [oauthParams,isAuthenticated])
 
   return { isLoading }
 } 
