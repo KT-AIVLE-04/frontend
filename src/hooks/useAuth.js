@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useEffect, useMemo, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { authApi } from '../api/auth'
 import { login, logout, updateToken } from '../store/authSlice'
@@ -8,16 +8,19 @@ export const useAuth = () => {
   const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(true)
   const location = useLocation()
+  
+  // 현재 인증 상태 확인
+  const { isAuthenticated } = useSelector(state => state.auth)
 
   const checkLogin = async () => {
+    console.log('checkLogin')
     const refreshToken = localStorage.getItem('refreshToken')
-    if (!refreshToken) {
-      setIsLoading(false)
-      return
-    }
+  
     try {
+      if(!refreshToken) throw new Error('refreshToken not found');
+
       const response = await authApi.refresh(refreshToken)
-      console.log(response)
+      
       if (response.data?.result?.accessToken) {
         dispatch(updateToken({ accessToken: response.data.result.accessToken }))
       } else {
@@ -25,38 +28,66 @@ export const useAuth = () => {
       }
     } catch (error) {
       // 리프레시 실패는 일반적인 상황일 수 있으므로 콘솔 에러는 출력하지 않음
+      dispatch(logout())
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleOAuthCallback = () => {
+  // OAuth 파라미터 추출
+  const oauthParams = useMemo(() => {
     const urlParams = new URLSearchParams(location.search)
-    console.log(urlParams)
     const accessToken = urlParams.get('accessToken')
     const refreshToken = urlParams.get('refreshToken')
     const error = urlParams.get('error')
-
+    
     if (error) {
       console.error('OAuth 인증 실패:', error)
-      return
+      return null
     }
-    console.log(accessToken, refreshToken)
-
+    
     if (accessToken && refreshToken) {
-      // OAuth 토큰으로 로그인 처리
+      return { accessToken, refreshToken }
+    }
+    
+    return null
+  }, [location.search])
+
+  const handleOAuthCallback = ({ accessToken, refreshToken }) => {
+    try {
       dispatch(login({ accessToken, refreshToken }))
       
       // URL에서 토큰 파라미터 제거
       const newUrl = window.location.pathname
       window.history.replaceState({}, document.title, newUrl)
+    } catch (error) {
+      console.error('OAuth 로그인 처리 실패:', error)
+      // 사용자에게 에러 알림 (토스트나 알림 컴포넌트 사용)
+      alert('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   useEffect(() => {
+    // 이미 로그인 상태면 불필요한 API 호출 방지
+    if (isAuthenticated) {
+      setIsLoading(false)
+      return
+    }
+    
     checkLogin()
-    handleOAuthCallback()
-  }, [])
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsLoading(false)
+      return
+    }
+    if (oauthParams) {
+      handleOAuthCallback(oauthParams)
+    }
+  }, [oauthParams, isAuthenticated])
 
   return { isLoading }
 } 
