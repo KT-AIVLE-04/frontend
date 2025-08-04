@@ -48,7 +48,7 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     // 401 에러이고 아직 재시도하지 않은 요청인 경우
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/refresh')) {
       
       // 이미 토큰 갱신 중인 경우, 대기열에 추가
       if (isRefreshing) {
