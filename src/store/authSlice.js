@@ -34,6 +34,7 @@ const authSlice = createSlice({
       console.log('updateToken', action.payload)
       const {accessToken} = action.payload
       state.accessToken = accessToken
+      state.isAuthenticated = true
     }
   }
 })

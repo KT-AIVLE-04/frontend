@@ -13,13 +13,14 @@ export const useAuth = () => {
   const { isAuthenticated } = useSelector(state => state.auth)
 
   const checkLogin = async () => {
-    console.log('checkLogin')
-    const refreshToken = localStorage.getItem('refreshToken')
-  
+    console.log('checkLogiffn')
     try {
+      const refreshToken = localStorage.getItem('refreshToken')
       if(!refreshToken) throw new Error('refreshToken not found');
 
       const response = await authApi.refresh(refreshToken)
+      console.log('refreshToken 갱신 성공', response)
+
       
       if (response.data?.result?.accessToken) {
         dispatch(updateToken({ accessToken: response.data.result.accessToken }))
@@ -28,6 +29,7 @@ export const useAuth = () => {
       }
     } catch (error) {
       // 리프레시 실패는 일반적인 상황일 수 있으므로 콘솔 에러는 출력하지 않음
+      console.log('refreshToken 갱신 실패', error)
       dispatch(logout())
     } finally {
       setIsLoading(false)
@@ -75,7 +77,7 @@ export const useAuth = () => {
       return
     }
     oauthParams ? handleOAuthCallback(oauthParams) : checkLogin();
-  }, [oauthParams,isAuthenticated])
+  }, [oauthParams])
 
   return { isLoading }
 } 
