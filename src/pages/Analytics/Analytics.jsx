@@ -1,39 +1,8 @@
-import { ArrowUp, BarChart3, Calendar, Frown, Meh, MessageSquare, Share2, Smile, ThumbsUp, TrendingUp, Users } from 'lucide-react';
+import { ArrowUp, Calendar, TrendingUp, Users } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { analyticsApi } from '../api/analytics';
-import { ErrorPage, LoadingSpinner, ProgressBar, StatCard } from '../components';
-
-// 통계 카드 생성자 함수
-const createStatCard = (type, value, change) => {
-  const config = {
-    views: {
-      title: '총 조회수',
-      icon: <BarChart3 size={20} className="text-blue-600" />
-    },
-    likes: {
-      title: '좋아요',
-      icon: <ThumbsUp size={20} className="text-green-600" />
-    },
-    comments: {
-      title: '댓글',
-      icon: <MessageSquare size={20} className="text-purple-600" />
-    },
-    shares: {
-      title: '공유',
-      icon: <Share2 size={20} className="text-orange-600" />
-    }
-  };
-
-  const trend = change.startsWith('+') ? 'up' : change.startsWith('-') ? 'down' : 'neutral';
-  
-  return {
-    title: config[type]?.title || type,
-    value: value?.toLocaleString() || '0',
-    change: change || '+0%',
-    trend: trend,
-    icon: config[type]?.icon || <BarChart3 size={20} className="text-gray-600" />
-  };
-};
+import { analyticsApi } from '../../api/analytics';
+import { ErrorPage, LoadingSpinner, StatCard } from '../../components';
+import { CommentSentiment, createStatCard, DateRangeSelector } from './components';
 
 export function Analytics() {
   const [dateRange, setDateRange] = useState('last7');
@@ -51,30 +20,24 @@ export function Analytics() {
         setLoading(true);
         setError(null);
         
-        // 개요 통계 데이터
         const statsResponse = await analyticsApi.getDashboardStats(dateRange);
         const statsData = statsResponse.data?.result;
         
-        // 생성자 함수를 사용해서 통계 카드 생성
         const stats = statsData.map(stat => 
           createStatCard(stat.type, stat.value, stat.change)
         );
         
         setOverviewStats(stats);
 
-        // 콘텐츠 성과 데이터
         const performanceResponse = await analyticsApi.getContentPerformance({ dateRange });
         setContentPerformance(performanceResponse.data?.result || []);
 
-        // 댓글 감성 분석 데이터
         const sentimentResponse = await analyticsApi.getCommentSentiment({ dateRange });
         setCommentSentiment(sentimentResponse.data?.result || []);
 
-        // 팔로워 트렌드 데이터
         const trendResponse = await analyticsApi.getFollowerTrend({ dateRange });
         setFollowerTrend(trendResponse.data?.result || {});
 
-        // 최적 게시 시간 데이터
         const postingTimeResponse = await analyticsApi.getOptimalPostingTime();
         setOptimalPostingTime(postingTimeResponse.data?.result || {});
 
@@ -101,22 +64,9 @@ export function Analytics() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">성과 분석</h1>
-        <div className="flex items-center">
-          <span className="text-sm text-gray-500 mr-2">기간:</span>
-          <select 
-            value={dateRange} 
-            onChange={(e) => setDateRange(e.target.value)}
-            className="pl-3 pr-8 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="last7">최근 7일</option>
-            <option value="last30">최근 30일</option>
-            <option value="last90">최근 90일</option>
-            <option value="custom">사용자 지정</option>
-          </select>
-        </div>
+        <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
       </div>
 
-      {/* 개요 통계 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {overviewStats.map((stat, index) => (
           <StatCard
@@ -131,57 +81,8 @@ export function Analytics() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* 댓글 감성 분석 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4 flex items-center">
-            <MessageSquare size={18} className="mr-2 text-purple-600" />
-            댓글 감성 분석
-          </h2>
-          <div className="space-y-4">
-            {commentSentiment.map((item) => (
-              <div key={item.sentiment}>
-                <div className="flex justify-between items-center mb-1">
-                  <div className="flex items-center">
-                    {item.sentiment === 'positive' && <Smile size={16} className="text-green-500 mr-2" />}
-                    {item.sentiment === 'neutral' && <Meh size={16} className="text-gray-500 mr-2" />}
-                    {item.sentiment === 'negative' && <Frown size={16} className="text-red-500 mr-2" />}
-                    <span className="text-sm font-medium capitalize">
-                      {item.sentiment === 'positive' && '긍정적'}
-                      {item.sentiment === 'neutral' && '중립적'}
-                      {item.sentiment === 'negative' && '부정적'}
-                    </span>
-                  </div>
-                  <div className="text-sm font-medium">
-                    {item.count} ({item.percentage}%)
-                  </div>
-                </div>
-                <ProgressBar 
-                  percentage={item.percentage}
-                  color={item.sentiment === 'positive' ? 'green' : item.sentiment === 'neutral' ? 'gray' : 'red'}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <h3 className="text-sm font-medium mb-2">주요 키워드</h3>
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                맛있어요 (45)
-              </span>
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                좋아요 (32)
-              </span>
-              <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
-                보통 (18)
-              </span>
-              <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
-                비싸요 (12)
-              </span>
-            </div>
-          </div>
-        </div>
+        <CommentSentiment commentSentiment={commentSentiment} />
 
-        {/* 팔로워 트렌드 */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Users size={18} className="mr-2 text-blue-600" />
@@ -229,7 +130,6 @@ export function Analytics() {
           </div>
         </div>
 
-        {/* 최적 게시 시간 */}
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Calendar size={18} className="mr-2 text-orange-600" />
@@ -299,7 +199,6 @@ export function Analytics() {
         </div>
       </div>
 
-      {/* 콘텐츠 성과 */}
       <div>
         <h2 className="text-lg font-semibold mb-4 flex items-center">
           <TrendingUp size={18} className="mr-2 text-green-600" />

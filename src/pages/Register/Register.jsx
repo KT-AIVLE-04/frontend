@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { authApi } from '../api/auth';
-import { Button, FormField } from '../components';
+import { authApi } from '../../api/auth';
+import { Button, FormField } from '../../components';
+import { ageOptions } from './components';
 
 export function Register({ onRegister, onLoginClick }) {
   const [formData, setFormData] = useState({
@@ -21,7 +22,6 @@ export function Register({ onRegister, onLoginClick }) {
     try {
       await authApi.register(formData);
       
-      // 회원가입 성공 시 로그인 페이지로 이동
       if (onRegister) {
         onRegister();
       }
@@ -40,7 +40,6 @@ export function Register({ onRegister, onLoginClick }) {
       ...prev,
       [name]: value
     }));
-    // 입력 시 에러 메시지 초기화
     if (error) {
       setError('');
     }
@@ -90,13 +89,7 @@ export function Register({ onRegister, onLoginClick }) {
           onChange={handleInputChange}
           placeholder="연령대를 선택하세요"
           required
-          options={[
-            { value: "10s", label: "10대" },
-            { value: "20s", label: "20대" },
-            { value: "30s", label: "30대" },
-            { value: "40s", label: "40대" },
-            { value: "50s", label: "50대 이상" }
-          ]}
+          options={ageOptions}
         />
         <FormField
           label="비밀번호"
