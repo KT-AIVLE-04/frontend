@@ -1,8 +1,9 @@
-import { ArrowRight, CheckCircle, Clock, Film, Image as ImageIcon, Sparkles, Upload } from 'lucide-react';
+import { ArrowRight, CheckCircle, Clock, Sparkles, Upload } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { contentApi } from '../api/content';
-import { storeApi } from '../api/store';
-import { ErrorPage } from '../components/ErrorPage';
+import { contentApi } from '../../api/content';
+import { storeApi } from '../../api/store';
+import { ErrorPage } from '../../components/ErrorPage';
+import { ContentTypeSelector } from './components';
 
 export function ContentCreation() {
   const [activeStep, setActiveStep] = useState(1);
@@ -62,7 +63,6 @@ export function ContentCreation() {
       const status = response.data;
       setContentStatus(status);
 
-      // 완료되면 다음 단계로
       if (status.status === 'completed') {
         setTimeout(() => {
           setActiveStep(1);
@@ -115,41 +115,17 @@ export function ContentCreation() {
     <div>
       <h1 className="text-2xl font-bold mb-6">콘텐츠 제작</h1>
       
-      {/* 콘텐츠 유형 선택 */}
       {!contentType && (
         <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
           <h2 className="text-xl font-semibold mb-8">
             제작할 콘텐츠 유형을 선택하세요
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <button 
-              onClick={() => setContentType('video')}
-              className="flex flex-col items-center justify-center p-8 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-            >
-              <Film size={48} className="text-blue-600 mb-4" />
-              <h3 className="text-lg font-medium">숏폼/영상</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                15-30초 길이의 숏폼 콘텐츠를 AI로 제작합니다
-              </p>
-            </button>
-            <button 
-              onClick={() => setContentType('image')}
-              className="flex flex-col items-center justify-center p-8 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-            >
-              <ImageIcon size={48} className="text-blue-600 mb-4" />
-              <h3 className="text-lg font-medium">이미지</h3>
-              <p className="text-sm text-gray-500 mt-2">
-                SNS 게시용 이미지를 AI로 제작합니다
-              </p>
-            </button>
-          </div>
+          <ContentTypeSelector contentType={contentType} setContentType={setContentType} />
         </div>
       )}
 
-      {/* 숏폼/영상 제작 프로세스 */}
       {contentType === 'video' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {/* 단계 표시 */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center">
               <div className={`flex items-center ${activeStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
@@ -175,7 +151,6 @@ export function ContentCreation() {
             </div>
           </div>
 
-          {/* 단계별 내용 */}
           <div className="p-6">
             {activeStep === 1 && (
               <div>
@@ -358,7 +333,6 @@ export function ContentCreation() {
         </div>
       )}
 
-      {/* 이미지 제작 프로세스 - 간략하게 표시 */}
       {contentType === 'image' && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden p-6">
           <h2 className="text-lg font-semibold mb-4">이미지 생성</h2>

@@ -1,13 +1,15 @@
 import { useSelector } from 'react-redux'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { Analytics } from '../pages/Analytics'
-import { ContentCreation } from '../pages/ContentCreation'
-import { ContentManagement } from '../pages/ContentManagement'
-import { Dashboard } from '../pages/Dashboard'
-import { Login } from '../pages/Login'
-import { Register } from '../pages/Register'
-import { SnsIntegration } from '../pages/SnsIntegration'
-import { StoreManagement } from '../pages/StoreManagement'
+import {
+  Analytics,
+  ContentCreation,
+  ContentManagement,
+  Dashboard,
+  Login,
+  Register,
+  SnsIntegration,
+  StoreManagement
+} from '../pages'
 import { MainLayout } from './MainLayout'
 import { ROUTES } from './routes'
 

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '../api/auth';
-import { Button, FormField } from '../components';
-import { ROUTES } from '../routes/routes';
-import { login } from '../store/authSlice';
+import { authApi } from '../../api/auth';
+import { Button, FormField } from '../../components';
+import { ROUTES } from '../../routes/routes';
+import { login } from '../../store/authSlice';
+import { GoogleIcon, KakaoIcon } from './components';
 
 export function Login() {
   const [formData, setFormData] = useState({  
@@ -22,15 +23,10 @@ export function Login() {
     setError('');
 
     try {
-      const response = await authApi.login(formData);
-      const { result } = response.data;
-      if (result) {
-        const { token, refreshToken } = result;
-        dispatch(login({ token, refreshToken }));
-        navigate('/');
-      } else {
-        throw new Error('로그인 실패');
-      }
+      const result = await authApi.login(formData);
+      const { accessToken, refreshToken } = result;
+      dispatch(login({ accessToken, refreshToken }));
+      navigate('/');
     } catch (error) {
       console.error('로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
@@ -46,7 +42,6 @@ export function Login() {
       ...prev,
       [name]: value
     }));
-    // 입력 시 에러 메시지 초기화
     if (error) {
       setError('');
     }
@@ -55,6 +50,34 @@ export function Login() {
   const onRegisterClick = () => {
     navigate(ROUTES.REGISTER);
   }
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      window.location.href = 'http://localhost:8080/api/auth/oauth2/authorization/google';
+    } catch (error) {
+      console.error('구글 로그인 실패:', error);
+      const errorMessage = error.response?.data?.message || '구글 로그인에 실패했습니다.';
+      setError(errorMessage);
+      setLoading(false);
+    }
+  };
+
+  const handleKakaoLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      window.location.href = 'http://localhost:8080/api/auth/oauth2/authorization/kakao';
+    } catch (error) {
+      console.error('카카오 로그인 실패:', error);
+      const errorMessage = error.response?.data?.message || '카카오 로그인에 실패했습니다.';
+      setError(errorMessage);
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
@@ -111,13 +134,26 @@ export function Login() {
             <span className="px-2 bg-white text-gray-500">또는</span>
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-1 gap-3">
+        <div className="mt-6 grid grid-cols-2 gap-3">
           <Button 
             type="button" 
             variant="outline"
             className="w-full"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            icon={GoogleIcon}
           >
-            소셜 계정으로 로그인
+            {loading ? '구글 로그인 중...' : '구글'}
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
+            onClick={handleKakaoLogin}
+            disabled={loading}
+            icon={KakaoIcon}
+          >
+            {loading ? '카카오 로그인 중...' : '카카오'}
           </Button>
         </div>
       </div>

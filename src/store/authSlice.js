@@ -1,42 +1,41 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
 const getRefreshToken = () => {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    return localStorage.getItem('refreshToken');
-  }
-  return null;
+  // localStorage에서 refreshToken 가져오기
+  return localStorage.getItem('refreshToken');
 };
 
 const initialState = {
-  token: null,
-  refreshToken: getRefreshToken(),
   isAuthenticated: false,
-};
+  user: null,
+  accessToken: null,
+  refreshToken: getRefreshToken(),
+}
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
     login: (state, action) => {
-      const {token, refreshToken} = action.payload
-      state.token = token
-      state.refreshToken = refreshToken
+      const {accessToken, refreshToken} = action.payload
       state.isAuthenticated = true
+      state.accessToken = accessToken
+      state.refreshToken = refreshToken
       localStorage.setItem('refreshToken', refreshToken)
     },
     logout: (state) => {
-      state.token = null
-      state.refreshToken = null
       state.isAuthenticated = false
+      state.user = null
+      state.accessToken = null
+      state.refreshToken = null
       localStorage.removeItem('refreshToken')
     },
     updateToken: (state, action) => {
       console.log('updateToken', action.payload)
-      const {token} = action.payload
-      state.token = token
-      state.isAuthenticated = true
-    },
-  },
+      const {accessToken} = action.payload
+      state.accessToken = accessToken
+    }
+  }
 })
 
 export const {login, logout, updateToken} = authSlice.actions
