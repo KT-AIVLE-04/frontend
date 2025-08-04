@@ -34,32 +34,31 @@ export const useAuth = () => {
     }
   }
 
-  // OAuth 파라미터 추출
+  // 쿠키에서 토큰 추출 (oauth-success 경로에서만)
   const oauthParams = useMemo(() => {
-    const urlParams = new URLSearchParams(location.search)
-    const accessToken = urlParams.get('accessToken')
-    const refreshToken = urlParams.get('refreshToken')
-    const error = urlParams.get('error')
-    
-    if (error) {
-      console.error('OAuth 인증 실패:', error)
+    if (location.pathname !== '/oauth-success') {
       return null
     }
+    
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=')
+      acc[key] = value
+      return acc
+    }, {})
+    
+    const accessToken = cookies.accessToken
+    const refreshToken = cookies.refreshToken
     
     if (accessToken && refreshToken) {
       return { accessToken, refreshToken }
     }
     
     return null
-  }, [location.search])
+  }, [location.pathname])
 
   const handleOAuthCallback = ({ accessToken, refreshToken }) => {
     try {
       dispatch(login({ accessToken, refreshToken }))
-      
-      // URL에서 토큰 파라미터 제거
-      const newUrl = window.location.pathname
-      window.history.replaceState({}, document.title, newUrl)
     } catch (error) {
       console.error('OAuth 로그인 처리 실패:', error)
       // 사용자에게 에러 알림 (토스트나 알림 컴포넌트 사용)
