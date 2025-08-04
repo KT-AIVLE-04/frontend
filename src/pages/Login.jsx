@@ -22,6 +22,19 @@ const GoogleIcon = ({ size = 16, className = "" }) => (
   </svg>
 );
 
+// 카카오 아이콘 컴포넌트
+const KakaoIcon = ({ size = 16, className = "" }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    className={className}
+    fill="currentColor"
+  >
+    <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-5.183-3.668-5.183-6.866C1.5 6.665 6.201 3 12 3z"/>
+  </svg>
+);
+
 export function Login() {
   const [formData, setFormData] = useState({  
     email: '',
@@ -72,20 +85,24 @@ export function Login() {
     setError('');
 
     try {
-      window.location.href = 'http://localhost:8080/api/oauth2/authorization/google';
-      // // 백엔드에서 302 리다이렉트 응답을 보냄
-      // const response = await authApi.googleOAuth();
-      // console.log(response);
-      
-      // // 302 리다이렉트 응답의 Location 헤더에서 URL 추출
-      // if (response.headers && response.headers.location) {
-      //   window.location.href = response.headers.location;
-      // } else {
-      //   throw new Error('리다이렉트 URL을 찾을 수 없습니다.');
-      // }
+      window.location.href = 'http://localhost:8080/api/auth/oauth2/authorization/google';
     } catch (error) {
       console.error('구글 로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '구글 로그인에 실패했습니다.';
+      setError(errorMessage);
+      setLoading(false);
+    }
+  };
+
+  const handleKakaoLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      window.location.href = 'http://localhost:8080/api/auth/oauth2/authorization/kakao';
+    } catch (error) {
+      console.error('카카오 로그인 실패:', error);
+      const errorMessage = error.response?.data?.message || '카카오 로그인에 실패했습니다.';
       setError(errorMessage);
       setLoading(false);
     }
@@ -146,7 +163,7 @@ export function Login() {
             <span className="px-2 bg-white text-gray-500">또는</span>
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-1 gap-3">
+        <div className="mt-6 grid grid-cols-2 gap-3">
           <Button 
             type="button" 
             variant="outline"
@@ -155,7 +172,17 @@ export function Login() {
             disabled={loading}
             icon={GoogleIcon}
           >
-            {loading ? '구글 로그인 중...' : '구글 계정으로 로그인'}
+            {loading ? '구글 로그인 중...' : '구글'}
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline"
+            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
+            onClick={handleKakaoLogin}
+            disabled={loading}
+            icon={KakaoIcon}
+          >
+            {loading ? '카카오 로그인 중...' : '카카오'}
           </Button>
         </div>
       </div>
