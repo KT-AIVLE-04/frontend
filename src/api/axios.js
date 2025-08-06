@@ -4,10 +4,12 @@ import { store } from '../store/store'
 import { authApi } from './auth'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: false, // CORS 에러 해결
+  timeout: 10000
 })
 
 // 토큰 갱신 중인지 확인하는 플래그
@@ -48,7 +50,7 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     // 401 에러이고 아직 재시도하지 않은 요청인 경우
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/refresh')) {
       
       // 이미 토큰 갱신 중인 경우, 대기열에 추가
       if (isRefreshing) {

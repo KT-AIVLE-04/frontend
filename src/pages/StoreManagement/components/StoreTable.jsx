@@ -1,7 +1,7 @@
 import { Pencil, Store, Trash2 } from 'lucide-react';
-import { DataTable } from '../../../components';
+import { DataTable, IconButton } from '../../../components';
 
-export const StoreTable = ({ stores, handleDelete }) => {
+export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
   const columns = [
     {
       key: 'name',
@@ -20,23 +20,36 @@ export const StoreTable = ({ stores, handleDelete }) => {
       )
     },
     { key: 'address', header: '주소' },
-    { key: 'phone', header: '연락처' },
-    { key: 'category', header: '업종' },
+    { key: 'phoneNumber', header: '연락처' },
+    { 
+      key: 'industry', 
+      header: '업종',
+      render: (value, store) => store.getIndustryLabel()
+    },
+    { 
+      key: 'businessNumber', 
+      header: '사업자등록번호',
+      render: (value, store) => store.hasBusinessNumber() ? value : '-'
+    },
     {
       key: 'actions',
       header: '관리',
-      align: 'right',
       render: (value, store) => (
-        <div>
-          <button className="text-blue-600 hover:text-blue-900 mr-3">
-            <Pencil size={16} />
-          </button>
-          <button 
+        <div className="flex items-center justify-center space-x-3">
+          <IconButton
+            icon={Pencil}
+            variant="primary"
+            size="medium"
+            onClick={() => handleEdit(store)}
+            title="수정"
+          />
+          <IconButton
+            icon={Trash2}
+            variant="danger"
+            size="medium"
             onClick={() => handleDelete(store.id)}
-            className="text-red-600 hover:text-red-900"
-          >
-            <Trash2 size={16} />
-          </button>
+            title="삭제"
+          />
         </div>
       )
     }

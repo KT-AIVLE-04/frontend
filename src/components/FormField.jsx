@@ -10,11 +10,13 @@ export function FormField({
   required = false,
   error,
   options = [],
-  className = ""
+  className = "",
+  readOnly = false,
+  step
 }) {
   const inputClasses = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
     error ? 'border-red-300' : 'border-gray-300'
-  }`;
+  } ${readOnly ? 'bg-gray-100 cursor-not-allowed' : ''}`;
 
   const renderInput = () => {
     switch (type) {
@@ -26,6 +28,7 @@ export function FormField({
             onChange={onChange}
             className={inputClasses}
             required={required}
+            disabled={readOnly}
           >
             <option value="">{placeholder}</option>
             {options.map((option) => (
@@ -46,6 +49,7 @@ export function FormField({
             required={required}
             rows={3}
             className={inputClasses}
+            readOnly={readOnly}
           />
         );
       
@@ -59,6 +63,8 @@ export function FormField({
             placeholder={placeholder}
             required={required}
             className={inputClasses}
+            readOnly={readOnly}
+            step={step}
           />
         );
     }

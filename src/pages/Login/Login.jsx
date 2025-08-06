@@ -7,6 +7,8 @@ import { ROUTES } from '../../routes/routes';
 import { login } from '../../store/authSlice';
 import { GoogleIcon, KakaoIcon } from './components';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+
 export function Login() {
   const [formData, setFormData] = useState({  
     email: '',
@@ -56,7 +58,7 @@ export function Login() {
     setError('');
 
     try {
-      window.location.href = 'http://localhost:8080/api/auth/oauth2/authorization/google';
+      window.location.href = API_BASE_URL+'/auth/google/login';
     } catch (error) {
       console.error('구글 로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '구글 로그인에 실패했습니다.';
@@ -70,7 +72,7 @@ export function Login() {
     setError('');
 
     try {
-      window.location.href = 'http://localhost:8080/api/auth/oauth2/authorization/kakao';
+      window.location.href = API_BASE_URL+'/auth/kakao/login';
     } catch (error) {
       console.error('카카오 로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '카카오 로그인에 실패했습니다.';
