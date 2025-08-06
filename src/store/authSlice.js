@@ -5,11 +5,17 @@ const getRefreshToken = () => {
   return localStorage.getItem('refreshToken');
 };
 
+const getSelectedStoreId = () => {
+  // localStorage에서 selectedStoreId 가져오기
+  return localStorage.getItem('selectedStoreId');
+};
+
 const initialState = {
   isAuthenticated: false,
   user: null,
   accessToken: null,
   refreshToken: getRefreshToken(),
+  selectedStoreId: getSelectedStoreId(),
 }
 
 const authSlice = createSlice({
@@ -28,7 +34,9 @@ const authSlice = createSlice({
       state.user = null
       state.accessToken = null
       state.refreshToken = null
+      state.selectedStoreId = null
       localStorage.removeItem('refreshToken')
+      localStorage.removeItem('selectedStoreId')
     },
     updateToken: (state, action) => {
       console.log('updateToken', action.payload)
@@ -38,9 +46,21 @@ const authSlice = createSlice({
       state.refreshToken = refreshToken
       localStorage.setItem('refreshToken', refreshToken)
       state.isAuthenticated = true
+    },
+    setSelectedStore: (state, action) => {
+      // Store 객체에서 ID만 저장
+      const store = action.payload;
+      state.selectedStoreId = store ? store.id : null;
+      
+      // localStorage에 저장
+      if (store) {
+        localStorage.setItem('selectedStoreId', store.id.toString());
+      } else {
+        localStorage.removeItem('selectedStoreId');
+      }
     }
   }
 })
 
-export const {login, logout, updateToken} = authSlice.actions
+export const {login, logout, updateToken, setSelectedStore} = authSlice.actions
 export default authSlice.reducer 

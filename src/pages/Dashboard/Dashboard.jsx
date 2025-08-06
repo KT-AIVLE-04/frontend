@@ -47,7 +47,7 @@ export function Dashboard() {
   }
 
   return (
-    <div>
+    <div className="flex-1 w-full">
       <h1 className="text-2xl font-bold mb-6">대시보드</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -63,15 +63,15 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">최근 활동</h2>
+        <div className="bg-white p-6 rounded-2xl border-2 border-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] lg:col-span-2">
+          <h2 className="text-xl font-black text-gray-800 mb-6">최근 활동</h2>
           <div className="space-y-4">
             {activities.length > 0 ? (
               activities.map((activity, index) => (
                 <ActivityItem key={index} activity={activity} />
               ))
             ) : (
-              <p className="text-gray-500 text-sm">최근 활동이 없습니다.</p>
+              <p className="text-gray-500 text-sm font-bold">최근 활동이 없습니다.</p>
             )}
           </div>
         </div>

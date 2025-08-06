@@ -37,7 +37,7 @@ export const ContentTypeSelector = ({ contentType, setContentType }) => {
               : 'border-gray-200 hover:border-gray-300 bg-white'
           }`}
         >
-          <div className="flex items-center mb-4">
+          <div className="flex justify-center mb-4">
             {type.icon}
             <h3 className="ml-3 text-lg font-semibold">{type.title}</h3>
           </div>

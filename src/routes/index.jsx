@@ -8,14 +8,40 @@ import {
   Login,
   Register,
   SnsIntegration,
-  StoreManagement
+  StoreManagement,
+  StoreSelection
 } from '../pages'
 import { MainLayout } from './MainLayout'
 import { ROUTES } from './routes'
 
 const ProtectedRoute = () => {
-  const {isAuthenticated} = useSelector((state) => state.auth)
-  return isAuthenticated ? <Outlet/> : <Navigate to={ROUTES.LOGIN} replace/>
+  const {isAuthenticated, selectedStoreId} = useSelector((state) => state.auth)
+  
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.LOGIN} replace/>
+  }
+  
+  // 매장이 선택되지 않았으면 매장 선택 화면으로
+  if (!selectedStoreId) {
+    return <Navigate to={ROUTES.STORE_SELECTION} replace/>
+  }
+  
+  return <Outlet/>
+}
+
+const StoreSelectionRoute = () => {
+  const {isAuthenticated, selectedStoreId} = useSelector((state) => state.auth)
+  
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.LOGIN} replace/>
+  }
+  
+  // 이미 매장이 선택되었으면 대시보드로
+  if (selectedStoreId) {
+    return <Navigate to={ROUTES.DASHBOARD} replace/>
+  }
+  
+  return <Outlet/>
 }
 
 const NotFoundRoute = () => {
@@ -36,6 +62,9 @@ function AppRoutes() {
         <Route path={ROUTES.LOGIN} element={<Login/>}/>
         <Route path={ROUTES.REGISTER} element={<Register/>}/>
       </Route>
+      <Route element={<StoreSelectionRoute/>}>
+        <Route path={ROUTES.STORE_SELECTION} element={<StoreSelection/>}/>
+      </Route>
       <Route element={<ProtectedRoute/>}>
         <Route element={<MainLayout/>}>
           <Route path={ROUTES.DASHBOARD} element={<Dashboard/>}/>
@@ -44,7 +73,7 @@ function AppRoutes() {
           <Route path={ROUTES.CONTENT_MANAGEMENT} element={<ContentManagement/>}/>
           <Route path={ROUTES.STORE_MANAGEMENT} element={<StoreManagement/>}/>
           <Route path={ROUTES.SNS_INTEGRATION} element={<SnsIntegration/>}/>
-          <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace/>}/>
+          <Route path="/" element={<Navigate to={ROUTES.STORE_SELECTION} replace/>}/>
         </Route>
       </Route>
       <Route path="*" element={<NotFoundRoute/>}/>

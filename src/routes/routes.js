@@ -6,7 +6,8 @@ export const ROUTES = {
   STORE_MANAGEMENT: '/store-management',
   SNS_INTEGRATION: '/sns-integration',
   LOGIN: '/login',
-  REGISTER: '/register'
+  REGISTER: '/register',
+  STORE_SELECTION: '/store-selection'
 }
 
 export const NAV_ITEMS = {

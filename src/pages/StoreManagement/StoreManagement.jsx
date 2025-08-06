@@ -1,8 +1,10 @@
 import { Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { Button, ErrorPage, LoadingSpinner } from '../../components';
 import { Store } from '../../models/Store';
+import { ROUTES } from '../../routes/routes';
 import { StoreForm, StoreTable } from './components';
 
 export function StoreManagement() {
@@ -12,6 +14,7 @@ export function StoreManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState(Store.createEmpty());
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchStores();
@@ -46,6 +49,7 @@ export function StoreManagement() {
         }
         await storeApi.updateStore(editingStore.id, updateRequest.toUpdateRequest());
         setEditingStore(null);
+        alert('매장 정보가 수정되었습니다.');
       } else {
         // 추가 모드
         const createRequest = new Store(formData);
@@ -55,11 +59,14 @@ export function StoreManagement() {
           return;
         }
         await storeApi.createStore(createRequest.toCreateRequest());
+        alert('새 매장이 추가되었습니다.');
       }
       
       setFormData(Store.createEmpty());
       setShowAddStore(false);
-      fetchStores();
+      
+      // 매장 선택 화면으로 이동
+      navigate(ROUTES.STORE_SELECTION);
     } catch (error) {
       console.error('매장 저장 실패:', error);
       alert('매장 저장에 실패했습니다.');
@@ -115,7 +122,7 @@ export function StoreManagement() {
   }
 
   return (
-    <div>
+    <div className="flex-1 w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">매장 관리</h1>
         <Button 

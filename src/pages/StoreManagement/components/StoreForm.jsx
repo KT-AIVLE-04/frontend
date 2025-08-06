@@ -1,5 +1,6 @@
 import { MapPin } from 'lucide-react';
 import { Button, FormField } from '../../../components';
+import { INDUSTRY_OPTIONS } from '../../../const/industries';
 
 export const StoreForm = ({ 
   showAddStore, 
@@ -11,24 +12,6 @@ export const StoreForm = ({
   editingStore,
   onCancel
 }) => {
-  const industryOptions = [
-    { value: "FOOD", label: "숙박 및 음식점업" },
-    { value: "RETAIL", label: "도매 및 소매업" },
-    { value: "MANUFACTURING", label: "제조업" },
-    { value: "CONSTRUCTION", label: "건설업" },
-    { value: "TRANSPORT", label: "운수 및 창고업" },
-    { value: "ICT", label: "정보통신업" },
-    { value: "FINANCE", label: "금융 및 보험업" },
-    { value: "REAL_ESTATE", label: "부동산업" },
-    { value: "PROFESSIONAL", label: "전문, 과학 및 기술 서비스업" },
-    { value: "BUSINESS", label: "사업시설관리 및 지원 서비스업" },
-    { value: "EDUCATION", label: "교육서비스업" },
-    { value: "HEALTH", label: "보건 및 사회복지 서비스업" },
-    { value: "CULTURE", label: "예술, 스포츠 및 여가" },
-    { value: "PERSONAL", label: "수리 및 기타 개인 서비스업" },
-    { value: "ETC", label: "기타" }
-  ];
-
   // 연락처 포맷팅 함수
   const formatContactNumber = (value) => {
     // 숫자만 추출
@@ -192,13 +175,14 @@ export const StoreForm = ({
           onChange={handleInputChange}
           placeholder="업종을 선택하세요"
           required
-          options={industryOptions}
+          options={INDUSTRY_OPTIONS}
         />
         <div className="flex justify-end space-x-3 pt-2">
           <Button 
             type="button" 
             variant="outline"
             onClick={onCancel}
+            className="!mr-2"
           >
             취소
           </Button>

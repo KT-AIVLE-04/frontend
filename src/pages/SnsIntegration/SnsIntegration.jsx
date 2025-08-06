@@ -84,7 +84,7 @@ export function SnsIntegration() {
   }
 
   return (
-    <div>
+    <div className="flex-1 w-full">
       <h1 className="text-2xl font-bold mb-6">SNS 연동 및 관리</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

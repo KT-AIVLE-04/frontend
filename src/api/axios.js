@@ -1,6 +1,6 @@
 import axios from 'axios'
+import { store } from '../store'
 import { logout, updateToken } from '../store/authSlice'
-import { store } from '../store/store'
 import { authApi } from './auth'
 
 const api = axios.create({

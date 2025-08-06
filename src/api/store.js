@@ -1,4 +1,3 @@
-import { Store } from '../models/Store';
 import api from './axios';
 
 const BASE_URL = '/stores'
@@ -11,7 +10,7 @@ export const storeApi = {
       ...response,
       data: {
         ...response.data,
-        result: Store.fromResponseArray(response.data?.result || [])
+        result: response.data?.result || [] // 순수한 객체 배열 반환
       }
     };
   },
@@ -23,7 +22,7 @@ export const storeApi = {
       ...response,
       data: {
         ...response.data,
-        result: Store.fromResponse(response.data?.result)
+        result: response.data?.result // 순수한 객체 반환
       }
     };
   },

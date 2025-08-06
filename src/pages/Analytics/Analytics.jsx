@@ -61,7 +61,7 @@ export function Analytics() {
   }
 
   return (
-    <div>
+    <div className="flex-1 w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">성과 분석</h1>
         <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />

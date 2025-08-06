@@ -1,9 +1,10 @@
 import { Provider } from 'react-redux'
 import { BrowserRouter as Router } from 'react-router-dom'
+import './App.css'
 import { LoadingSpinner } from './components'
 import { useAuth } from './hooks'
 import AppRoutes from './routes'
-import { store } from './store/store'
+import { store } from './store'
 
 function AuthProvider({ children }) {
   const { isLoading } = useAuth()

@@ -1,5 +1,6 @@
 import { Pencil, Store, Trash2 } from 'lucide-react';
 import { DataTable, IconButton } from '../../../components';
+import { Store as StoreModel } from '../../../models/Store';
 
 export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
   const columns = [
@@ -12,7 +13,7 @@ export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
             <Store size={18} className="text-blue-600" />
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">
+            <div className="text-m font-bold text-gray-900">
               {value}
             </div>
           </div>
@@ -24,12 +25,15 @@ export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
     { 
       key: 'industry', 
       header: '업종',
-      render: (value, store) => store.getIndustryLabel()
+      render: (value, store) => StoreModel.getIndustryLabel(store.industry)
     },
     { 
       key: 'businessNumber', 
       header: '사업자등록번호',
-      render: (value, store) => store.hasBusinessNumber() ? value : '-'
+      render: (value, store) => {
+        const hasBusinessNumber = store.businessNumber && store.businessNumber.trim() !== '';
+        return hasBusinessNumber ? value : '-';
+      }
     },
     {
       key: 'actions',

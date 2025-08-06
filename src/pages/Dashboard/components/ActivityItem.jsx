@@ -17,13 +17,13 @@ export const ActivityItem = ({ activity }) => {
   };
 
   return (
-    <div className="flex items-start border-b border-gray-100 pb-4 last:border-0">
-      <div className="mr-4">
+    <div className="flex items-start border-b-2 border-gray-200 pb-4 last:border-0">
+      <div className="mr-4 p-2 bg-gray-100 rounded-lg border-2 border-gray-300">
         {getActivityIcon(activity.type)}
       </div>
       <div>
-        <p className="text-sm">{activity.message}</p>
-        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+        <p className="text-sm font-bold text-gray-700">{activity.message}</p>
+        <p className="text-xs text-gray-500 mt-1 font-bold">{activity.time}</p>
       </div>
     </div>
   );
