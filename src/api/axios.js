@@ -4,10 +4,12 @@ import { store } from '../store/store'
 import { authApi } from './auth'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: false, // CORS 에러 해결
+  timeout: 10000
 })
 
 // 토큰 갱신 중인지 확인하는 플래그

@@ -21,10 +21,15 @@ export const useAuth = () => {
       const response = await authApi.refresh(refreshToken)
       console.log('refreshToken 갱신 성공', response)
 
-      
-      if (response.data?.result?.accessToken) {
-        dispatch(updateToken({ accessToken: response.data.result.accessToken }))
-      } else {
+      let isSuccess = false
+      if (response.data?.result) {
+        const {accessToken, refreshToken} = response.data.result
+        if(accessToken && refreshToken) {
+          dispatch(updateToken({ accessToken, refreshToken }))
+          isSuccess = true
+        } 
+      } 
+      if(!isSuccess) {
         dispatch(logout())
       }
     } catch (error) {

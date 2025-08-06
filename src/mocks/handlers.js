@@ -1,12 +1,14 @@
 import { http, HttpResponse } from 'msw';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 export const handlers = [
   // // 전역 딜레이 미들웨어
   // http.all('*', async () => {
   //   await delay(2000);
   // }),
   
-  http.post('/api/members/new', async ({request}) => {
+  http.post(`${API_BASE_URL}/api/auth/new`, async ({request}) => {
     const {email, password} = await request.json()
 
     if (!email || !password) {
@@ -24,7 +26,7 @@ export const handlers = [
   }),
 
   // 로그인
-  http.post('/api/members/login', async ({request}) => {
+  http.post(`${API_BASE_URL}/api/auth/login`, async ({request}) => {
     const {email, password} = await request.json()
 
     if (!email || !password) {
@@ -47,7 +49,7 @@ export const handlers = [
   }),
 
   // 로그아웃
-  http.post('/api/members/logout', () => {
+  http.post(`${API_BASE_URL}/api/auth/logout`, () => {
     return HttpResponse.json({
       isSuccess: true,
       message: '로그아웃되었습니다.',
@@ -56,7 +58,7 @@ export const handlers = [
   }),
 
   // 토큰 갱신
-  http.post('/api/members/refresh', () => {
+  http.post(`${API_BASE_URL}/api/auth/refresh`, () => {
     return HttpResponse.json({
       isSuccess: true,
       message: '토큰이 갱신되었습니다.',
@@ -68,7 +70,7 @@ export const handlers = [
   }),
 
   // 내 정보 조회
-  http.get('/api/members/me', () => {
+  http.get(`${API_BASE_URL}/api/auth/me`, () => {
     return HttpResponse.json({
       isSuccess: true,
       message: '성공입니다.',
@@ -80,8 +82,30 @@ export const handlers = [
     })
   }),
 
+  // OAuth2 구글 로그인
+  http.get(`${API_BASE_URL}/api/oauth2/authorization/google`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '구글 로그인 리다이렉트',
+      result: {
+        redirectUrl: 'https://accounts.google.com/oauth/authorize?client_id=mock&redirect_uri=http://localhost:3000/auth/google/callback'
+      }
+    })
+  }),
+
+  // OAuth2 카카오 로그인
+  http.get(`${API_BASE_URL}/api/oauth2/authorization/kakao`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '카카오 로그인 리다이렉트',
+      result: {
+        redirectUrl: 'https://kauth.kakao.com/oauth/authorize?client_id=mock&redirect_uri=http://localhost:3000/auth/kakao/callback'
+      }
+    })
+  }),
+
   // 게시글 목록 조회 (페이지네이션)
-  http.get('/api/articles', ({request}) => {
+  http.get(`${API_BASE_URL}/api/articles`, ({request}) => {
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page')) || 1
     const size = parseInt(url.searchParams.get('size')) || 10
@@ -123,7 +147,7 @@ export const handlers = [
   }),
 
   // 게시글 상세 조회
-  http.get('/api/articles/:articleId', ({params}) => {
+  http.get(`${API_BASE_URL}/api/articles/:articleId`, ({params}) => {
     if (!params.articleId) {
       return HttpResponse.json({
         isSuccess: false,
@@ -164,7 +188,7 @@ export const handlers = [
   }),
 
   // 게시글 생성
-  http.post('/api/articles', async ({request}) => {
+  http.post(`${API_BASE_URL}/api/articles`, async ({request}) => {
     const data = await request.json()
 
     if (!data.title || !data.content) {
@@ -192,7 +216,7 @@ export const handlers = [
   }),
 
   // 게시글 수정
-  http.put('/api/articles/:articleId', async ({params, request}) => {
+  http.put(`${API_BASE_URL}/api/articles/:articleId`, async ({params, request}) => {
     if (!params.articleId) {
       return HttpResponse.json({
         isSuccess: false,
@@ -222,7 +246,7 @@ export const handlers = [
   }),
 
   // 게시글 삭제
-  http.delete('/api/articles/:articleId', ({params}) => {
+  http.delete(`${API_BASE_URL}/api/articles/:articleId`, ({params}) => {
     if (!params.articleId) {
       return HttpResponse.json({
         isSuccess: false,
@@ -241,28 +265,40 @@ export const handlers = [
   // ===== 매장 관리 API =====
   
   // 매장 목록 조회
-  http.get('/api/stores', () => {
+  http.get(`${API_BASE_URL}/api/stores`, () => {
     const stores = [
       {
         id: 1,
+        userId: 1,
         name: '카페 달콤',
         address: '서울시 강남구 테헤란로 123',
-        phone: '02-1234-5678',
-        category: '카페/디저트'
+        phoneNumber: '02-1234-5678',
+        businessNumber: '123-45-67890',
+        latitude: 37.5665,
+        longitude: 126.9780,
+        industry: 'FOOD'
       },
       {
         id: 2,
+        userId: 1,
         name: '맛있는 분식',
         address: '서울시 마포구 홍대로 456',
-        phone: '02-2345-6789',
-        category: '분식'
+        phoneNumber: '02-2345-6789',
+        businessNumber: '234-56-78901',
+        latitude: 37.5565,
+        longitude: 126.9280,
+        industry: 'FOOD'
       },
       {
         id: 3,
+        userId: 1,
         name: '스타일 의류',
         address: '서울시 서초구 반포대로 789',
-        phone: '02-3456-7890',
-        category: '패션/의류'
+        phoneNumber: '02-3456-7890',
+        businessNumber: '345-67-89012',
+        latitude: 37.5465,
+        longitude: 126.9180,
+        industry: 'RETAIL'
       }
     ]
 
@@ -274,13 +310,13 @@ export const handlers = [
   }),
 
   // 매장 생성
-  http.post('/api/stores', async ({request}) => {
+  http.post(`${API_BASE_URL}/api/stores`, async ({request}) => {
     const data = await request.json()
     
-    if (!data.name || !data.address) {
+    if (!data.name || !data.address || !data.phoneNumber || !data.industry) {
       return HttpResponse.json({
         isSuccess: false,
-        message: '매장명과 주소를 입력해주세요.',
+        message: '매장명, 주소, 연락처, 업종을 입력해주세요.',
         result: null
       }, {status: 400})
     }
@@ -290,14 +326,15 @@ export const handlers = [
       message: '매장이 등록되었습니다.',
       result: {
         id: Math.floor(Math.random() * 1000) + 100,
+        userId: 1,
         ...data,
         createdAt: new Date().toISOString()
       }
     })
   }),
 
-  // 매장 수정
-  http.put('/api/stores/:storeId', async ({params, request}) => {
+  // 매장 수정 (PATCH 사용)
+  http.patch(`${API_BASE_URL}/api/stores/:storeId`, async ({params, request}) => {
     const data = await request.json()
     
     return HttpResponse.json({
@@ -305,6 +342,7 @@ export const handlers = [
       message: '매장 정보가 수정되었습니다.',
       result: {
         id: params.storeId,
+        userId: 1,
         ...data,
         updatedAt: new Date().toISOString()
       }
@@ -312,7 +350,7 @@ export const handlers = [
   }),
 
   // 매장 삭제
-  http.delete('/api/stores/:storeId', ({params}) => {
+  http.delete(`${API_BASE_URL}/api/stores/:storeId`, ({params}) => {
     return HttpResponse.json({
       isSuccess: true,
       message: '매장이 삭제되었습니다.',
@@ -323,7 +361,7 @@ export const handlers = [
   // ===== 분석 API =====
   
   // 대시보드 통계
-  http.get('/api/analytics/dashboard', ({request}) => {
+  http.get(`${API_BASE_URL}/api/analytics/dashboard`, ({request}) => {
     const url = new URL(request.url)
     const dateRange = url.searchParams.get('dateRange') || 'last7'
     
@@ -358,7 +396,7 @@ export const handlers = [
   }),
 
   // 콘텐츠 성과 분석
-  http.get('/api/analytics/content-performance', () => {
+  http.get(`${API_BASE_URL}/api/analytics/content-performance`, () => {
     const performance = [
       {
         id: 1,
@@ -388,7 +426,7 @@ export const handlers = [
   }),
 
   // 댓글 감성 분석
-  http.get('/api/analytics/comment-sentiment', () => {
+  http.get(`${API_BASE_URL}/api/analytics/comment-sentiment`, () => {
     const sentiment = [
       {
         sentiment: 'positive',
@@ -415,7 +453,7 @@ export const handlers = [
   }),
 
   // 팔로워 트렌드
-  http.get('/api/analytics/follower-trend', () => {
+  http.get(`${API_BASE_URL}/api/analytics/follower-trend`, () => {
     const trend = {
       totalFollowers: 2145,
       newFollowers: 156,
@@ -432,7 +470,7 @@ export const handlers = [
   }),
 
   // 최적 게시 시간
-  http.get('/api/analytics/optimal-posting-time', () => {
+  http.get(`${API_BASE_URL}/api/analytics/optimal-posting-time`, () => {
     const optimalTimes = {
       instagram: ['18-20시', '12-14시', '21-23시'],
       facebook: ['10-12시', '15-17시', '19-21시'],
@@ -449,7 +487,7 @@ export const handlers = [
   // ===== 콘텐츠 API =====
   
   // 콘텐츠 목록 조회
-  http.get('/api/content', ({request}) => {
+  http.get(`${API_BASE_URL}/api/content`, ({request}) => {
     const url = new URL(request.url)
     const type = url.searchParams.get('type') || 'videos'
     
@@ -484,7 +522,7 @@ export const handlers = [
   }),
 
   // 콘텐츠 생성 (AI)
-  http.post('/api/content', async ({request}) => {
+  http.post(`${API_BASE_URL}/api/content`, async ({request}) => {
     const data = await request.json()
     
     return HttpResponse.json({
@@ -499,7 +537,7 @@ export const handlers = [
   }),
 
   // 콘텐츠 생성 상태 확인
-  http.get('/api/content/:contentId/status', ({params}) => {
+  http.get(`${API_BASE_URL}/api/content/:contentId/status`, ({params}) => {
     const statuses = ['processing', 'completed', 'failed']
     const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
     
@@ -515,7 +553,7 @@ export const handlers = [
   }),
 
   // 시나리오 목록 조회
-  http.get('/api/content/scenarios', () => {
+  http.get(`${API_BASE_URL}/api/content/scenarios`, () => {
     const scenarios = [
       {
         id: 1,
@@ -547,7 +585,7 @@ export const handlers = [
   // ===== SNS API =====
   
   // 연동된 SNS 계정 목록
-  http.get('/api/sns/accounts', () => {
+  http.get(`${API_BASE_URL}/api/sns/accounts`, () => {
     const accounts = [
       {
         type: 'instagram',
@@ -583,7 +621,7 @@ export const handlers = [
   }),
 
   // SNS 계정 연결
-  http.post('/api/sns/accounts/:platform', async ({params, request}) => {
+  http.post(`${API_BASE_URL}/api/sns/accounts/:platform`, async ({params, request}) => {
     const data = await request.json()
     
     return HttpResponse.json({
@@ -598,7 +636,7 @@ export const handlers = [
   }),
 
   // 예약 게시물 목록
-  http.get('/api/sns/scheduled-posts', () => {
+  http.get(`${API_BASE_URL}/api/sns/scheduled-posts`, () => {
     const posts = [
       {
         id: 1,
@@ -624,7 +662,7 @@ export const handlers = [
   }),
 
   // 예약 게시물 생성
-  http.post('/api/sns/scheduled-posts', async ({request}) => {
+  http.post(`${API_BASE_URL}/api/sns/scheduled-posts`, async ({request}) => {
     const data = await request.json()
     
     return HttpResponse.json({
@@ -639,7 +677,7 @@ export const handlers = [
   }),
 
   // SNS 최적화 제안
-  http.get('/api/sns/suggestions', () => {
+  http.get(`${API_BASE_URL}/api/sns/suggestions`, () => {
     const suggestions = [
       {
         id: 1,
@@ -663,7 +701,7 @@ export const handlers = [
   }),
 
   // 해시태그 추천
-  http.get('/api/sns/hashtags', ({request}) => {
+  http.get(`${API_BASE_URL}/api/sns/hashtags`, ({request}) => {
     const url = new URL(request.url)
     const keyword = url.searchParams.get('keyword') || ''
     
