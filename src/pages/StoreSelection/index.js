@@ -1,1 +1,0 @@
-export { StoreSelection } from './StoreSelection';

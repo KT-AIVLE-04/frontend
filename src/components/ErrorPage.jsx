@@ -1,6 +1,7 @@
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../routes/routes';
 import { Container } from './Container';
 
 export function ErrorPage({ 
@@ -16,7 +17,7 @@ export function ErrorPage({
   };
 
   const handleGoHome = () => {
-    navigate('/dashboard');
+    navigate(ROUTES.DASHBOARD.route);
   };
 
   return (

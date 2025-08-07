@@ -28,16 +28,16 @@ export function StoreSelection() {
       const storeList = response.data?.result || [];
       setStores(storeList);
       
-      // 매장이 없으면 바로 매장 관리 페이지로 이동
-      if (storeList.length === 0) {
-        navigate(ROUTES.STORE_MANAGEMENT);
-        return;
-      }
+      // // 매장이 없으면 바로 매장 추가 페이지로 이동
+      // if (storeList.length === 0) {
+      //   navigate(ROUTES.STORE_ADD);
+      //   return;
+      // }
       
-      // 매장이 하나뿐이면 자동 선택
-      if (storeList.length === 1) {
-        handleStoreSelect(storeList[0]);
-      }
+      // // 매장이 하나뿐이면 자동 선택
+      // if (storeList.length === 1) {
+      //   handleStoreSelect(storeList[0]);
+      // }
     } catch (error) {
       console.error('매장 목록 로딩 실패:', error);
       setError('매장 목록을 불러오는데 실패했습니다.');
@@ -48,11 +48,11 @@ export function StoreSelection() {
 
   const handleStoreSelect = (store) => {
     dispatch(setSelectedStore(store));
-    navigate(ROUTES.DASHBOARD);
+    navigate(ROUTES.DASHBOARD.route);
   };
 
   const handleAddStore = () => {
-    navigate(ROUTES.STORE_MANAGEMENT);
+    navigate(ROUTES.STORE_ADD.route);
   };
 
   if (error) {
@@ -65,7 +65,7 @@ export function StoreSelection() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-[#d3b4ff]/20 to-purple-100 text-gray-900 flex items-center justify-center">
-      <div className="max-w-4xl mx-auto px-8 text-center">
+      <div className="max-w-2xl w-full mx-auto px-8 text-center">
         {/* 헤더 */}
         <div className="mb-16">
           <h1 className="text-4xl font-bold mb-4 text-gray-900">어떤 매장을 관리하시겠습니까?</h1>
@@ -73,15 +73,15 @@ export function StoreSelection() {
         </div>
 
         {/* 매장 목록 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid gap-4 mb-12 justify-items-center grid-flow-col">
           {stores.map((store) => (
             <div
               key={store.id}
               onClick={() => handleStoreSelect(store)}
-              className="group cursor-pointer transition-all duration-300 hover:scale-105"
+              className="group cursor-pointer transition-all duration-300 hover:scale-105 w-full max-w-52 max-h-80"
             >
-              <Container variant="hover" className="p-6 text-center">
-                <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-[#d3b4ff] to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+              <Container variant="hover" className="p-6 text-center h-full">
+                <div className="w-24 h-24 mx-auto mb-4 bg-[#984fff] rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                   <span className="text-2xl font-bold text-white">
                     {store.name.charAt(0).toUpperCase()}
                   </span>
@@ -96,7 +96,7 @@ export function StoreSelection() {
           {/* 새 매장 추가 */}
           <div
             onClick={handleAddStore}
-            className="group cursor-pointer transition-all duration-300 hover:scale-105"
+            className="group cursor-pointer transition-all duration-300 hover:scale-105 w-full max-w-52 max-h-80"
           >
             <Container className="p-6 text-center border-2 border-dashed border-gray-300 hover:border-[#d3b4ff] transition-all duration-300 h-full flex flex-col items-center justify-center">
               <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-[#d3b4ff]/50 rounded-2xl flex items-center justify-center group-hover:from-purple-200 group-hover:to-[#d3b4ff]/70 transition-all duration-300">

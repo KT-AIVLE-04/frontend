@@ -28,7 +28,7 @@ export function Login() {
       const result = await authApi.login(formData);
       const { accessToken, refreshToken } = result;
       dispatch(login({ accessToken, refreshToken }));
-      navigate(ROUTES.STORE_SELECTION);
+      navigate(ROUTES.STORE_SELECTION.route);
     } catch (error) {
       console.error('로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
@@ -50,7 +50,7 @@ export function Login() {
   };
 
   const onRegisterClick = () => {
-    navigate(ROUTES.REGISTER);
+    navigate(ROUTES.REGISTER.route);
   }
 
   const handleGoogleLogin = async () => {
