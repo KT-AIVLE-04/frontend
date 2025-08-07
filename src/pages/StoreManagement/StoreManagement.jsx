@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { Button, ErrorPage, LoadingSpinner } from '../../components';
@@ -11,6 +12,7 @@ export function StoreManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     fetchStores();
@@ -43,8 +45,13 @@ export function StoreManagement() {
   };
 
   const handleEdit = (store) => {
-    // 편집 기능은 나중에 구현
-    alert('편집 기능은 준비 중입니다.');
+    // 편집 모드로 라우팅 (store 데이터를 URL state로 전달)
+    navigate(ROUTES.STORE_UPDATE.route, { state: { store } });
+  };
+
+  const handleSelect = (store) => {
+    dispatch(setSelectedStore(store));
+    navigate(ROUTES.DASHBOARD.route);
   };
 
   if (error) {
@@ -60,14 +67,19 @@ export function StoreManagement() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">매장 관리</h1>
         <Button 
-          onClick={() => navigate(ROUTES.STORE_ADD.route)}
+          onClick={() => navigate(ROUTES.STORE_UPDATE.route)}
           icon={Plus}
         >
           매장 추가
         </Button>
       </div>
 
-      <StoreTable stores={stores} handleDelete={handleDelete} handleEdit={handleEdit} />
+      <StoreTable 
+        stores={stores} 
+        handleDelete={handleDelete} 
+        handleEdit={handleEdit}
+        handleSelect={handleSelect}
+      />
     </div>
   );
 } 

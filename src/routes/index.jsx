@@ -8,9 +8,9 @@ import {
   Login,
   Register,
   SnsIntegration,
-  StoreAdd,
   StoreManagement,
-  StoreSelection
+  StoreSelection,
+  StoreUpdate
 } from '../pages'
 import { MainLayout } from './MainLayout'
 import { ROUTES } from './routes'
@@ -56,7 +56,7 @@ function AppRoutes() {
       </Route>
       <Route element={<ProtectedRoute/>}>
         <Route path={ROUTES.STORE_SELECTION.route} element={<StoreSelection/>}/>
-        <Route path={ROUTES.STORE_ADD.route} element={<StoreAdd/>}/>
+        <Route path={ROUTES.STORE_UPDATE.route} element={<StoreUpdate/>}/>
         <Route element={<StoreRequiredRoute/>}>
           <Route element={<MainLayout/>}>
             <Route path={ROUTES.DASHBOARD.route} element={<Dashboard/>}/>

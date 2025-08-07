@@ -1,16 +1,20 @@
 import { ArrowLeft } from 'lucide-react';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { Container } from '../../components/Container';
 import { Store } from '../../models/Store';
 import { StoreForm } from './components';
 
-export function StoreAdd() {
-  const [formData, setFormData] = useState(Store.createEmpty());
+export function StoreUpdate() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const editStore = location.state?.store;
+  const isEditMode = !!editStore;
+  
+  const [formData, setFormData] = useState(editStore ? new Store(editStore) : Store.createEmpty());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   // 연락처 포맷팅 함수
   const formatContactNumber = (value) => {
@@ -110,15 +114,20 @@ export function StoreAdd() {
       setLoading(true);
       setError(null);
 
-      const createRequest = new Store(formData);
-      if (!createRequest.isValid()) {
-        const errors = createRequest.getValidationErrors();
+      const storeRequest = new Store(formData);
+      if (!storeRequest.isValid()) {
+        const errors = storeRequest.getValidationErrors();
         alert(errors.join('\n'));
         return;
       }
 
-      await storeApi.createStore(createRequest.toCreateRequest());
-      alert('새 매장이 추가되었습니다.');
+      if (isEditMode) {
+        await storeApi.updateStore(editStore.id, storeRequest.toCreateRequest());
+        alert('매장 정보가 수정되었습니다.');
+      } else {
+        await storeApi.createStore(storeRequest.toCreateRequest());
+        alert('새 매장이 추가되었습니다.');
+      }
       
       // 이전 페이지로 돌아가기
       navigate(-1);
@@ -143,7 +152,7 @@ export function StoreAdd() {
         >
           <ArrowLeft size={20} strokeWidth={4} />
         </button>
-        <h1 className="text-2xl font-bold" >새 매장 추가</h1>
+        <h1 className="text-2xl font-bold" >{isEditMode ? '매장 정보 수정' : '새 매장 추가'}</h1>
       </div>
 
       <Container className="p-8 ">

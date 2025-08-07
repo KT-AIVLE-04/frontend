@@ -29,9 +29,9 @@ export const ROUTES = {
     krName: '매장 관리',
     inMenu: true
   },
-  STORE_ADD: {
-    route: '/store-add',
-    krName: '매장 추가',
+  STORE_UPDATE: {
+    route: '/store-update',
+    krName: '매장 등록/수정',
     inMenu: false
   },
   LOGIN: {

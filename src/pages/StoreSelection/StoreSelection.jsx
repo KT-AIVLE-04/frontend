@@ -30,7 +30,7 @@ export function StoreSelection() {
       
       // // 매장이 없으면 바로 매장 추가 페이지로 이동
       // if (storeList.length === 0) {
-      //   navigate(ROUTES.STORE_ADD);
+      //   navigate(ROUTES.STORE_UPDATE);
       //   return;
       // }
       
@@ -52,7 +52,7 @@ export function StoreSelection() {
   };
 
   const handleAddStore = () => {
-    navigate(ROUTES.STORE_ADD.route);
+    navigate(ROUTES.STORE_UPDATE.route);
   };
 
   if (error) {

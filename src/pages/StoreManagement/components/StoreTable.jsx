@@ -1,8 +1,8 @@
-import { Pencil, Store, Trash2 } from 'lucide-react';
+import { Check, Pencil, Store, Trash2 } from 'lucide-react';
 import { DataTable, IconButton } from '../../../components';
 import { Store as StoreModel } from '../../../models/Store';
 
-export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
+export const StoreTable = ({ stores, handleDelete, handleEdit, handleSelect }) => {
   const columns = [
     {
       key: 'name',
@@ -40,6 +40,13 @@ export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
       header: '관리',
       render: (value, store) => (
         <div className="flex items-center justify-center space-x-3">
+          <IconButton
+            icon={Check}
+            variant="success"
+            size="medium"
+            onClick={() => handleSelect(store)}
+            title="선택"
+          />
           <IconButton
             icon={Pencil}
             variant="primary"
