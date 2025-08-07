@@ -13,7 +13,8 @@ export function StoreForm({
   handleAddressSearch,
   loading,
   error,
-  onCancel
+  onCancel,
+  isEditMode = false
 }) {
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -109,7 +110,7 @@ export function StoreForm({
           variant="primary"
           disabled={loading}
         >
-          {loading ? '저장 중...' : '매장 추가'}
+          {loading ? '저장 중...' : (isEditMode ? '매장 수정' : '매장 추가')}
         </Button>
       </div>
     </form>

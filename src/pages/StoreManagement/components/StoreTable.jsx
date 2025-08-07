@@ -2,7 +2,7 @@ import { Check, Pencil, Store, Trash2 } from 'lucide-react';
 import { DataTable, IconButton } from '../../../components';
 import { Store as StoreModel } from '../../../models/Store';
 
-export const StoreTable = ({ stores, handleDelete, handleEdit, handleSelect }) => {
+export const StoreTable = ({ stores, handleDelete, handleEdit, handleSelect, selectedStoreId }) => {
   const columns = [
     {
       key: 'name',
@@ -38,31 +38,42 @@ export const StoreTable = ({ stores, handleDelete, handleEdit, handleSelect }) =
     {
       key: 'actions',
       header: '관리',
-      render: (value, store) => (
-        <div className="flex items-center justify-center space-x-3">
-          <IconButton
-            icon={Check}
-            variant="success"
-            size="medium"
-            onClick={() => handleSelect(store)}
-            title="선택"
-          />
-          <IconButton
-            icon={Pencil}
-            variant="primary"
-            size="medium"
-            onClick={() => handleEdit(store)}
-            title="수정"
-          />
-          <IconButton
-            icon={Trash2}
-            variant="danger"
-            size="medium"
-            onClick={() => handleDelete(store.id)}
-            title="삭제"
-          />
-        </div>
-      )
+      render: (value, store) => {
+        const isSelected = store.id === selectedStoreId;
+        
+        return (
+          <div className="flex items-center justify-center space-x-3">
+            {!isSelected && (
+              <IconButton
+                icon={Check}
+                variant="success"
+                size="medium"
+                onClick={() => handleSelect(store)}
+                title="선택"
+              />
+            )}
+            {isSelected && (
+              <span className="px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                현재 선택됨
+              </span>
+            )}
+            <IconButton
+              icon={Pencil}
+              variant="primary"
+              size="medium"
+              onClick={() => handleEdit(store)}
+              title="수정"
+            />
+            <IconButton
+              icon={Trash2}
+              variant="danger"
+              size="medium"
+              onClick={() => handleDelete(store.id)}
+              title="삭제"
+            />
+          </div>
+        );
+      }
     }
   ];
 

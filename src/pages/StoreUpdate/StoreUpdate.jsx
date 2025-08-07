@@ -166,6 +166,7 @@ export function StoreUpdate() {
           loading={loading}
           error={error}
           onCancel={handleCancel}
+          isEditMode={isEditMode}
         />
       </Container>
     </div>

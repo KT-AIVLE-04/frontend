@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { Button, ErrorPage, LoadingSpinner } from '../../components';
@@ -13,6 +13,7 @@ export function StoreManagement() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { selectedStoreId } = useSelector((state) => state.auth);
 
   useEffect(() => {
     fetchStores();
@@ -79,6 +80,7 @@ export function StoreManagement() {
         handleDelete={handleDelete} 
         handleEdit={handleEdit}
         handleSelect={handleSelect}
+        selectedStoreId={selectedStoreId}
       />
     </div>
   );
