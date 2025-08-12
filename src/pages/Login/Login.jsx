@@ -5,7 +5,7 @@ import { authApi } from '../../api/auth';
 import { Button, FormField } from '../../components';
 import { ROUTES } from '../../routes/routes';
 import { login } from '../../store/authSlice';
-import { GoogleIcon, KakaoIcon } from './components';
+import { GoogleIcon, KakaoIcon, NaverIcon } from './components';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -79,6 +79,20 @@ export function Login() {
       setError(errorMessage);
       setLoading(false);
     }
+  };
+
+  const handleNaverLogin = async () => {
+    // setLoading(true);
+    // setError('');
+
+    // try {
+    //   window.location.href = API_BASE_URL+'/auth/naver/login';
+    // } catch (error) {
+    //   console.error('네이버 로그인 실패:', error);
+    //   const errorMessage = error.response?.data?.message || '네이버 로그인에 실패했습니다.';
+    //   setError(errorMessage);
+    //   setLoading(false);
+    // }
   };
 
   return (
@@ -181,9 +195,6 @@ export function Login() {
                   <span>{loading ? '구글 로그인 중...' : 'Google로 로그인'}</span>
                 </button>
                 
-                {/* 간격 */}
-                <div className="h-1"></div>
-                
                 {/* Kakao 버튼 */}
                 <button 
                   type="button" 
@@ -193,6 +204,17 @@ export function Login() {
                 >
                   <KakaoIcon size={20} className="text-black" />
                   <span>{loading ? '카카오 로그인 중...' : '카카오로 로그인'}</span>
+                </button>
+                
+                {/* Naver 버튼 */}
+                <button 
+                  type="button" 
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 px-6 rounded-2xl border-2 border-green-700 transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] flex items-center justify-center space-x-3 h-12 transform hover:translate-x-0.5 hover:translate-y-0.5"
+                  onClick={handleNaverLogin}
+                  disabled={loading}
+                >
+                  <NaverIcon size={20} className="text-white" />
+                  <span>{loading ? '네이버 로그인 중...' : '네이버로 로그인'}</span>
                 </button>
               </div>
             </div>
