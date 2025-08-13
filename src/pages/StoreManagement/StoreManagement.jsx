@@ -1,11 +1,12 @@
-import { Plus } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { storeApi } from '../../api/store';
-import { Button, ErrorPage, LoadingSpinner } from '../../components';
-import { ROUTES } from '../../routes/routes';
-import { StoreTable } from './components';
+import {Plus} from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {useNavigate} from 'react-router-dom';
+import {storeApi} from '../../api/store';
+import {Button, ErrorPage, LoadingSpinner} from '../../components';
+import {ROUTES} from '../../routes/routes';
+import {StoreTable} from './components';
+import {setSelectedStore} from "../../store/authSlice.js";
 
 export function StoreManagement() {
   const [stores, setStores] = useState([]);
@@ -13,7 +14,7 @@ export function StoreManagement() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { selectedStoreId } = useSelector((state) => state.auth);
+  const {selectedStoreId} = useSelector((state) => state.auth);
 
   useEffect(() => {
     fetchStores();
@@ -47,27 +48,26 @@ export function StoreManagement() {
 
   const handleEdit = (store) => {
     // 편집 모드로 라우팅 (store 데이터를 URL state로 전달)
-    navigate(ROUTES.STORE_UPDATE.route, { state: { store } });
+    navigate(ROUTES.STORE_UPDATE.route, {state: {store}});
   };
 
   const handleSelect = (store) => {
     dispatch(setSelectedStore(store));
-    navigate(ROUTES.DASHBOARD.route);
   };
 
   if (error) {
-    return <ErrorPage title="매장 목록 로딩 실패" message={error} />;
+    return <ErrorPage title="매장 목록 로딩 실패" message={error}/>;
   }
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner/>;
   }
 
   return (
     <div className="flex-1 w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">매장 관리</h1>
-        <Button 
+        <Button
           onClick={() => navigate(ROUTES.STORE_UPDATE.route)}
           icon={Plus}
         >
@@ -75,9 +75,9 @@ export function StoreManagement() {
         </Button>
       </div>
 
-      <StoreTable 
-        stores={stores} 
-        handleDelete={handleDelete} 
+      <StoreTable
+        stores={stores}
+        handleDelete={handleDelete}
         handleEdit={handleEdit}
         handleSelect={handleSelect}
         selectedStoreId={selectedStoreId}

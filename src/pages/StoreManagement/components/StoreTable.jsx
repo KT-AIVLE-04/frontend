@@ -39,7 +39,7 @@ export const StoreTable = ({ stores, handleDelete, handleEdit, handleSelect, sel
       key: 'actions',
       header: '관리',
       render: (value, store) => {
-        const isSelected = store.id === selectedStoreId;
+        const isSelected = store.id.toString() === selectedStoreId.toString();
         
         return (
           <div className="flex items-center justify-center space-x-3">
