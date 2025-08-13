@@ -71,7 +71,7 @@ export function StoreSelection() {
   };
 
   if (error) {
-    return <ErrorPage title="매장 목록 로딩 실패" message={error} />;
+    return <ErrorPage title="매장 목록 로딩 실패" message={error} showLogout={true} />;
   }
 
   if (loading) {
