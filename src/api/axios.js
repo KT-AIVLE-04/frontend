@@ -44,9 +44,22 @@ api.interceptors.request.use(
 // 응답 인터셉터
 api.interceptors.response.use(
   (response) => {
+    // 성공 응답 로그
+    console.log(`✅ API Success ${response.config.method?.toUpperCase()} ${response.config.url}` )
+    console.log('Response:', response.data)
     return response
   },
   async (error) => {
+    // 에러 응답 로그
+    const status = error.response?.status
+    const statusText = error.response?.statusText
+    const url = error.config?.url
+    const method = error.config?.method?.toUpperCase()
+    
+    console.log(`❌ API Error%c ${method} ${url}`)
+    console.log(`Status: ${status} ${statusText}`)
+    console.log('Error Message:', error.response?.data || error.message)
+
     const originalRequest = error.config
 
     // 401 에러이고 아직 재시도하지 않은 요청인 경우

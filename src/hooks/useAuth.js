@@ -14,7 +14,7 @@ export const useAuth = () => {
   const { isAuthenticated } = useSelector(state => state.auth)
 
   const checkLogin = async () => {
-    console.log('checkLogiffn')
+    console.log('checkLogin')
     try {
       const refreshToken = localStorage.getItem('refreshToken')
       if(!refreshToken) throw new Error('refreshToken not found');
@@ -34,7 +34,6 @@ export const useAuth = () => {
         dispatch(logout())
       }
     } catch (error) {
-      // 리프레시 실패는 일반적인 상황일 수 있으므로 콘솔 에러는 출력하지 않음
       console.log('refreshToken 갱신 실패', error)
       dispatch(logout())
     } finally {
