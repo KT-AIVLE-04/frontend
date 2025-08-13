@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Clock, Sparkles, Upload, X } from 'lucide-react';
+import { ArrowRight, CheckCircle, Clock, Sparkles, Upload, X, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../../api/content';
 import { storeApi } from '../../api/store';
@@ -37,6 +37,7 @@ export function ContentCreation() {
   const [contentId, setContentId] = useState(null);
   const [error, setError] = useState(null);
   const [brandConceptInput, setBrandConceptInput] = useState(''); // 브랜드 컨셉 입력 필드
+  const [fileInputRef, setFileInputRef] = useState(null); // 파일 입력 참조
 
   useEffect(() => {
     if (contentType === 'video') {
@@ -172,6 +173,99 @@ export function ContentCreation() {
         brandConcepts: prev.storeInfo.brandConcepts.filter(concept => concept !== conceptToRemove)
       }
     }));
+  };
+
+  // 파일 크기를 읽기 쉬운 형태로 변환하는 함수
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // 파일 선택 처리 함수
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    
+    // 파일 유효성 검사
+    const validFiles = [];
+    let errorMessage = '';
+
+    for (const file of files) {
+      // 이미지 파일 확인
+      if (!file.type.startsWith('image/')) {
+        errorMessage = '이미지 파일만 업로드 가능합니다.';
+        continue;
+      }
+
+      // 파일 크기 확인 (50MB = 50 * 1024 * 1024 bytes)
+      if (file.size > 50 * 1024 * 1024) {
+        errorMessage = '파일 크기는 50MB 이하여야 합니다.';
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    // 현재 파일 + 새 파일이 5개를 초과하는지 확인
+    const totalFiles = formData.storeInfo.referenceFiles.length + validFiles.length;
+    if (totalFiles > 5) {
+      alert('이미지는 최대 5개까지 업로드 가능합니다.');
+      return;
+    }
+
+    if (errorMessage) {
+      alert(errorMessage);
+      return;
+    }
+
+    // 파일 정보를 state에 추가
+    const newFiles = validFiles.map((file, index) => ({
+      id: Date.now() + index,
+      file: file,
+      name: file.name,
+      size: file.size,
+      preview: URL.createObjectURL(file)
+    }));
+
+    setFormData(prev => ({
+      ...prev,
+      storeInfo: {
+        ...prev.storeInfo,
+        referenceFiles: [...prev.storeInfo.referenceFiles, ...newFiles]
+      }
+    }));
+
+    // 파일 input 초기화
+    e.target.value = '';
+  };
+
+  // 파일 삭제 함수
+  const handleRemoveFile = (fileId) => {
+    setFormData(prev => {
+      const updatedFiles = prev.storeInfo.referenceFiles.filter(file => file.id !== fileId);
+      // 삭제된 파일의 preview URL 정리
+      const fileToRemove = prev.storeInfo.referenceFiles.find(file => file.id === fileId);
+      if (fileToRemove && fileToRemove.preview) {
+        URL.revokeObjectURL(fileToRemove.preview);
+      }
+      
+      return {
+        ...prev,
+        storeInfo: {
+          ...prev.storeInfo,
+          referenceFiles: updatedFiles
+        }
+      };
+    });
+  };
+
+  // 파일 선택 버튼 클릭 함수
+  const handleFileButtonClick = () => {
+    if (fileInputRef) {
+      fileInputRef.click();
+    }
   };
 
   // 시나리오 선택 단계에서 백엔드로 보낼 데이터만 추출하는 함수
@@ -377,26 +471,98 @@ export function ContentCreation() {
                       </div>
                     </div>
                     
-                    {/* 오른쪽: 참고 자료 업로드 */}
+                    {/* 오른쪽: 이미지 업로드 */}
                     <div className="flex flex-col h-full">
                       <h4 className="text-sm font-medium text-gray-700 mb-3">
-                        참고 자료 업로드
+                        이미지 업로드 * ({formData.storeInfo.referenceFiles.length}/5)
                       </h4>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center flex-1 flex flex-col justify-center min-h-[240px]">
-                        <Upload size={32} className="text-gray-400 mx-auto mb-3" />
-                        <p className="text-sm text-gray-500 mb-2">
-                          매장 이미지나 제품 사진을 업로드하세요
-                        </p>
-                        <p className="text-xs text-gray-400 mb-4">
-                          JPG, PNG 파일 지원 (최대 10MB, 최대 5개)
-                        </p>
-                        <button 
-                          type="button"
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                        >
-                          파일 선택
-                        </button>
-                      </div>
+                      
+                      {/* 파일이 없는 경우 업로드 영역 */}
+                      {formData.storeInfo.referenceFiles.length === 0 ? (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center flex-1 flex flex-col justify-center min-h-[240px]">
+                          <Upload size={32} className="text-gray-400 mx-auto mb-3" />
+                          <p className="text-sm text-gray-500 mb-2">
+                            매장 이미지나 제품 사진을 업로드하세요
+                          </p>
+                          <p className="text-xs text-gray-400 mb-4">
+                            JPG, PNG 파일 지원 (최대 50MB, 최대 5개)
+                          </p>
+                          <button 
+                            type="button"
+                            onClick={handleFileButtonClick}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            파일 선택
+                          </button>
+                          <input
+                            type="file"
+                            ref={setFileInputRef}
+                            onChange={handleFileSelect}
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                          />
+                        </div>
+                      ) : (
+                        /* 파일이 있는 경우 카드 뷰 */
+                        <div className="flex-1 min-h-[240px]">
+                          <div className="grid grid-cols-5 gap-2 mb-3">
+                            {formData.storeInfo.referenceFiles.map((file) => (
+                              <div
+                                key={file.id}
+                                className="relative group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200"
+                              >
+                                {/* 이미지 미리보기 */}
+                                <div className="aspect-square relative w-full h-40">
+                                  <img
+                                    src={file.preview}
+                                    alt={file.name}
+                                    className="w-full h-full object-cover object-center"
+                                  />
+                                  {/* 호버 시 삭제 오버레이 */}
+                                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                                    <button
+                                      onClick={() => handleRemoveFile(file.id)}
+                                      className="p-1.5 bg-gray-600 text-white rounded-full hover:bg-gray-700 transition-colors"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                </div>
+                                {/* 파일 정보 */}
+                                <div className="p-1.5">
+                                  <p className="text-xs text-gray-700 font-medium truncate" title={file.name}>
+                                    {file.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {formatFileSize(file.size)}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* 추가 업로드 버튼 (5개 미만일 때만) */}
+                          {formData.storeInfo.referenceFiles.length < 5 && (
+                            <button
+                              type="button"
+                              onClick={handleFileButtonClick}
+                              className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                            >
+                              + 파일 추가 ({5 - formData.storeInfo.referenceFiles.length}개 더 추가 가능)
+                            </button>
+                          )}
+                          
+                          <input
+                            type="file"
+                            ref={setFileInputRef}
+                            onChange={handleFileSelect}
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -465,7 +631,7 @@ export function ContentCreation() {
                     <div className="flex flex-col">
                       <div className="flex-1">
                         <label htmlFor="adAdditionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
-                          추가 정보
+                          광고 요구사항
                         </label>
                         <textarea 
                           id="adAdditionalInfo" 
@@ -474,7 +640,7 @@ export function ContentCreation() {
                           onChange={handleInputChange}
                           rows={10} 
                           className="w-full h-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                          placeholder="강조하고 싶은 포인트나 특별한 요구사항을 자세히 입력하세요&#10;&#10;예시:&#10;- 젊고 트렌디한 분위기 강조&#10;- 할인 이벤트 정보 포함&#10;- 매장 위치의 접근성 강조&#10;- 제품의 특별한 장점이나 차별화 포인트"
+                          placeholder="광고에서 강조하고 싶은 포인트나 특별한 요구사항을 자세히 입력하세요&#10;&#10;예시:&#10;- 젊고 트렌디한 분위기 강조&#10;- 할인 이벤트 정보 포함&#10;- 매장 위치의 접근성 강조&#10;- 제품의 특별한 장점이나 차별화 포인트"
                         />
                       </div>
                     </div>
@@ -485,7 +651,7 @@ export function ContentCreation() {
                 <div className="flex justify-end">
                   <button 
                     onClick={() => setActiveStep(2)}
-                    disabled={!formData.storeId || formData.storeInfo.brandConcepts.length === 0 || !formData.adInfo.adType || !formData.adInfo.adPlatform || !formData.adInfo.adTarget}
+                    disabled={!formData.storeId || formData.storeInfo.brandConcepts.length === 0 || formData.storeInfo.referenceFiles.length === 0 || !formData.adInfo.adType || !formData.adInfo.adPlatform || !formData.adInfo.adTarget}
                     className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     다음 단계
