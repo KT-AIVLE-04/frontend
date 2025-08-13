@@ -28,19 +28,33 @@ export const handlers = [
     }
   }),
   http.post(`${API_BASE_URL}/api/auth/new`, async ({request}) => {
-    const {email, password} = await request.json()
+    const {email, password, name, phoneNumber} = await request.json()
 
-    if (!email || !password) {
+    if (!email || !password || !name || !phoneNumber) {
       return HttpResponse.json({
         isSuccess: false,
-        message: '아이디와 비밀번호를 입력해주세요.',
-        result: null
+        message: '모든 필드를 입력해주세요.',
+        result: null,
+        errors: [
+          {
+            field: 'email',
+            message: '이메일을 입력해주세요.'
+          }
+        ]
       }, {status: 400})
     }
 
     return HttpResponse.json({
       isSuccess: true,
-      message: '회원가입이 완료되었습니다.'
+      message: '회원가입이 완료되었습니다.',
+      result: {
+        type: 'USER',
+        accessToken: 'mock-access-token',
+        accessTokenExpiration: Date.now() + 3600000, // 1시간
+        refreshToken: 'mock-refresh-token',
+        refreshTokenExpiration: Date.now() + 2592000000 // 30일
+      },
+      errors: []
     })
   }),
 
@@ -52,7 +66,13 @@ export const handlers = [
       return HttpResponse.json({
         isSuccess: false,
         message: '아이디와 비밀번호를 입력해주세요.',
-        result: null
+        result: null,
+        errors: [
+          {
+            field: 'email',
+            message: '이메일을 입력해주세요.'
+          }
+        ]
       }, {status: 400})
     }
 
@@ -60,10 +80,13 @@ export const handlers = [
       isSuccess: true,
       message: '성공입니다.',
       result: {
-        memberId: 1,
+        type: 'USER',
         accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token'
-      }
+        accessTokenExpiration: Date.now() + 3600000, // 1시간
+        refreshToken: 'mock-refresh-token',
+        refreshTokenExpiration: Date.now() + 2592000000 // 30일
+      },
+      errors: []
     })
   }),
 
@@ -72,7 +95,8 @@ export const handlers = [
     return HttpResponse.json({
       isSuccess: true,
       message: '로그아웃되었습니다.',
-      result: null
+      result: '로그아웃 성공',
+      errors: []
     })
   }),
 
@@ -82,9 +106,13 @@ export const handlers = [
       isSuccess: true,
       message: '토큰이 갱신되었습니다.',
       result: {
+        type: 'USER',
         accessToken: 'new-mock-access-token',
-        refreshToken: 'new-mock-refresh-token'
-      }
+        accessTokenExpiration: Date.now() + 3600000, // 1시간
+        refreshToken: 'new-mock-refresh-token',
+        refreshTokenExpiration: Date.now() + 2592000000 // 30일
+      },
+      errors: []
     })
   }),
 

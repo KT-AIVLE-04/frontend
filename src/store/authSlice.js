@@ -40,11 +40,12 @@ const authSlice = createSlice({
     },
     updateToken: (state, action) => {
       console.log('updateToken', action.payload)
-      const {accessToken} = action.payload
-      const {refreshToken} = action.payload
+      const {accessToken, refreshToken} = action.payload
       state.accessToken = accessToken
-      state.refreshToken = refreshToken
-      localStorage.setItem('refreshToken', refreshToken)
+      if (refreshToken) {
+        state.refreshToken = refreshToken
+        localStorage.setItem('refreshToken', refreshToken)
+      }
       state.isAuthenticated = true
     },
     setSelectedStore: (state, action) => {
