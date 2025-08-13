@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Clock, Sparkles, Upload } from 'lucide-react';
+import { ArrowRight, CheckCircle, Clock, Sparkles, Upload, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../../api/content';
 import { storeApi } from '../../api/store';
@@ -12,6 +12,22 @@ export function ContentCreation() {
   const [stores, setStores] = useState([]);
   const [scenarios, setScenarios] = useState([]);
   const [formData, setFormData] = useState({
+    // 매장 정보
+    storeInfo: {
+      storeName: '', // DB에서 가져올 매장 이름
+      businessType: '', // DB에서 가져올 업종
+      brandConcepts: [], // 사용자 입력 브랜드 컨셉 태그들
+      referenceFiles: [] // 참고 자료 파일들
+    },
+    // 광고 정보
+    adInfo: {
+      adType: '', 
+      adTarget: '', 
+      adPlatform: '', 
+      additionalInfo: '' 
+    },
+    
+    // 기존 필드들 
     storeId: '',
     additionalInfo: '',
     scenarioId: ''
@@ -20,11 +36,15 @@ export function ContentCreation() {
   const [contentStatus, setContentStatus] = useState(null);
   const [contentId, setContentId] = useState(null);
   const [error, setError] = useState(null);
+  const [brandConceptInput, setBrandConceptInput] = useState(''); // 브랜드 컨셉 입력 필드
 
   useEffect(() => {
     if (contentType === 'video') {
       fetchStores();
       fetchScenarios();
+      // 기본 매장 정보 자동 로드 (현재 접속한 매장의 정보)
+      fetchCurrentStoreInfo(1); // Mock으로 1번 매장 정보 로드
+      setFormData(prev => ({ ...prev, storeId: '1' })); // 기본 storeId 설정
     }
   }, [contentType]);
 
@@ -37,11 +57,52 @@ export function ContentCreation() {
   const fetchStores = async () => {
     try {
       setError(null);
-      const response = await storeApi.getStores();
-      setStores(response.data || []);
+      // const response = await storeApi.getStores();
+      // setStores(response.data || []);
+      
+      // Mock 데이터 사용
+      const mockStores = [
+        { id: 1, name: "안녕하모" },
+        { id: 2, name: "홍대점" },
+        { id: 3, name: "신촌점" },
+        { id: 4, name: "명동점" }
+      ];
+      setStores(mockStores);
     } catch (error) {
       console.error('매장 목록 로딩 실패:', error);
       setError('매장 목록을 불러오는데 실패했습니다.');
+    }
+  };
+
+  // 현재 선택된 매장의 상세 정보를 가져오는 함수 (Mock 데이터)
+  const fetchCurrentStoreInfo = async (storeId) => {
+    try {
+      // 실제로는 storeApi.getStore(storeId) 호출
+      // const response = await storeApi.getStore(storeId);
+      
+      // Mock 데이터로 현재 매장 정보 시뮬레이션
+      const mockStoreInfo = {
+        1: { name: "안녕하모", businessType: "음식점" },
+        2: { name: "홍대점", businessType: "음식점" },
+        3: { name: "신촌점", businessType: "카페" },
+        4: { name: "명동점", businessType: "패션" }
+      };
+
+      const storeInfo = mockStoreInfo[storeId];
+      if (storeInfo) {
+        // formData의 매장 정보 업데이트
+        setFormData(prev => ({
+          ...prev,
+          storeInfo: {
+            ...prev.storeInfo,
+            storeName: storeInfo.name,
+            businessType: storeInfo.businessType
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('매장 정보 로딩 실패:', error);
+      setError('매장 정보를 불러오는데 실패했습니다.');
     }
   };
 
@@ -80,15 +141,67 @@ export function ContentCreation() {
     }
   };
 
+  // 브랜드 컨셉 태그 추가 함수
+  const handleAddBrandConcept = (e) => {
+    // IME 조합 중일 때는 실행하지 않음 (한국어 입력 이슈 방지)
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing && brandConceptInput.trim()) {
+      e.preventDefault();
+      const newConcept = brandConceptInput.trim();
+      
+      // 중복 확인
+      if (!formData.storeInfo.brandConcepts.includes(newConcept)) {
+        setFormData(prev => ({
+          ...prev,
+          storeInfo: {
+            ...prev.storeInfo,
+            brandConcepts: [...prev.storeInfo.brandConcepts, newConcept]
+          }
+        }));
+      }
+      
+      setBrandConceptInput('');
+    }
+  };
+
+  // 브랜드 컨셉 태그 삭제 함수
+  const handleRemoveBrandConcept = (conceptToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      storeInfo: {
+        ...prev.storeInfo,
+        brandConcepts: prev.storeInfo.brandConcepts.filter(concept => concept !== conceptToRemove)
+      }
+    }));
+  };
+
+  // 시나리오 선택 단계에서 백엔드로 보낼 데이터만 추출하는 함수
+  const getScenarioRequestData = () => {
+    return {
+      // 요구사항에 따라 시나리오 선택 시 보낼 정보만 포함
+      additionalInfo: formData.adInfo.additionalInfo, // 추가 정보
+      adPlatform: formData.adInfo.adPlatform, // 광고 플랫폼
+      adTarget: formData.adInfo.adTarget, // 광고 타겟
+      adType: formData.adInfo.adType, // 광고 유형(타입)
+      brandConcepts: formData.storeInfo.brandConcepts // 브랜드 컨셉 태그들
+    };
+  };
+
   const handleCreateContent = async () => {
     try {
       setLoading(true);
-      const response = await contentApi.createContent({
+      
+      // 업데이트된 데이터 구조로 요청
+      const requestData = {
         type: contentType,
         storeId: formData.storeId,
-        additionalInfo: formData.additionalInfo,
-        scenarioId: formData.scenarioId
-      });
+        scenarioId: formData.scenarioId,
+        // 시나리오 생성에 필요한 정보들
+        ...getScenarioRequestData()
+      };
+
+      console.log('콘텐츠 생성 요청 데이터:', requestData);
+      
+      const response = await contentApi.createContent(requestData);
       
       setContentId(response.data.contentId);
       setActiveStep(3);
@@ -100,12 +213,43 @@ export function ContentCreation() {
     }
   };
 
+  // 중첩된 객체 구조를 처리할 수 있는 handleInputChange 함수
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // name이 "storeInfo.brandConcept" 같은 형태인지 확인
+    if (name.includes('.')) {
+      const [category, field] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [category]: {
+          ...prev[category],
+          [field]: value
+        }
+      }));
+    } else {
+      // 기존 방식 (호환성 유지)
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  // 매장 선택이 변경될 때 해당 매장의 상세 정보를 가져오는 함수
+  const handleStoreChange = (e) => {
+    const storeId = e.target.value;
+    
+    // 기존 storeId 업데이트
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      storeId: storeId
     }));
+    
+    // 선택된 매장의 상세 정보 가져오기
+    if (storeId) {
+      fetchCurrentStoreInfo(storeId);
+    }
   };
 
   if (error) {
@@ -155,69 +299,194 @@ export function ContentCreation() {
           <div className="p-6">
             {activeStep === 1 && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">
-                  매장 정보 및 참고 자료 입력
-                </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-md font-medium mb-3">매장 정보</h3>
+                
+                {/* 매장 정보 섹션 */}
+                <div className="mb-8">
+                  <h2 className="text-lg font-semibold mb-4 text-gray-800 border-b border-gray-200 pb-2">
+                    📍 매장 정보 입력
+                  </h2>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* 왼쪽: 매장 기본 정보 */}
                     <div className="space-y-4">
+                      {/* 매장 이름 (읽기 전용) */}
                       <div>
-                        <label htmlFor="storeName" className="block text-sm font-medium text-gray-700 mb-1">
-                          매장 선택
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          매장 이름
                         </label>
-                        <select 
-                          id="storeName" 
-                          name="storeId"
-                          value={formData.storeId}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">매장을 선택하세요</option>
-                          {stores.map(store => (
-                            <option key={store.id} value={store.id}>{store.name}</option>
-                          ))}
-                        </select>
+                        <input 
+                          type="text"
+                          value={formData.storeInfo.storeName}
+                          readOnly
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
+                          placeholder="매장 정보를 불러오는 중..."
+                        />
                       </div>
+                      
+                      {/* 업종 (읽기 전용) */}
                       <div>
-                        <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
-                          추가 정보 입력
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          업종
                         </label>
-                        <textarea 
-                          id="additionalInfo" 
-                          name="additionalInfo"
-                          value={formData.additionalInfo}
-                          onChange={handleInputChange}
-                          rows={3} 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="숏폼에 포함되었으면 하는 내용을 입력하세요"
-                        ></textarea>
+                        <input 
+                          type="text"
+                          value={formData.storeInfo.businessType}
+                          readOnly
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
+                          placeholder="업종 정보를 불러오는 중..."
+                        />
+                      </div>
+                      
+                      {/* 브랜드 컨셉 (태그 형태) */}
+                      <div>
+                        <label htmlFor="brandConcept" className="block text-sm font-medium text-gray-700 mb-1">
+                          브랜드 컨셉 *
+                        </label>
+                        <div className="space-y-3">
+                          {/* 입력 필드 */}
+                          <input 
+                            id="brandConcept" 
+                            type="text"
+                            value={brandConceptInput}
+                            onChange={(e) => setBrandConceptInput(e.target.value)}
+                            onKeyDown={handleAddBrandConcept}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="브랜드 컨셉을 입력하고 엔터를 누르세요 (예: 트렌디한, 친환경적인, 고급스러운)"
+                          />
+                          
+                          {/* 브랜드 컨셉 태그들 */}
+                          {formData.storeInfo.brandConcepts.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {formData.storeInfo.brandConcepts.map((concept, index) => (
+                                <div 
+                                  key={index} 
+                                  className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                                >
+                                  <span>{concept}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveBrandConcept(concept)}
+                                    className="ml-2 text-blue-600 hover:text-blue-800 focus:outline-none"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <h3 className="text-md font-medium mb-3">
-                      참고 자료 업로드
-                    </h3>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                      <Upload size={32} className="text-gray-400 mx-auto mb-4" />
-                      <p className="text-sm text-gray-500 mb-2">
-                        참고할 이미지나 영상을 업로드하세요
-                      </p>
-                      <p className="text-xs text-gray-400 mb-4">
-                        JPG, PNG, MP4, MOV 파일 지원 (최대 50MB)
-                      </p>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                        파일 선택
-                      </button>
+                    
+                    {/* 오른쪽: 참고 자료 업로드 */}
+                    <div className="flex flex-col h-full">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">
+                        참고 자료 업로드
+                      </h4>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center flex-1 flex flex-col justify-center min-h-[240px]">
+                        <Upload size={32} className="text-gray-400 mx-auto mb-3" />
+                        <p className="text-sm text-gray-500 mb-2">
+                          매장 이미지나 제품 사진을 업로드하세요
+                        </p>
+                        <p className="text-xs text-gray-400 mb-4">
+                          JPG, PNG 파일 지원 (최대 10MB, 최대 5개)
+                        </p>
+                        <button 
+                          type="button"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                        >
+                          파일 선택
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="mt-8 flex justify-end">
+
+                {/* 광고 정보 섹션 */}
+                <div className="mt-12 mb-8">
+                  <h2 className="text-lg font-semibold mb-4 text-gray-800 border-b border-gray-200 pb-2">
+                    📍 광고 정보 입력
+                  </h2>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* 왼쪽: 광고 타입, 플랫폼, 타겟 */}
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="adType" className="block text-sm font-medium text-gray-700 mb-1">
+                          광고 타입 *
+                        </label>
+                        <select 
+                          id="adType" 
+                          name="adInfo.adType"
+                          value={formData.adInfo.adType}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">광고 타입을 선택하세요</option>
+                          <option value="제품 홍보">제품 홍보</option>
+                          <option value="브랜드 홍보">브랜드 홍보</option>
+                          <option value="이벤트 및 프로모션 홍보">이벤트 및 프로모션 홍보</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="adPlatform" className="block text-sm font-medium text-gray-700 mb-1">
+                          광고 플랫폼 *
+                        </label>
+                        <select 
+                          id="adPlatform" 
+                          name="adInfo.adPlatform"
+                          value={formData.adInfo.adPlatform}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">플랫폼을 선택하세요</option>
+                          <option value="인스타그램">인스타그램</option>
+                          <option value="페이스북">페이스북</option>
+                          <option value="유튜브">유튜브</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="adTarget" className="block text-sm font-medium text-gray-700 mb-1">
+                          광고 타겟 *
+                        </label>
+                        <textarea 
+                          id="adTarget" 
+                          name="adInfo.adTarget"
+                          value={formData.adInfo.adTarget}
+                          onChange={handleInputChange}
+                          rows={3} 
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="타겟 고객층을 구체적으로 입력하세요 (예: 20-30대 직장인 여성)"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* 오른쪽: 추가 정보 입력란 (크게) */}
+                    <div className="flex flex-col">
+                      <div className="flex-1">
+                        <label htmlFor="adAdditionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
+                          추가 정보
+                        </label>
+                        <textarea 
+                          id="adAdditionalInfo" 
+                          name="adInfo.additionalInfo"
+                          value={formData.adInfo.additionalInfo}
+                          onChange={handleInputChange}
+                          rows={10} 
+                          className="w-full h-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                          placeholder="강조하고 싶은 포인트나 특별한 요구사항을 자세히 입력하세요&#10;&#10;예시:&#10;- 젊고 트렌디한 분위기 강조&#10;- 할인 이벤트 정보 포함&#10;- 매장 위치의 접근성 강조&#10;- 제품의 특별한 장점이나 차별화 포인트"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 다음 단계 버튼 */}
+                <div className="flex justify-end">
                   <button 
                     onClick={() => setActiveStep(2)}
-                    disabled={!formData.storeId}
-                    className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!formData.storeId || formData.storeInfo.brandConcepts.length === 0 || !formData.adInfo.adType || !formData.adInfo.adPlatform || !formData.adInfo.adTarget}
+                    className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     다음 단계
                     <ArrowRight size={16} className="ml-2" />
