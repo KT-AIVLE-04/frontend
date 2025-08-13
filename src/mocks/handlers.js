@@ -7,7 +7,8 @@ export const handlers = [
   // http.all('*', async () => {
   //   await delay(2000);
   // }),
-  http.get('*', ({ request }) => {
+  // 모든 HTTP 메서드에 대해 passthrough 조건 적용
+  http.all('*', ({ request }) => {
     const url = new URL(request.url);
     const workingEndpoints = [
       '/api/auth', 

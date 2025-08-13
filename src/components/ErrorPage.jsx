@@ -1,16 +1,21 @@
-import { AlertCircle, Home, RefreshCw } from 'lucide-react';
+import { AlertCircle, Home, LogOut, RefreshCw } from 'lucide-react';
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { authApi } from '../api/auth';
 import { ROUTES } from '../routes/routes';
+import { logout } from '../store/authSlice';
 import { Container } from './Container';
 
 export function ErrorPage({ 
   title = '오류가 발생했습니다', 
   message = '요청하신 작업을 처리하는 중에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
   showRetry = true,
-  showHome = true 
+  showHome = true,
+  showLogout = true
 }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleRetry = () => {
     window.location.reload();
@@ -18,6 +23,20 @@ export function ErrorPage({
 
   const handleGoHome = () => {
     navigate(ROUTES.DASHBOARD.route);
+  };
+
+  const handleLogout = async () => {
+    try {
+      // 로그아웃 API 호출 (실패해도 상관없음)
+      await authApi.logout();
+    } catch (error) {
+      console.log('Logout API failed, but continuing with local logout');
+    } finally {
+      // Redux store에서 로그아웃 처리
+      dispatch(logout());
+      // 로그인 페이지로 이동
+      navigate(ROUTES.LOGIN.route);
+    }
   };
 
   return (
@@ -49,6 +68,16 @@ export function ErrorPage({
             >
               <Home size={16} className="mr-2" />
               홈으로 이동
+            </button>
+          )}
+
+          {showLogout && (
+            <button
+              onClick={handleLogout}
+              className="flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-xl border-2 border-red-700 hover:bg-red-600 transition-all duration-150 font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] transform hover:translate-x-0.5 hover:translate-y-0.5"
+            >
+              <LogOut size={16} className="mr-2" />
+              로그아웃
             </button>
           )}
         </div>
