@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { authApi } from '../api/auth'
 import { login, logout, updateToken } from '../store/authSlice'
 
 export const useAuth = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(true)
   const location = useLocation()
   
@@ -13,7 +14,7 @@ export const useAuth = () => {
   const { isAuthenticated } = useSelector(state => state.auth)
 
   const checkLogin = async () => {
-    console.log('checkLogiffn')
+    console.log('checkLogin')
     try {
       const refreshToken = localStorage.getItem('refreshToken')
       if(!refreshToken) throw new Error('refreshToken not found');
@@ -33,7 +34,6 @@ export const useAuth = () => {
         dispatch(logout())
       }
     } catch (error) {
-      // 리프레시 실패는 일반적인 상황일 수 있으므로 콘솔 에러는 출력하지 않음
       console.log('refreshToken 갱신 실패', error)
       dispatch(logout())
     } finally {
@@ -66,6 +66,7 @@ export const useAuth = () => {
   const handleOAuthCallback = ({ accessToken, refreshToken }) => {
     try {
       dispatch(login({ accessToken, refreshToken }))
+      // navigate 제거 - 라우팅 로직이 자동으로 처리함
     } catch (error) {
       console.error('OAuth 로그인 처리 실패:', error)
       // 사용자에게 에러 알림 (토스트나 알림 컴포넌트 사용)

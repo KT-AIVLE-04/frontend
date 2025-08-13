@@ -2,6 +2,7 @@ import { ArrowRight, CheckCircle, Clock, Sparkles, Upload } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../../api/content';
 import { storeApi } from '../../api/store';
+import { Container } from '../../components/Container';
 import { ErrorPage } from '../../components/ErrorPage';
 import { ContentTypeSelector } from './components';
 
@@ -112,20 +113,20 @@ export function ContentCreation() {
   }
 
   return (
-    <div>
+    <div className="flex-1 w-full">
       <h1 className="text-2xl font-bold mb-6">콘텐츠 제작</h1>
       
       {!contentType && (
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+        <Container className="p-8 text-center">
           <h2 className="text-xl font-semibold mb-8">
             제작할 콘텐츠 유형을 선택하세요
           </h2>
           <ContentTypeSelector contentType={contentType} setContentType={setContentType} />
-        </div>
+        </Container>
       )}
 
       {contentType === 'video' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <Container className="overflow-hidden">
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center">
               <div className={`flex items-center ${activeStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
@@ -330,11 +331,11 @@ export function ContentCreation() {
               </div>
             )}
           </div>
-        </div>
+        </Container>
       )}
 
       {contentType === 'image' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden p-6">
+        <Container className="overflow-hidden p-6">
           <h2 className="text-lg font-semibold mb-4">이미지 생성</h2>
           <p className="text-gray-500 mb-6">
             AI 이미지 생성 기능은 준비 중입니다. 곧 서비스될 예정입니다.
@@ -345,7 +346,7 @@ export function ContentCreation() {
           >
             돌아가기
           </button>
-        </div>
+        </Container>
       )}
     </div>
   );

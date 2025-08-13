@@ -72,7 +72,7 @@ export function ContentManagement() {
   }
 
   return (
-    <div>
+    <div className="flex-1 w-full">
       <h1 className="text-2xl font-bold mb-6">콘텐츠 관리</h1>
 
       <TabMenu 

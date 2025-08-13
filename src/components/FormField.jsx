@@ -14,9 +14,9 @@ export function FormField({
   readOnly = false,
   step
 }) {
-  const inputClasses = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-    error ? 'border-red-300' : 'border-gray-300'
-  } ${readOnly ? 'bg-gray-100 cursor-not-allowed' : ''}`;
+  const inputClasses = `w-full px-5 py-4 border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-300 font-bold text-gray-800 placeholder-gray-500 bg-white ${
+    error ? 'border-red-500 bg-red-50' : 'border-gray-400 hover:border-blue-400'
+  } ${readOnly ? 'bg-gray-200 cursor-not-allowed border-gray-300' : ''}`;
 
   const renderInput = () => {
     switch (type) {
@@ -71,16 +71,19 @@ export function FormField({
   };
 
   return (
-    <div className={`mb-4 ${className}`}>
+    <div className={`mb-6 ${className}`}>
       {label && (
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor={name} className="block text-sm font-black text-gray-800 mb-2 tracking-wide">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-red-500 ml-1 font-black">*</span>}
         </label>
       )}
       {renderInput()}
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-2 text-sm text-red-600 font-black flex items-center">
+          <span className="mr-1">⚠️</span>
+          {error}
+        </p>
       )}
     </div>
   );

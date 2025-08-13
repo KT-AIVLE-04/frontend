@@ -6,3 +6,6 @@ export { Login } from './Login/Login';
 export { Register } from './Register/Register';
 export { SnsIntegration } from './SnsIntegration/SnsIntegration';
 export { StoreManagement } from './StoreManagement/StoreManagement';
+export { StoreSelection } from './StoreSelection/StoreSelection';
+export { StoreUpdate } from './StoreUpdate/StoreUpdate';
+

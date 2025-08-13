@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, passthrough } from 'msw';
 
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -7,7 +7,25 @@ export const handlers = [
   // http.all('*', async () => {
   //   await delay(2000);
   // }),
-  
+  http.get('*', ({ request }) => {
+    const url = new URL(request.url);
+    const workingEndpoints = [
+      '/api/auth', 
+      '/api/stores'
+    ]
+
+    // msw 작동 안하는 조건들
+    const isStaticFile = /\.(css|js|png|jpg|svg|ico|woff|woff2|ttf|eot)$/.test(url.pathname);
+    const isNotApi = !url.pathname.startsWith('/api/');
+    const isNotLocalhost = url.origin !== 'http://localhost:8080';
+    const isWorkingEndpoint = workingEndpoints.some(endpoint => 
+      url.pathname.includes(endpoint)
+    )
+    if(isStaticFile || isNotApi || isNotLocalhost || isWorkingEndpoint) {
+      console.log("passthrough", url.pathname)
+      return passthrough()
+    }
+  }),
   http.post(`${API_BASE_URL}/api/auth/new`, async ({request}) => {
     const {email, password} = await request.json()
 

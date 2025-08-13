@@ -1,7 +1,8 @@
-import { Pencil, Store, Trash2 } from 'lucide-react';
+import { Check, Pencil, Store, Trash2 } from 'lucide-react';
 import { DataTable, IconButton } from '../../../components';
+import { Store as StoreModel } from '../../../models/Store';
 
-export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
+export const StoreTable = ({ stores, handleDelete, handleEdit, handleSelect, selectedStoreId }) => {
   const columns = [
     {
       key: 'name',
@@ -12,7 +13,7 @@ export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
             <Store size={18} className="text-blue-600" />
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">
+            <div className="text-m font-bold text-gray-900">
               {value}
             </div>
           </div>
@@ -24,34 +25,55 @@ export const StoreTable = ({ stores, handleDelete, handleEdit }) => {
     { 
       key: 'industry', 
       header: '업종',
-      render: (value, store) => store.getIndustryLabel()
+      render: (value, store) => StoreModel.getIndustryLabel(store.industry)
     },
     { 
       key: 'businessNumber', 
       header: '사업자등록번호',
-      render: (value, store) => store.hasBusinessNumber() ? value : '-'
+      render: (value, store) => {
+        const hasBusinessNumber = store.businessNumber && store.businessNumber.trim() !== '';
+        return hasBusinessNumber ? value : '-';
+      }
     },
     {
       key: 'actions',
       header: '관리',
-      render: (value, store) => (
-        <div className="flex items-center justify-center space-x-3">
-          <IconButton
-            icon={Pencil}
-            variant="primary"
-            size="medium"
-            onClick={() => handleEdit(store)}
-            title="수정"
-          />
-          <IconButton
-            icon={Trash2}
-            variant="danger"
-            size="medium"
-            onClick={() => handleDelete(store.id)}
-            title="삭제"
-          />
-        </div>
-      )
+      render: (value, store) => {
+        const isSelected = store.id.toString() === selectedStoreId.toString();
+        
+        return (
+          <div className="flex items-center justify-center space-x-3">
+            {!isSelected && (
+              <IconButton
+                icon={Check}
+                variant="success"
+                size="medium"
+                onClick={() => handleSelect(store)}
+                title="선택"
+              />
+            )}
+            {isSelected && (
+              <span className="px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                현재 선택됨
+              </span>
+            )}
+            <IconButton
+              icon={Pencil}
+              variant="primary"
+              size="medium"
+              onClick={() => handleEdit(store)}
+              title="수정"
+            />
+            <IconButton
+              icon={Trash2}
+              variant="danger"
+              size="medium"
+              onClick={() => handleDelete(store.id)}
+              title="삭제"
+            />
+          </div>
+        );
+      }
     }
   ];
 

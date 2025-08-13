@@ -1,15 +1,16 @@
 import React from 'react';
+import { Container } from './Container';
 
 export function StatCard({ title, value, icon, change, trend, className = '' }) {
   return (
-    <div className={`bg-white p-6 rounded-lg shadow-sm border border-gray-100 ${className}`}>
+    <Container variant="hover" className={`p-6 ${className}`}>
       <div className="flex justify-between items-start mb-4">
-        <div className="p-2 bg-gray-50 rounded-lg">
+        <div className="p-3 bg-blue-100 rounded-xl border-2 border-blue-300">
           {icon}
         </div>
         {change && (
-          <div className={`flex items-center ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-            <span className="text-xs font-medium">{change}</span>
+          <div className={`flex items-center font-bold ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+            <span className="text-xs font-black">{change}</span>
             {trend && (
               <>
                 {trend === 'up' ? (
@@ -26,8 +27,8 @@ export function StatCard({ title, value, icon, change, trend, className = '' }) 
           </div>
         )}
       </div>
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
-    </div>
+      <p className="text-sm font-bold text-gray-600">{title}</p>
+      <p className="text-2xl font-black mt-1 text-blue-600">{value}</p>
+    </Container>
   );
 } 
