@@ -1,23 +1,23 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { authApi } from '../api/auth'
-import { login, logout, updateToken } from '../store/authSlice'
+import {useEffect, useMemo, useState} from 'react'
+import {useDispatch, useSelector} from 'react-redux'
+import {useLocation} from 'react-router-dom'
+import {authApi} from '../api/auth'
+import {login, logout, updateToken} from '../store/authSlice'
 
 export const useAuth = () => {
   const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const location = useLocation()
-  
+
   // 현재 인증 상태 확인
-  const { isAuthenticated } = useSelector(state => state.auth)
+  const {isAuthenticated} = useSelector(state => state.auth)
 
   const checkLogin = async () => {
     console.log('checkLogin')
     try {
+      setIsLoading(true)
       const refreshToken = localStorage.getItem('refreshToken')
-      if(!refreshToken) throw new Error('refreshToken not found');
+      if (!refreshToken) throw new Error('refreshToken not found');
 
       const response = await authApi.refresh(refreshToken)
       console.log('refreshToken 갱신 성공', response)
@@ -25,12 +25,12 @@ export const useAuth = () => {
       let isSuccess = false
       if (response.data?.result) {
         const {accessToken, refreshToken} = response.data.result
-        if(accessToken && refreshToken) {
-          dispatch(updateToken({ accessToken, refreshToken }))
+        if (accessToken && refreshToken) {
+          dispatch(updateToken({accessToken, refreshToken}))
           isSuccess = true
-        } 
-      } 
-      if(!isSuccess) {
+        }
+      }
+      if (!isSuccess) {
         dispatch(logout())
       }
     } catch (error) {
@@ -46,26 +46,27 @@ export const useAuth = () => {
     if (location.pathname !== '/oauth-success') {
       return null
     }
-    
+
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
       const [key, value] = cookie.trim().split('=')
       acc[key] = value
       return acc
     }, {})
-    
+
     const accessToken = cookies.accessToken
     const refreshToken = cookies.refreshToken
-    
+
     if (accessToken && refreshToken) {
-      return { accessToken, refreshToken }
+      return {accessToken, refreshToken}
     }
-    
+
     return null
   }, [location.pathname])
 
-  const handleOAuthCallback = ({ accessToken, refreshToken }) => {
+  const handleOAuthCallback = ({accessToken, refreshToken}) => {
     try {
-      dispatch(login({ accessToken, refreshToken }))
+      setIsLoading(true)
+      dispatch(login({accessToken, refreshToken}))
       // navigate 제거 - 라우팅 로직이 자동으로 처리함
     } catch (error) {
       console.error('OAuth 로그인 처리 실패:', error)
@@ -82,8 +83,9 @@ export const useAuth = () => {
       setIsLoading(false)
       return
     }
+    if (isLoading) return;
     oauthParams ? handleOAuthCallback(oauthParams) : checkLogin();
   }, [oauthParams])
 
-  return { isLoading }
+  return {isLoading}
 } 
