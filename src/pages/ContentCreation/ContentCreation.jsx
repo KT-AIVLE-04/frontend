@@ -1,5 +1,6 @@
 import { ArrowRight, CheckCircle, Clock, Sparkles, Upload, X, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { contentApi } from '../../api/content';
 import { storeApi } from '../../api/store';
 import { Container } from '../../components/Container';
@@ -7,9 +8,9 @@ import { ErrorPage } from '../../components/ErrorPage';
 import { ContentTypeSelector } from './components';
 
 export function ContentCreation() {
+  const selectedStoreId = useSelector((state) => state.auth.selectedStoreId);
   const [activeStep, setActiveStep] = useState(1);
   const [contentType, setContentType] = useState(null);
-  const [stores, setStores] = useState([]);
   const [scenarios, setScenarios] = useState([]);
   const [formData, setFormData] = useState({
     // 매장 정보
@@ -41,13 +42,16 @@ export function ContentCreation() {
 
   useEffect(() => {
     if (contentType === 'video') {
-      fetchStores();
-      fetchScenarios();
-      // 기본 매장 정보 자동 로드 (현재 접속한 매장의 정보)
-      fetchCurrentStoreInfo(1); // Mock으로 1번 매장 정보 로드
-      setFormData(prev => ({ ...prev, storeId: '1' })); // 기본 storeId 설정
+  
     }
   }, [contentType]);
+
+  useEffect(() => {
+    if (contentType === 'video' && selectedStoreId) {
+      fetchCurrentStoreInfo(selectedStoreId);
+      setFormData(prev => ({ ...prev, storeId: selectedStoreId }));
+    }
+  }, [selectedStoreId, contentType]);
 
   useEffect(() => {
     if (contentId && activeStep === 3) {
@@ -55,41 +59,12 @@ export function ContentCreation() {
     }
   }, [contentId, activeStep]);
 
-  const fetchStores = async () => {
-    try {
-      setError(null);
-      // const response = await storeApi.getStores();
-      // setStores(response.data || []);
-      
-      // Mock 데이터 사용
-      const mockStores = [
-        { id: 1, name: "안녕하모" },
-        { id: 2, name: "홍대점" },
-        { id: 3, name: "신촌점" },
-        { id: 4, name: "명동점" }
-      ];
-      setStores(mockStores);
-    } catch (error) {
-      console.error('매장 목록 로딩 실패:', error);
-      setError('매장 목록을 불러오는데 실패했습니다.');
-    }
-  };
-
-  // 현재 선택된 매장의 상세 정보를 가져오는 함수 (Mock 데이터)
+  // 현재 선택된 매장의 상세 정보를 가져오는 함수
   const fetchCurrentStoreInfo = async (storeId) => {
     try {
-      // 실제로는 storeApi.getStore(storeId) 호출
-      // const response = await storeApi.getStore(storeId);
+      const response = await storeApi.getStore(storeId);
+      const storeInfo = response.data.result;
       
-      // Mock 데이터로 현재 매장 정보 시뮬레이션
-      const mockStoreInfo = {
-        1: { name: "안녕하모", businessType: "음식점" },
-        2: { name: "홍대점", businessType: "음식점" },
-        3: { name: "신촌점", businessType: "카페" },
-        4: { name: "명동점", businessType: "패션" }
-      };
-
-      const storeInfo = mockStoreInfo[storeId];
       if (storeInfo) {
         // formData의 매장 정보 업데이트
         setFormData(prev => ({
@@ -97,7 +72,7 @@ export function ContentCreation() {
           storeInfo: {
             ...prev.storeInfo,
             storeName: storeInfo.name,
-            businessType: storeInfo.businessType
+            businessType: storeInfo.industry
           }
         }));
       }
@@ -330,24 +305,13 @@ export function ContentCreation() {
     }
   };
 
-  // 매장 선택이 변경될 때 해당 매장의 상세 정보를 가져오는 함수
-  const handleStoreChange = (e) => {
-    const storeId = e.target.value;
-    
-    // 기존 storeId 업데이트
-    setFormData(prev => ({
-      ...prev,
-      storeId: storeId
-    }));
-    
-    // 선택된 매장의 상세 정보 가져오기
-    if (storeId) {
-      fetchCurrentStoreInfo(storeId);
-    }
-  };
 
   if (error) {
     return <ErrorPage title="데이터 로딩 실패" message={error} />;
+  }
+
+  if (!selectedStoreId) {
+    return <ErrorPage title="매장이 선택되지 않음" message="먼저 매장을 선택해주세요." />;
   }
 
   return (
