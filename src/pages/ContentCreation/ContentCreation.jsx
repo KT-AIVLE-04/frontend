@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Clock, Sparkles, Upload, X, Trash2 } from 'lucide-react';
+import { ArrowRight, CheckCircle, Clock, Sparkles, Upload, X, Trash2, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { contentApi } from '../../api/content';
@@ -12,6 +12,7 @@ export function ContentCreation() {
   const [activeStep, setActiveStep] = useState(1);
   const [contentType, setContentType] = useState(null);
   const [scenarios, setScenarios] = useState([]);
+  const [selectedScenarioId, setSelectedScenarioId] = useState(null);
   const [formData, setFormData] = useState({
     // 매장 정보
     storeInfo: {
@@ -38,7 +39,7 @@ export function ContentCreation() {
 
   useEffect(() => {
     if (contentType === 'video') {
-  
+      // 시나리오는 사용자가 정보를 입력하고 다음 단계로 넘어갈 때 생성
     }
   }, [contentType]);
 
@@ -78,14 +79,41 @@ export function ContentCreation() {
     }
   };
 
-  const fetchScenarios = async () => {
+  const generateScenarios = async () => {
     try {
       setError(null);
-      const response = await contentApi.getScenarios();
-      setScenarios(response.data || []);
+      setLoading(true);
+      
+      // 시나리오 생성 요청 데이터 구성
+      const scenarioData = {
+        prompt: formData.adInfo.additionalInfo || '', // 광고 요구사항을 prompt로 사용
+        platform: formData.adInfo.adPlatform,
+        target: formData.adInfo.adTarget,
+        adType: formData.adInfo.adType,
+        brandConcepts: formData.storeInfo.brandConcepts
+      };
+      
+      const response = await contentApi.createScenarios(selectedStoreId, scenarioData);
+      console.log('시나리오 생성 응답:', response.data); // 디버깅용
+      
+      if (response.data?.isSuccess && response.data?.result?.scenarios) {
+        // 받아온 시나리오 데이터를 기존 형식에 맞게 변환
+        const formattedScenarios = response.data.result.scenarios.map((scenario, index) => ({
+          id: index + 1, // 임시 ID
+          title: scenario.title,
+          description: scenario.content,
+          isRecommended: index === 0 // 첫 번째 시나리오를 추천으로 설정
+        }));
+        setScenarios(formattedScenarios);
+      } else {
+        setScenarios([]);
+        setError('시나리오 생성에 실패했습니다.');
+      }
     } catch (error) {
-      console.error('시나리오 목록 로딩 실패:', error);
-      setError('시나리오 목록을 불러오는데 실패했습니다.');
+      console.error('시나리오 생성 실패:', error);
+      setError('시나리오 생성에 실패했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,17 +267,6 @@ export function ContentCreation() {
     }
   };
 
-  // 시나리오 선택 단계에서 백엔드로 보낼 데이터만 추출하는 함수
-  const getScenarioRequestData = () => {
-    return {
-      // 요구사항에 따라 시나리오 선택 시 보낼 정보만 포함
-      additionalInfo: formData.adInfo.additionalInfo, // 추가 정보
-      adPlatform: formData.adInfo.adPlatform, // 광고 플랫폼
-      adTarget: formData.adInfo.adTarget, // 광고 타겟
-      adType: formData.adInfo.adType, // 광고 유형(타입)
-      brandConcepts: formData.storeInfo.brandConcepts // 브랜드 컨셉 태그들
-    };
-  };
 
   const handleCreateContent = async () => {
     try {
@@ -260,16 +277,13 @@ export function ContentCreation() {
         type: contentType,
         storeId: formData.storeId,
         scenarioId: formData.scenarioId,
-        // 시나리오 생성에 필요한 정보들
-        ...getScenarioRequestData()
       };
 
       console.log('콘텐츠 생성 요청 데이터:', requestData);
-      
-      const response = await contentApi.createContent(requestData);
-      
-      setContentId(response.data.contentId);
       setActiveStep(3);
+
+      const response = await contentApi.createContent(requestData);
+      setContentId(response.data.contentId);
     } catch (error) {
       console.error('콘텐츠 생성 실패:', error);
       alert('콘텐츠 생성에 실패했습니다.');
@@ -647,11 +661,16 @@ export function ContentCreation() {
                 {/* 다음 단계 버튼 */}
                 <div className="flex justify-end">
                   <button 
-                    onClick={() => setActiveStep(2)}
-                    disabled={!formData.storeId || formData.storeInfo.brandConcepts.length === 0 || formData.storeInfo.referenceFiles.length === 0 || !formData.adInfo.adType || !formData.adInfo.adPlatform || !formData.adInfo.adTarget || !formData.adInfo.adDuration}
+                    onClick={async () => {
+                      await generateScenarios();
+                      if (!error) {
+                        setActiveStep(2);
+                      }
+                    }}
+                    disabled={loading || !formData.storeId || formData.storeInfo.brandConcepts.length === 0 || formData.storeInfo.referenceFiles.length === 0 || !formData.adInfo.adType || !formData.adInfo.adPlatform || !formData.adInfo.adTarget || !formData.adInfo.adDuration}
                     className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    다음 단계
+                    {loading ? '시나리오 생성 중...' : '다음 단계'}
                     <ArrowRight size={16} className="ml-2" />
                   </button>
                 </div>
@@ -660,31 +679,41 @@ export function ContentCreation() {
 
             {activeStep === 2 && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">시나리오 선택</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <h2 className="text-lg font-semibold mb-6">시나리오 선택</h2>
+                <div className="space-y-4">
                   {scenarios.map((scenario) => (
-                    <div key={scenario.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 cursor-pointer">
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-medium">시나리오 {scenario.id}</h3>
+                    <div 
+                      key={scenario.id} 
+                      onClick={() => setSelectedScenarioId(scenario.id)}
+                      className={`border rounded-lg p-6 hover:shadow-md transition-all cursor-pointer ${
+                        selectedScenarioId === scenario.id 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-blue-500'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="text-blue-600 font-semibold">시나리오{scenario.id}</div>
+                          {selectedScenarioId === scenario.id && (
+                            <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                              <CheckCircle size={16} className="text-white" />
+                            </div>
+                          )}
+                        </div>
                         {scenario.isRecommended && (
-                          <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                          <div className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-medium">
                             추천
                           </div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-4">
-                        {scenario.description}
-                      </p>
-                      <div className="flex justify-end">
-                        <button 
-                          onClick={() => {
-                            setFormData(prev => ({ ...prev, scenarioId: scenario.id }));
-                            setActiveStep(3);
-                          }}
-                          className="text-sm text-blue-600 font-medium"
-                        >
-                          이 시나리오로 제작하기
-                        </button>
+                      <hr className="border-gray-200 mb-4" />
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">{scenario.title}</h3>
+                      </div>
+                      <div className="mb-2">
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                          {scenario.description}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -697,8 +726,13 @@ export function ContentCreation() {
                     이전
                   </button>
                   <button 
-                    onClick={handleCreateContent}
-                    disabled={loading || !formData.scenarioId}
+                    onClick={() => {
+                      if (selectedScenarioId) {
+                        setFormData(prev => ({ ...prev, scenarioId: selectedScenarioId }));
+                        handleCreateContent();
+                      }
+                    }}
+                    disabled={loading || !selectedScenarioId}
                     className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? '생성 중...' : '이 시나리오로 제작하기'}

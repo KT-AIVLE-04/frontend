@@ -21,8 +21,13 @@ export const contentApi = {
   // 콘텐츠 다운로드
   downloadContent: (contentId) => api.get(`${BASE_URL}/${contentId}/download`),
   
-  // 시나리오 목록 조회
-  getScenarios: () => api.get(`${BASE_URL}/scenarios`),
+  // 시나리오 생성 요청
+  createScenarios: (storeId, data) => api.post(`/shorts/scenario`, data, {
+    headers: {
+      'x-store-id': storeId
+    },
+    timeout: 30000 // 30초 타임아웃
+  }),
   
   // 콘텐츠 생성 상태 확인
   getContentStatus: (contentId) => api.get(`${BASE_URL}/${contentId}/status`)
