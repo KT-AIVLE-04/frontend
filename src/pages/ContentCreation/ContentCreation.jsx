@@ -25,13 +25,9 @@ export function ContentCreation() {
       adType: '', 
       adTarget: '', 
       adPlatform: '', 
+      adDuration: '15초', // 광고 시간 (15초가 기본값)
       additionalInfo: '' 
-    },
-    
-    // 기존 필드들 
-    storeId: '',
-    additionalInfo: '',
-    scenarioId: ''
+    }
   });
   const [loading, setLoading] = useState(false);
   const [contentStatus, setContentStatus] = useState(null);
@@ -589,6 +585,43 @@ export function ContentCreation() {
                           placeholder="타겟 고객층을 구체적으로 입력하세요 (예: 20-30대 직장인 여성)"
                         />
                       </div>
+
+                      {/* 광고 시간 선택 */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          광고 시간 *
+                        </label>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              adInfo: { ...prev.adInfo, adDuration: '15초' }
+                            }))}
+                            className={`flex-1 py-3 px-4 border rounded-md text-sm font-medium transition-colors ${
+                              formData.adInfo.adDuration === '15초'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-600'
+                            }`}
+                          >
+                            15초
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              adInfo: { ...prev.adInfo, adDuration: '30초' }
+                            }))}
+                            className={`flex-1 py-3 px-4 border rounded-md text-sm font-medium transition-colors ${
+                              formData.adInfo.adDuration === '30초'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-600'
+                            }`}
+                          >
+                            30초
+                          </button>
+                        </div>
+                      </div>
                     </div>
                     
                     {/* 오른쪽: 추가 정보 입력란 (크게) */}
@@ -615,7 +648,7 @@ export function ContentCreation() {
                 <div className="flex justify-end">
                   <button 
                     onClick={() => setActiveStep(2)}
-                    disabled={!formData.storeId || formData.storeInfo.brandConcepts.length === 0 || formData.storeInfo.referenceFiles.length === 0 || !formData.adInfo.adType || !formData.adInfo.adPlatform || !formData.adInfo.adTarget}
+                    disabled={!formData.storeId || formData.storeInfo.brandConcepts.length === 0 || formData.storeInfo.referenceFiles.length === 0 || !formData.adInfo.adType || !formData.adInfo.adPlatform || !formData.adInfo.adTarget || !formData.adInfo.adDuration}
                     className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     다음 단계
