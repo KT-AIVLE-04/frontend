@@ -1,6 +1,6 @@
 import { http, HttpResponse, passthrough } from 'msw';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL.replace('/api', '');
 
 export const handlers = [
   // // 전역 딜레이 미들웨어
@@ -8,24 +8,28 @@ export const handlers = [
   //   await delay(2000);
   // }),
   // 모든 HTTP 메서드에 대해 passthrough 조건 적용
-  http.all('*', ({ request }) => {
+  http.all('*', ({request}) => {
     const url = new URL(request.url);
     const workingEndpoints = [
-      '/api/auth', 
+      '/api/auth',
       '/api/stores'
     ]
 
     // msw 작동 안하는 조건들
     const isStaticFile = /\.(css|js|png|jpg|svg|ico|woff|woff2|ttf|eot)$/.test(url.pathname);
-    const isNotApi = !url.pathname.startsWith('/api/');
-    const isNotLocalhost = url.origin !== 'http://localhost:8080';
-    const isWorkingEndpoint = workingEndpoints.some(endpoint => 
+    const isNotHost = url.origin !== API_BASE_URL;
+    const isWorkingEndpoint = workingEndpoints.some(endpoint =>
       url.pathname.includes(endpoint)
     )
-    if(isStaticFile || isNotApi || isNotLocalhost || isWorkingEndpoint) {
-      console.log("passthrough", url.pathname)
+    if (isStaticFile || isNotHost || isWorkingEndpoint) {
+      console.log("🛳️ passthrough", url.pathname, {
+        isStaticFile,
+        isNotHost,
+        isWorkingEndpoint
+      })
       return passthrough()
     }
+    console.log("🍪 MSW", url.pathname)
   }),
   http.post(`${API_BASE_URL}/api/auth/new`, async ({request}) => {
     const {email, password, name, phoneNumber} = await request.json()
@@ -164,7 +168,7 @@ export const handlers = [
     const startIndex = (page - 1) * size
     const endIndex = Math.min(startIndex + size, totalItems)
 
-    const articles = Array.from({ length: endIndex - startIndex }, (_, i) => ({
+    const articles = Array.from({length: endIndex - startIndex}, (_, i) => ({
       articleId: startIndex + i + 1,
       title: `게시글 제목 ${startIndex + i + 1}${keyword ? ` - ${keyword}` : ''}`,
       content: `게시글 내용 ${startIndex + i + 1}입니다.`,
@@ -310,7 +314,7 @@ export const handlers = [
   }),
 
   // ===== 매장 관리 API =====
-  
+
   // 매장 목록 조회
   http.get(`${API_BASE_URL}/api/stores`, () => {
     const stores = [
@@ -359,7 +363,7 @@ export const handlers = [
   // 매장 생성
   http.post(`${API_BASE_URL}/api/stores`, async ({request}) => {
     const data = await request.json()
-    
+
     if (!data.name || !data.address || !data.phoneNumber || !data.industry) {
       return HttpResponse.json({
         isSuccess: false,
@@ -383,7 +387,7 @@ export const handlers = [
   // 매장 수정 (PATCH 사용)
   http.patch(`${API_BASE_URL}/api/stores/:storeId`, async ({params, request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '매장 정보가 수정되었습니다.',
@@ -406,12 +410,12 @@ export const handlers = [
   }),
 
   // ===== 분석 API =====
-  
+
   // 대시보드 통계
   http.get(`${API_BASE_URL}/api/analytics/dashboard`, ({request}) => {
     const url = new URL(request.url)
     const dateRange = url.searchParams.get('dateRange') || 'last7'
-    
+
     const stats = [
       {
         type: 'views',
@@ -532,12 +536,12 @@ export const handlers = [
   }),
 
   // ===== 콘텐츠 API =====
-  
+
   // 콘텐츠 목록 조회
   http.get(`${API_BASE_URL}/api/content`, ({request}) => {
     const url = new URL(request.url)
     const type = url.searchParams.get('type') || 'videos'
-    
+
     const contents = [
       {
         id: 1,
@@ -571,7 +575,7 @@ export const handlers = [
   // 콘텐츠 생성 (AI)
   http.post(`${API_BASE_URL}/api/content`, async ({request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '콘텐츠 생성이 시작되었습니다.',
@@ -587,7 +591,7 @@ export const handlers = [
   http.get(`${API_BASE_URL}/api/content/:contentId/status`, ({params}) => {
     const statuses = ['processing', 'completed', 'failed']
     const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '성공입니다.',
@@ -630,7 +634,7 @@ export const handlers = [
   }),
 
   // ===== SNS API =====
-  
+
   // 연동된 SNS 계정 목록
   http.get(`${API_BASE_URL}/api/sns/accounts`, () => {
     const accounts = [
@@ -670,7 +674,7 @@ export const handlers = [
   // SNS 계정 연결
   http.post(`${API_BASE_URL}/api/sns/accounts/:platform`, async ({params, request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: `${params.platform} 계정이 연결되었습니다.`,
@@ -711,7 +715,7 @@ export const handlers = [
   // 예약 게시물 생성
   http.post(`${API_BASE_URL}/api/sns/scheduled-posts`, async ({request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '게시물이 예약되었습니다.',
@@ -751,7 +755,7 @@ export const handlers = [
   http.get(`${API_BASE_URL}/api/sns/hashtags`, ({request}) => {
     const url = new URL(request.url)
     const keyword = url.searchParams.get('keyword') || ''
-    
+
     const hashtags = [
       '#여름맞이',
       '#카페추천',
