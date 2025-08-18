@@ -336,39 +336,22 @@ export const InformationInput = () => {
 
             {/* 광고 시간 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label htmlFor="adDuration" className="block text-sm font-medium text-gray-700 mb-1">
                 광고 시간 *
               </label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    adInfo: { ...prev.adInfo, adDuration: '15초' }
-                  }))}
-                  className={`flex-1 py-3 px-4 border rounded-md text-sm font-medium transition-colors ${
-                    formData.adInfo.adDuration === '15초'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-600'
-                  }`}
-                >
-                  15초
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({
-                    ...prev,
-                    adInfo: { ...prev.adInfo, adDuration: '30초' }
-                  }))}
-                  className={`flex-1 py-3 px-4 border rounded-md text-sm font-medium transition-colors ${
-                    formData.adInfo.adDuration === '30초'
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-600'
-                  }`}
-                >
-                  30초
-                </button>
-              </div>
+              <select 
+                id="adDuration" 
+                name="adInfo.adDuration"
+                value={formData.adInfo.adDuration}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">광고 시간을 선택하세요</option>
+                <option value="15초">15초</option>
+                <option value="30초">30초</option>
+                <option value="45초">45초</option>
+                <option value="60초">60초</option>
+              </select>
             </div>
           </div>
           
