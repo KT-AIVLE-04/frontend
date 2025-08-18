@@ -35,6 +35,16 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`
     }
     
+    // storeId가 true인 경우 X-STORE-ID 헤더 자동 추가
+    if (config.storeId === true) {
+      const selectedStore = store.getState().store.selectedStore
+      if (selectedStore?.id) {
+        console.log('currentStoreId', selectedStore.id)
+        config.headers['X-STORE-ID'] = selectedStore.id
+      }
+      delete config.storeId // 헤더 추가 후 제거
+    }
+    
     // FormData인 경우 Content-Type 헤더 제거
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type']
