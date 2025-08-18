@@ -13,6 +13,7 @@ export function ContentCreation() {
   const [contentType, setContentType] = useState(null);
   const [scenarios, setScenarios] = useState([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
   const [formData, setFormData] = useState({
     // 매장 정보
     storeInfo: {
@@ -36,12 +37,6 @@ export function ContentCreation() {
   const [error, setError] = useState(null);
   const [brandConceptInput, setBrandConceptInput] = useState(''); // 브랜드 컨셉 입력 필드
   const [fileInputRef, setFileInputRef] = useState(null); // 파일 입력 참조
-
-  useEffect(() => {
-    if (contentType === 'video') {
-      // 시나리오는 사용자가 정보를 입력하고 다음 단계로 넘어갈 때 생성
-    }
-  }, [contentType]);
 
   useEffect(() => {
     if (contentType === 'video' && selectedStoreId) {
@@ -97,6 +92,12 @@ export function ContentCreation() {
       console.log('시나리오 생성 응답:', response.data); // 디버깅용
       
       if (response.data?.isSuccess && response.data?.result?.scenarios) {
+        // sessionId 저장
+        if (response.data.result.sessionId) {
+          setSessionId(response.data.result.sessionId);
+          console.log('SessionId 저장:', response.data.result.sessionId);
+        }
+        
         // 받아온 시나리오 데이터를 기존 형식에 맞게 변환
         const formattedScenarios = response.data.result.scenarios.map((scenario, index) => ({
           id: index + 1, // 임시 ID
@@ -268,25 +269,35 @@ export function ContentCreation() {
   };
 
 
-  const handleCreateContent = async () => {
+  const handleCreateShorts = async () => {
     try {
       setLoading(true);
       
-      // 업데이트된 데이터 구조로 요청
+      // 선택된 시나리오 정보 찾기
+      const selectedScenario = scenarios.find(scenario => scenario.id === selectedScenarioId);
+      
+      // adDuration을 숫자로 변환 (15초 -> 15, 30초 -> 30)
+      const durationNumber = parseInt(formData.adInfo.adDuration.replace('초', ''));
+      
+      // request 객체 구성
       const requestData = {
-        type: contentType,
-        storeId: formData.storeId,
-        scenarioId: formData.scenarioId,
+        sessionId: sessionId,
+        title: selectedScenario?.title || '',
+        content: selectedScenario?.description || '',
+        adDuration: durationNumber
       };
 
-      console.log('콘텐츠 생성 요청 데이터:', requestData);
+      // images 구성
+      const images = formData.storeInfo.referenceFiles.map(file => file.file); 
+
+      console.log('숏폼 생성 요청 데이터:', requestData);
       setActiveStep(3);
 
-      const response = await contentApi.createContent(requestData);
+      const response = await contentApi.createShorts(requestData, images);
       setContentId(response.data.contentId);
     } catch (error) {
-      console.error('콘텐츠 생성 실패:', error);
-      alert('콘텐츠 생성에 실패했습니다.');
+      console.error('숏폼 생성 실패:', error);
+      alert('숏폼 생성에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -729,7 +740,7 @@ export function ContentCreation() {
                     onClick={() => {
                       if (selectedScenarioId) {
                         setFormData(prev => ({ ...prev, scenarioId: selectedScenarioId }));
-                        handleCreateContent();
+                        handleCreateShorts();
                       }
                     }}
                     disabled={loading || !selectedScenarioId}
