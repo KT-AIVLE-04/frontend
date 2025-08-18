@@ -1,4 +1,4 @@
-import { ArrowRight, Upload, X, Trash2 } from 'lucide-react';
+import { ArrowRight, Upload, X, Trash2, Loader2 } from 'lucide-react';
 import React from 'react';
 import { useShortformGeneration } from '../../context/ShortformGenerationContext';
 import { contentApi } from '../../../../api/content';
@@ -81,8 +81,28 @@ export const InformationInput = () => {
   };
 
   return (
-    <div>
-      {/* 매장 정보 섹션 */}
+    <div className="relative">
+      {/* 로딩 오버레이 */}
+      {loading && (
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col items-center">
+            <Loader2 size={48} className="text-blue-600 animate-spin mb-4" />
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">시나리오 생성 중</h3>
+            <p className="text-sm text-gray-500 text-center">
+              입력하신 정보를 바탕으로<br />
+              AI가 맞춤형 시나리오를 생성하고 있습니다.
+            </p>
+            <div className="mt-4 w-64 bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">잠시만 기다려주세요...</p>
+          </div>
+        </div>
+      )}
+
+      {/* 메인 컨텐츠 */}
+      <div className={loading ? 'blur-sm pointer-events-none' : ''}>
+        {/* 매장 정보 섹션 */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-4 text-gray-800 border-b border-gray-200 pb-2">
           📍 매장 정보 입력
@@ -387,6 +407,7 @@ export const InformationInput = () => {
           {loading ? '시나리오 생성 중...' : '다음 단계'}
           <ArrowRight size={16} className="ml-2" />
         </button>
+      </div>
       </div>
     </div>
   );
