@@ -14,6 +14,8 @@ export const ScenarioSelection = () => {
     setLoading,
     setActiveStep,
     setContentId,
+    setVideoUrl,
+    setVideoKey,
     sessionId
   } = useShortformGeneration();
 
@@ -37,8 +39,37 @@ export const ScenarioSelection = () => {
       console.log('숏폼 생성 요청 데이터:', requestData);
       setActiveStep(3);
 
+      // 테스트용 - 2초 후 mock response 설정
+      // setTimeout(() => {
+      //   const mockResponse = {
+      //     data: {
+      //       contentId: 'test-content-id',
+      //       videoUrl: 'https://replicate.delivery/xezq/b6ALBNKtyR7rBVPf7fRpfm1SUbcNiSl9t15Uv9I5eJDmsbwUB/tmphu60dpzx.mp4',
+      //       key: 'key'
+      //     }
+      //   };
+        
+      //   console.log('숏폼 생성 응답 (테스트):', mockResponse.data);
+        
+      //   // videoUrl과 key가 있으면 저장
+      //   if (mockResponse.data.videoUrl) {
+      //     setVideoUrl(mockResponse.data.videoUrl);
+      //   }
+      //   if (mockResponse.data.key) {
+      //     setVideoKey(mockResponse.data.key);
+      //   }
+      // }, 2000);
+
       const response = await contentApi.createShorts(requestData, images);
-      setContentId(response.data.contentId);
+      console.log('숏폼 생성 응답:', response.data);
+      
+      // videoUrl과 key가 있으면 저장
+      if (response.data.videoUrl) {
+        setVideoUrl(response.data.videoUrl);
+      }
+      if (response.data.key) {
+        setVideoKey(response.data.key);
+      }
     } catch (error) {
       console.error('숏폼 생성 실패:', error);
       alert('숏폼 생성에 실패했습니다.');

@@ -2,43 +2,74 @@ import { CheckCircle, Clock, Sparkles } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { useShortformGeneration } from '../../context/ShortformGenerationContext';
 import { contentApi } from '../../../../api/content';
+import { VideoPreview } from './VideoPreview';
 
 export const ShortsGeneration = ({ setContentType }) => {
   const {
     contentId,
     contentStatus,
     setContentStatus,
+    videoUrl,
+    videoKey,
     setActiveStep,
     resetForm
   } = useShortformGeneration();
 
+  // useEffect(() => {
+  //   if (contentId) {
+  //     checkContentStatus();
+  //   }
+  // }, [contentId]);
+
+  // videoUrl 또는 videoKey가 설정되면 자동으로 VideoPreview 표시
   useEffect(() => {
-    if (contentId) {
-      checkContentStatus();
+    if (videoUrl) {
+      console.log('Video URL 설정됨:', { videoUrl });
     }
-  }, [contentId]);
+  }, [videoUrl]);
 
-  const checkContentStatus = async () => {
-    if (!contentId) return;
+  // const checkContentStatus = async () => {
+  //   if (!contentId) return;
 
-    try {
-      const response = await contentApi.getContentStatus(contentId);
-      const status = response.data;
-      setContentStatus(status);
+  //   try {
+  //     const response = await contentApi.getContentStatus(contentId);
+  //     const status = response.data;
+  //     setContentStatus(status);
 
-      if (status.status === 'completed') {
-        setTimeout(() => {
-          resetForm();
-          setContentType(null);
-        }, 2000);
-      } else if (status.status === 'failed') {
-        alert('콘텐츠 생성에 실패했습니다.');
-        setActiveStep(2);
-      }
-    } catch (error) {
-      console.error('콘텐츠 상태 확인 실패:', error);
-    }
+  //     if (status.status === 'completed') {
+  //       // 영상 생성 완료 시 더 이상 자동으로 초기화하지 않음
+  //     } else if (status.status === 'failed') {
+  //       alert('콘텐츠 생성에 실패했습니다.');
+  //       setActiveStep(2);
+  //     }
+  //   } catch (error) {
+  //     console.error('콘텐츠 상태 확인 실패:', error);
+  //   }
+  // };
+
+  const handleRegenerate = () => {
+    // TODO: 다시 생성하기 기능 구현
+    console.log('다시 생성하기');
   };
+
+  const handleSave = () => {
+    // TODO: 저장하기 기능 구현
+    console.log('저장하기');
+  };
+
+  
+  if (videoUrl) {
+  // context에 videoUrl이 있거나 contentStatus가 완료 상태인 경우 VideoPreview 렌더링
+  // if (videoUrl || (contentStatus && contentStatus.status === 'completed')) {
+    const displayVideoUrl = videoUrl;
+    return (
+      <VideoPreview
+        videoUrl={displayVideoUrl}
+        onRegenerate={handleRegenerate}
+        onSave={handleSave}
+      />
+    );
+  }
 
   return (
     <div>

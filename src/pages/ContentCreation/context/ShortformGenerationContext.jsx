@@ -36,6 +36,8 @@ export const ShortformGenerationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [contentStatus, setContentStatus] = useState(null);
   const [contentId, setContentId] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoKey, setVideoKey] = useState(null);
   const [error, setError] = useState(null);
   const [brandConceptInput, setBrandConceptInput] = useState('');
   const [fileInputRef, setFileInputRef] = useState(null);
@@ -222,6 +224,8 @@ export const ShortformGenerationProvider = ({ children }) => {
     setLoading(false);
     setContentStatus(null);
     setContentId(null);
+    setVideoUrl(null);
+    setVideoKey(null);
     setError(null);
     setBrandConceptInput('');
     setFileInputRef(null);
@@ -246,6 +250,10 @@ export const ShortformGenerationProvider = ({ children }) => {
     setContentStatus,
     contentId,
     setContentId,
+    videoUrl,
+    setVideoUrl,
+    videoKey,
+    setVideoKey,
     error,
     setError,
     brandConceptInput,
