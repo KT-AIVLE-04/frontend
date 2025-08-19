@@ -1,7 +1,7 @@
 import { Video } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { contentApi } from '../../api/content'; // Temporarily disable real API call
-import { EmptyStateBox, ErrorPage, LoadingSpinner, PostCard } from '../../components';
+import { EmptyStateBox, ErrorPage, LoadingSpinner, Button } from '../../components';
 import { SearchFilter, VideoDetail } from './components';
 
 // --- Mock Data for UI Development ---
@@ -152,15 +152,20 @@ export function PostManagement() {
           description="생성된 비디오가 여기에 표시됩니다."
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="flex flex-col gap-4">
           {videos.map((video) => (
-            <PostCard
-              key={video.id}
-              content={video}
-              onClick={() => handleCardClick(video)}
-              onEdit={() => handleEdit(video.id)}
-              onDelete={() => handleDelete(video.id)}
-            />
+            <div key={video.id} className="bg-white p-4 rounded-lg shadow-md flex items-center gap-4">
+              <img src={video.thumbnailUrl} alt={video.title} className="w-24 h-24 object-cover rounded-md"/>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg">{video.title}</h3>
+                <p className="text-sm text-gray-500">{video.author} · 조회수 {video.views} · {video.createdAt}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => handleCardClick(video)} variant="outline">미리보기</Button>
+                <Button onClick={() => handleEdit(video.id)} variant="outline">수정</Button>
+                <Button onClick={() => handleDelete(video.id)} variant="destructive">삭제</Button>
+              </div>
+            </div>
           ))}
         </div>
       )}

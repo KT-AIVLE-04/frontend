@@ -2,7 +2,6 @@
 
 import React from 'react';
 import {
-  Download,
   Edit,
   Share2,
   Trash2,
@@ -16,11 +15,7 @@ export function VideoDetail({ video, onClose, handleDownload, handleEdit, handle
     return null;
   }
 
-  const onDownloadClick = () => {
-    if (handleDownload) {
-      handleDownload(video.id);
-    }
-  };
+  
 
   const onEditClick = () => {
     if (handleEdit) {
@@ -146,12 +141,7 @@ export function VideoDetail({ video, onClose, handleDownload, handleEdit, handle
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3 mt-8">
-            <button
-              onClick={onDownloadClick}
-              className="flex items-center justify-center px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Download className="w-4 h-4 mr-2" /> 다운로드
-            </button>
+            
             <button
               onClick={onEditClick}
               className="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
