@@ -1,14 +1,14 @@
 import axios from 'axios'
-import {store} from '../store'
-import {logout, updateToken} from '../store/authSlice'
-import {authApi} from './auth'
+import { store } from '../store'
+import { logout, updateToken } from '../store/authSlice'
+import { authApi } from './auth'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   },
-  withCredentials: false, // CORS 에러 해결
+  withCredentials: true, // CORS 에러 해결
 })
 
 // 토큰 갱신 중인지 확인하는 플래그
@@ -62,6 +62,15 @@ api.interceptors.response.use(
     // 성공 응답 로그
     console.log(`✅ API Success ${response.config.method?.toUpperCase()} ${response.config.url}`)
     console.log('Response:', response.data)
+
+    //set cookie
+    console.log('response', response.headers)
+    const cookie = response.headers['set-cookie'];
+    console.log('cookie', cookie)
+    if (cookie) {
+      document.cookie = cookie;
+    }
+
     return response
   },
   async (error) => {
@@ -142,7 +151,7 @@ testApi.interceptors.request.use(
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
-    config.headers['X-USER-ID'] = 3;
+    config.headers['X-USER-ID'] = 3; // 로컬테스트용
     // storeId가 true인 경우 X-STORE-ID 헤더 자동 추가
     if (config.storeId) {
       const selectedStore = store.getState().store.selectedStore
