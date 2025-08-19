@@ -135,7 +135,10 @@ export function PostManagement() {
 
   return (
     <div className="flex-1 w-full relative">
-      <h1 className="text-2xl font-bold mb-6">게시물 관리</h1>
+            <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">게시물 관리</h1>
+        <Button>게시물 생성</Button>
+      </div>
 
       <SearchFilter
         searchTerm={searchTerm}
