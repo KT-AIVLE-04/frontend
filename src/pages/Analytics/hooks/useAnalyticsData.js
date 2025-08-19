@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { analyticsApi } from '../../../api/analytics';
-import { contentApi } from '../../../api/content';
-import { snsApi } from '../../../api/sns';
-import { createStatCard } from '../components';
+import {useEffect, useState} from 'react';
+import {analyticsApi} from '../../../api/analytics';
+import {contentApi} from '../../../api/content';
+import {snsApi} from '../../../api/sns';
+import {createStatCard} from '../components';
 
 // 테스트용 임시 데이터
 const TEST_ACCOUNT_IDS = [1];
@@ -19,7 +19,7 @@ export const useAnalyticsData = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if(!loading) {
+    if (!loading) {
       fetchAnalyticsData();
     }
   }, [dateRange]);
@@ -149,27 +149,33 @@ export const useAnalyticsData = () => {
   };
 
   const aggregateMetrics = (responses) => {
-    return responses.reduce((acc, response) => {
-      const result = response.data?.result;
-      if (result) {
-        // result가 배열인 경우 (여러 계정/게시물의 메트릭)
-        if (Array.isArray(result)) {
-          result.forEach(item => {
-            acc.views += parseInt(item.views) || 0;
-            acc.likes += parseInt(item.likes) || 0; // 문자열도 parseInt로 처리
-            acc.comments += parseInt(item.comments) || 0;
-            acc.shares += parseInt(item.shares) || 0; // null도 0으로 처리
-          });
-        } else {
-          // result가 단일 객체인 경우
-          acc.views += parseInt(result.views) || 0;
-          acc.likes += parseInt(result.likes) || 0;
-          acc.comments += parseInt(result.comments) || 0;
-          acc.shares += parseInt(result.shares) || 0;
-        }
-      }
-      return acc;
-    }, {views: 0, likes: 0, comments: 0, shares: 0});
+    // 마지막 유효한 응답만 사용
+    const lastValidResponse = responses
+      .filter(response => response.data?.result)
+      .pop();
+
+    if (!lastValidResponse) {
+      return {views: 0, likes: 0, comments: 0};
+    }
+
+    const result = lastValidResponse.data.result;
+
+    // result가 배열인 경우 마지막 항목만 사용
+    if (Array.isArray(result)) {
+      const lastItem = result[0];
+      return {
+        views: parseInt(lastItem.views) || 0,
+        likes: parseInt(lastItem.likes) || 0,
+        comments: parseInt(lastItem.comments) || 0
+      };
+    } else {
+      // result가 단일 객체인 경우
+      return {
+        views: parseInt(result.views) || 0,
+        likes: parseInt(result.likes) || 0,
+        comments: parseInt(result.comments) || 0
+      };
+    }
   };
 
   const createOverviewStats = (realtimeData, yesterdayData) => {
@@ -177,7 +183,6 @@ export const useAnalyticsData = () => {
       createStatCard('views', realtimeData.views, yesterdayData.views),
       createStatCard('likes', realtimeData.likes, yesterdayData.likes),
       createStatCard('comments', realtimeData.comments, yesterdayData.comments),
-      createStatCard('shares', realtimeData.shares, yesterdayData.shares)
     ];
   };
 
@@ -186,7 +191,6 @@ export const useAnalyticsData = () => {
       createStatCard('views', 0, 0),
       createStatCard('likes', 0, 0),
       createStatCard('comments', 0, 0),
-      createStatCard('shares', 0, 0)
     ]);
   };
 

@@ -1,98 +1,45 @@
-import { Image as ImageIcon, Video } from 'lucide-react';
+import { Upload, Video } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-// import { contentApi } from '../../api/content'; // Temporarily disable real API call
+import { contentApi } from '../../api/content';
 import { ContentCard, EmptyStateBox, ErrorPage, LoadingSpinner } from '../../components';
-import { SearchFilter, TabMenu } from './components';
-import { VideoDetail } from './components/VideoDetail'; // VideoDetail 컴포넌트 import
-
-// --- Mock Data for UI Development ---
-const mockContents = [
-  {
-    id: 1,
-    type: 'video',
-    title: '고양이',
-    thumbnailUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJfl0dmkj_SzuQJmL_P4TRJ2SlMKYOy-fQjQ&s',
-    author: '유저 1',
-    views: 1500,
-    createdAt: '2024-08-17',
-    description: '첫 번째 목업 비디오에 대한 상세 설명입니다.',
-    likes: 120,
-    comments: 45
-  },
-  {
-    id: 2,
-    type: 'video',
-    title: '휴머노이드 로봇',
-    thumbnailUrl: 'https://www.cio.com/wp-content/uploads/2025/02/3830961-0-03900400-1740373791-shutterstock_2482705481.jpg?resize=1536%2C864&quality=50&strip=all',
-    author: '유저 2',
-    views: 2300,
-    createdAt: '2024-08-16',
-    description: '두 번째 목업 비디오에 대한 상세 설명입니다.',
-    likes: 89,
-    comments: 23
-  },
-  {
-    id: 3,
-    type: 'video',
-    title: '옵티머스',
-    thumbnailUrl: 'https://cdn.irobotnews.com/news/photo/202312/33502_71613_246.png',
-    author: '유저 1',
-    views: 800,
-    createdAt: '2024-08-15',
-    description: '세 번째 목업 비디오에 대한 상세 설명입니다.',
-    likes: 67,
-    comments: 12
-  },
-  {
-    id: 4,
-    type: 'video',
-    title: '강아지',
-    thumbnailUrl: 'https://cdn.pixabay.com/photo/2024/02/26/19/39/monochrome-image-8598798_1280.jpg',
-    author: '유저 3',
-    views: 5000,
-    createdAt: '2024-08-14',
-    description: '네 번째 목업 비디오에 대한 상세 설명입니다.',
-    likes: 234,
-    comments: 78
-  },
-];
-// --- End of Mock Data ---
+import { Content } from '../../models';
+import { SearchFilter } from './components';
+import { VideoDetail } from './components/VideoDetail';
 
 export function ContentManagement() {
-  const [activeTab, setActiveTab] = useState('videos');
-  const [videos, setVideos] = useState([]);
+  const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('recent');
-  const [selectedVideo, setSelectedVideo] = useState(null); // 추가
+  const [selectedContent, setSelectedContent] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [contentTypeFilter, setContentTypeFilter] = useState({
+    videos: true,
+    images: true
+  });
 
   useEffect(() => {
     fetchContents();
-  }, [activeTab, sortBy]); // Corrected typo: dsortBy -> sortBy
+  }, [sortBy]);
 
   const fetchContents = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // --- Using Mock Data ---
-      // Simulating network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setVideos(mockContents);
-      // --- End of Using Mock Data ---
-
-      /* --- Real API Call (Temporarily Disabled) ---
       const params = {
-        type: activeTab === 'videos' ? 'video' : activeTab === 'images' ? 'image' : 'post',
-        sortBy,
-        search: searchTerm
+        query: searchTerm || undefined
       };
 
-      const response = await contentApi.getContents(params);
-      setVideos(response.data?.result || []);
-      */
-
+      const {data} = await contentApi.getContents(params);
+      if(data){
+        const {message, result} = data;
+        const contentModels = Content.fromResponseArray(result || []);
+        setContents(contentModels);
+      }else{
+        throw new Error("콘텐츠 목록 형식이 올바르지 않습니다.");
+      }
     } catch (error) {
       console.error('콘텐츠 목록 로딩 실패:', error);
       setError('콘텐츠 목록을 불러오는데 실패했습니다.');
@@ -101,50 +48,88 @@ export function ContentManagement() {
     }
   };
 
-  const handleCardClick = (video) => {
-    console.log('카드 클릭됨:', video);
-    setSelectedVideo(video);
-  };
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  const handleCloseDetail = () => {
-    setSelectedVideo(null);
-  };
-
-  const handleDelete = async (contentId) => {
-    // This is a mock function for UI testing
-    if (window.confirm(`(목업) 정말로 콘텐츠 ID ${contentId}를 삭제하시겠습니까?`)) {
-      console.log(`Deleted content ${contentId}`);
-      setVideos(prevVideos => prevVideos.filter(v => v.id !== contentId));
-      setSelectedVideo(null); // 상세보기 닫기
+    try {
+      setUploading(true);
+      const response = await contentApi.uploadContent(file);
+      const newContent = Content.fromResponse(response.data.data);
+      
+      setContents(prev => [newContent, ...prev]);
+      alert('파일이 성공적으로 업로드되었습니다.');
+    } catch (error) {
+      console.error('파일 업로드 실패:', error);
+      alert('파일 업로드에 실패했습니다.');
+    } finally {
+      setUploading(false);
+      event.target.value = ''; // 파일 input 초기화
     }
   };
 
-  const handleDownload = async (contentId) => {
-    // This is a mock function for UI testing
-    console.log(`Downloaded content ${contentId}`);
-    alert(`(목업) 콘텐츠 ID ${contentId} 다운로드`);
+  const handleCardClick = (content) => {
+    console.log('카드 클릭됨:', content);
+    setSelectedContent(content);
   };
 
-  const handleEdit = (contentId) => {
-    console.log(`Edit content ${contentId}`);
-    alert(`(목업) 콘텐츠 ID ${contentId} 수정`);
+  const handleCloseDetail = () => {
+    setSelectedContent(null);
   };
 
-  const handleShare = (contentId) => {
-    console.log(`Share content ${contentId}`);
-    alert(`(목업) 콘텐츠 ID ${contentId} 공유`);
+  const handleDelete = async (contentId) => {
+    if (window.confirm('정말로 이 콘텐츠를 삭제하시겠습니까?')) {
+      try {
+        await contentApi.deleteContent(contentId);
+        setContents(prev => prev.filter(c => c.id !== contentId));
+        setSelectedContent(null);
+        alert('콘텐츠가 삭제되었습니다.');
+      } catch (error) {
+        console.error('콘텐츠 삭제 실패:', error);
+        alert('콘텐츠 삭제에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleEditTitle = async (contentId, newTitle) => {
+    try {
+      const response = await contentApi.updateContentTitle(contentId, newTitle);
+      const updatedContent = Content.fromResponse(response.data.data);
+      
+      setContents(prev => prev.map(c => 
+        c.id === contentId ? updatedContent : c
+      ));
+      
+      if (selectedContent && selectedContent.id === contentId) {
+        setSelectedContent(updatedContent);
+      }
+      
+      alert('제목이 수정되었습니다.');
+    } catch (error) {
+      console.error('제목 수정 실패:', error);
+      alert('제목 수정에 실패했습니다.');
+    }
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // In a real scenario, you'd call fetchContents().
-    // For mock data, we can filter locally.
-    const filtered = mockContents.filter(content =>
-      content.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setVideos(filtered);
-    console.log(`Searching for: ${searchTerm}`);
+    fetchContents();
   };
+
+  const filteredContents = contents.filter(content => {
+    const isVideo = content.isVideo();
+    const isImage = content.isImage();
+    
+    if (isVideo && contentTypeFilter.videos) return true;
+    if (isImage && contentTypeFilter.images) return true;
+    
+    return false;
+  });
+
+  // 탭별 카운트 계산
+  const videoCount = contents.filter(content => content.isVideo()).length;
+  const imageCount = contents.filter(content => content.isImage()).length;
+  const postCount = contents.length; // 전체 콘텐츠 수
 
   if (error) {
     return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error}/>;
@@ -156,13 +141,24 @@ export function ContentManagement() {
 
   return (
     <div className="flex-1 w-full">
-      <h1 className="text-2xl font-bold mb-6">콘텐츠 관리</h1>
-
-      <TabMenu
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        videoCount={videos.length}
-      />
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">콘텐츠 관리</h1>
+        
+        {/* 파일 업로드 버튼 */}
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
+            <Upload size={16} />
+            {uploading ? '업로드 중...' : '파일 업로드'}
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*,video/*"
+              onChange={handleFileUpload}
+              disabled={uploading}
+            />
+          </label>
+        </div>
+      </div>
 
       <SearchFilter
         searchTerm={searchTerm}
@@ -170,62 +166,69 @@ export function ContentManagement() {
         sortBy={sortBy}
         setSortBy={setSortBy}
         onSearch={handleSearch}
+        contentTypeFilter={contentTypeFilter}
+        setContentTypeFilter={setContentTypeFilter}
       />
 
-      {videos.length === 0 && activeTab === 'videos' ? (
+      {filteredContents.length === 0 ? (
         <EmptyStateBox
           icon={Video}
-          title="비디오가 없습니다"
-          description="생성된 비디오가 여기에 표시됩니다."
+          title="콘텐츠가 없습니다"
+          description="생성된 콘텐츠가 여기에 표시됩니다."
+          actionText="파일 업로드하기"
+          onAction={() => document.querySelector('input[type="file"]').click()}
         />
-      ) : null}
-
-      {activeTab === 'videos' && (
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {videos.map((video) => (
+          {filteredContents.map((content) => (
             <ContentCard
-              key={video.id}
-              content={video}
-              // 클릭 이벤트 핸들러 추가
-              onClick={() => handleCardClick(video)}
-              onDownload={() => handleDownload(video.id)}
-              onShare={() => handleShare(video.id)}
-              onEdit={() => handleEdit(video.id)}
-              onDelete={() => handleDelete(video.id)}
+              key={content.id}
+              content={{
+                id: content.id,
+                url: content.url,
+                title: content.title,
+                contentType: content.contentType,
+                createdAt: content.createdAt,
+                updatedAt: content.updatedAt,
+                objectKey: content.objectKey
+              }}
+              onClick={() => handleCardClick(content)}
+              onDownload={() => window.open(content.url, '_blank')}
+              onEdit={() => {
+                const newTitle = prompt('새 제목을 입력하세요:', content.title);
+                if (newTitle && newTitle !== content.title) {
+                  handleEditTitle(content.id, newTitle);
+                }
+              }}
+              onDelete={() => handleDelete(content.id)}
             />
           ))}
         </div>
       )}
 
-      {activeTab === 'images' && (
-        <EmptyStateBox
-          icon={ImageIcon}
-          title="이미지가 없습니다"
-          description="생성된 이미지가 여기에 표시됩니다"
-          actionText="이미지 생성하기"
-          onAction={() => {}}
-        />
-      )}
-
-      {activeTab === 'posts' && (
-        <EmptyStateBox
-          icon={Video}
-          title="게시글이 없습니다"
-          description="생성된 게시글이 여기에 표시됩니다"
-          actionText="게시글 생성하기"
-          onAction={() => {}}
-        />
-      )}
-
-      {/* 상세보기 컴포넌트 조건부 렌더링 */}
-      {selectedVideo && (
+      {/* 상세보기 컴포넌트 */}
+      {selectedContent && (
         <VideoDetail
-          video={selectedVideo}
+          video={{
+            ...selectedContent,
+            type: selectedContent.isVideo() ? 'video' : 'image',
+            thumbnailUrl: selectedContent.url,
+            author: '나',
+            views: 0,
+            createdAt: selectedContent.getFormattedCreatedAt(),
+            description: `${selectedContent.getFormattedSize()} • ${selectedContent.getResolution()}`,
+            likes: 0,
+            comments: 0
+          }}
           onClose={handleCloseDetail}
-          handleDownload={handleDownload}
-          handleEdit={handleEdit}
-          handleShare={handleShare}
-          handleDelete={handleDelete}
+          handleDownload={() => window.open(selectedContent.url, '_blank')}
+          handleEdit={() => {
+            const newTitle = prompt('새 제목을 입력하세요:', selectedContent.title);
+            if (newTitle && newTitle !== selectedContent.title) {
+              handleEditTitle(selectedContent.id, newTitle);
+            }
+          }}
+          handleDelete={() => handleDelete(selectedContent.id)}
         />
       )}
     </div>
