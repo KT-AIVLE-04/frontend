@@ -38,13 +38,13 @@ const StoreRequiredRoute = () => {
 
 const NotFoundRoute = () => {
   const {isAuthenticated} = useSelector((state) => state.auth)
-  return isAuthenticated ? <Navigate to={ROUTES.DASHBOARD.route} replace/> : <Navigate to={ROUTES.LOGIN.route} replace/>
+  return isAuthenticated ? <Navigate to={ROUTES.ANALYTICS.route} replace/> : <Navigate to={ROUTES.LOGIN.route} replace/>
 }
 
 // 이미 로그인돼엇으면 dashboard로 이동
 const AlreadyLoggedInRoute = () => {
   const {isAuthenticated} = useSelector((state) => state.auth)
-  return isAuthenticated ? <Navigate to={ROUTES.DASHBOARD.route} replace/> : <Outlet/>
+  return isAuthenticated ? <Navigate to={ROUTES.ANALYTICS.route} replace/> : <Outlet/>
 }
 
 function AppRoutes() {
