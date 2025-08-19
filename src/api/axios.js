@@ -144,7 +144,7 @@ testApi.interceptors.request.use(
     }
     config.headers['X-USER-ID'] = 3;
     // storeId가 true인 경우 X-STORE-ID 헤더 자동 추가
-    if (config.storeId === true) {
+    if (config.storeId) {
       const selectedStore = store.getState().store.selectedStore
       if (selectedStore?.id) {
         console.log('currentStoreId', selectedStore.id)
