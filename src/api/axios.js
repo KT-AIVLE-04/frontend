@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { store } from '../store'
-import { logout, updateToken } from '../store/authSlice'
-import { authApi } from './auth'
+import {store} from '../store'
+import {logout, updateToken} from '../store/authSlice'
+import {authApi} from './auth'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -9,7 +9,6 @@ const api = axios.create({
     'Content-Type': 'application/json'
   },
   withCredentials: false, // CORS 에러 해결
-  timeout: 10000
 })
 
 // 토큰 갱신 중인지 확인하는 플래그
@@ -18,10 +17,10 @@ let isRefreshing = false
 let failedQueue = []
 
 const processQueue = (error, accessToken = null) => {
-  failedQueue.forEach(({ reject }) => {
+  failedQueue.forEach(({reject}) => {
     reject(error)
   })
-  failedQueue.forEach(({ resolve }) => {
+  failedQueue.forEach(({resolve}) => {
     resolve(accessToken)
   })
   failedQueue = []
@@ -34,7 +33,7 @@ api.interceptors.request.use(
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
-    
+
     // storeId가 true인 경우 X-STORE-ID 헤더 자동 추가
     if (config.storeId === true) {
       const selectedStore = store.getState().store.selectedStore
@@ -44,12 +43,12 @@ api.interceptors.request.use(
       }
       delete config.storeId // 헤더 추가 후 제거
     }
-    
+
     // FormData인 경우 Content-Type 헤더 제거
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type']
     }
-    
+
     return config
   },
   (error) => {
@@ -61,7 +60,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // 성공 응답 로그
-    console.log(`✅ API Success ${response.config.method?.toUpperCase()} ${response.config.url}` )
+    console.log(`✅ API Success ${response.config.method?.toUpperCase()} ${response.config.url}`)
     console.log('Response:', response.data)
     return response
   },
@@ -71,7 +70,7 @@ api.interceptors.response.use(
     const statusText = error.response?.statusText
     const url = error.config?.url
     const method = error.config?.method?.toUpperCase()
-    
+
     console.log(`❌ API Error%c ${method} ${url}`)
     console.log(`Status: ${status} ${statusText}`)
     console.log('Error Message:', error.response?.data || error.message)
@@ -80,11 +79,11 @@ api.interceptors.response.use(
 
     // 401 에러이고 아직 재시도하지 않은 요청인 경우
     if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/refresh')) {
-      
+
       // 이미 토큰 갱신 중인 경우, 대기열에 추가
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
+          failedQueue.push({resolve, reject})
         }).then(accessToken => {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
           return api(originalRequest)
@@ -104,8 +103,8 @@ api.interceptors.response.use(
 
         // refreshToken으로 새로운 accessToken 발급
         const response = await authApi.refresh(refreshToken)
-        const { accessToken } = response.data
-        store.dispatch(updateToken({ accessToken }))
+        const {accessToken} = response.data
+        store.dispatch(updateToken({accessToken}))
 
         // 대기 중인 요청들 처리
         processQueue(null, accessToken)
@@ -126,7 +125,7 @@ api.interceptors.response.use(
   }
 )
 
-export default api 
+export default api
 
 export const testApi = axios.create({
   baseURL: 'http://localhost:8080/api',
@@ -134,7 +133,6 @@ export const testApi = axios.create({
     'Content-Type': 'application/json'
   },
   withCredentials: false, // CORS 에러 해결
-  timeout: 10000
 })
 
 // 요청 인터셉터
@@ -154,12 +152,12 @@ testApi.interceptors.request.use(
       }
       delete config.storeId // 헤더 추가 후 제거
     }
-    
+
     // FormData인 경우 Content-Type 헤더 제거
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type']
     }
-    
+
     return config
   },
   (error) => {

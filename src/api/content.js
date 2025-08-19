@@ -7,7 +7,7 @@ export const contentApi = {
   uploadContent: (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     return api.post(BASE_URL, formData, {
       storeId: true,
       headers: {
@@ -30,7 +30,7 @@ export const contentApi = {
   // 콘텐츠 제목 수정 (PATCH)
   updateContentTitle: (contentId, title) => api.patch(`${BASE_URL}/${contentId}`, null, {
     storeId: true,
-    params: { title }
+    params: {title}
   }),
 
   // 콘텐츠 삭제
@@ -41,7 +41,6 @@ export const contentApi = {
   // 시나리오 생성 요청
   createScenarios: (data) => api.post(`/shorts/scenario`, data, {
     storeId: true,
-    timeout: 30000
   }),
 
   // 숏폼 생성 요청
@@ -66,7 +65,6 @@ export const contentApi = {
 
     return api.post('/shorts', formData, {
       storeId: true,
-      timeout: 600000
     });
   }
 } 
