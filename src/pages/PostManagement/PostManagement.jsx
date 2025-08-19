@@ -1,9 +1,8 @@
 import { Image as ImageIcon, Video } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { contentApi } from '../../api/content'; // Temporarily disable real API call
-import { ContentCard, EmptyStateBox, ErrorPage, LoadingSpinner } from '../../components';
-import { SearchFilter, TabMenu } from './components';
-import { VideoDetail } from './components/VideoDetail'; // VideoDetail 컴포넌트 import
+import { EmptyStateBox, ErrorPage, LoadingSpinner, PostCard } from '../../components';
+import { SearchFilter, TabMenu, VideoDetail } from './components';
 
 // --- Mock Data for UI Development ---
 const mockContents = [
@@ -15,7 +14,7 @@ const mockContents = [
     author: '유저 1',
     views: 1500,
     createdAt: '2024-08-17',
-    description: '첫 번째 목업 비디오에 대한 상세 설명입니다.',
+    description: '첫 번째 목업 비디오에 대한 상세 설명입니다. 아주 긴 설명이 여기에 들어갈 수 있습니다. 이 설명은 여러 줄에 걸쳐 표시될 수 있습니다.',
     likes: 120,
     comments: 45
   },
@@ -58,41 +57,25 @@ const mockContents = [
 ];
 // --- End of Mock Data ---
 
-export function ContentManagement() {
+export function PostManagement() {
   const [activeTab, setActiveTab] = useState('videos');
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('recent');
-  const [selectedVideo, setSelectedVideo] = useState(null); // 추가
+  const [selectedPost, setSelectedPost] = useState(null);
 
   useEffect(() => {
     fetchContents();
-  }, [activeTab, sortBy]); // Corrected typo: dsortBy -> sortBy
+  }, [activeTab, sortBy]);
 
   const fetchContents = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // --- Using Mock Data ---
-      // Simulating network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       setVideos(mockContents);
-      // --- End of Using Mock Data ---
-
-      /* --- Real API Call (Temporarily Disabled) ---
-      const params = {
-        type: activeTab === 'videos' ? 'video' : activeTab === 'images' ? 'image' : 'post',
-        sortBy,
-        search: searchTerm
-      };
-
-      const response = await contentApi.getContents(params);
-      setVideos(response.data?.result || []);
-      */
-
     } catch (error) {
       console.error('콘텐츠 목록 로딩 실패:', error);
       setError('콘텐츠 목록을 불러오는데 실패했습니다.');
@@ -101,33 +84,32 @@ export function ContentManagement() {
     }
   };
 
-  const handleCardClick = (video) => {
-    console.log('카드 클릭됨:', video);
-    setSelectedVideo(video);
+  const handleCardClick = (post) => {
+    setSelectedPost(post);
   };
 
   const handleCloseDetail = () => {
-    setSelectedVideo(null);
+    setSelectedPost(null);
   };
 
   const handleDelete = async (contentId) => {
-    // This is a mock function for UI testing
     if (window.confirm(`(목업) 정말로 콘텐츠 ID ${contentId}를 삭제하시겠습니까?`)) {
       console.log(`Deleted content ${contentId}`);
       setVideos(prevVideos => prevVideos.filter(v => v.id !== contentId));
-      setSelectedVideo(null); // 상세보기 닫기
+      if (selectedPost && selectedPost.id === contentId) {
+        handleCloseDetail();
+      }
     }
-  };
-
-  const handleDownload = async (contentId) => {
-    // This is a mock function for UI testing
-    console.log(`Downloaded content ${contentId}`);
-    alert(`(목업) 콘텐츠 ID ${contentId} 다운로드`);
   };
 
   const handleEdit = (contentId) => {
     console.log(`Edit content ${contentId}`);
     alert(`(목업) 콘텐츠 ID ${contentId} 수정`);
+  };
+
+  const handleDownload = (contentId) => {
+    console.log(`Download content ${contentId}`);
+    alert(`(목업) 콘텐츠 ID ${contentId} 다운로드`);
   };
 
   const handleShare = (contentId) => {
@@ -137,8 +119,6 @@ export function ContentManagement() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // In a real scenario, you'd call fetchContents().
-    // For mock data, we can filter locally.
     const filtered = mockContents.filter(content =>
       content.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -155,8 +135,8 @@ export function ContentManagement() {
   }
 
   return (
-    <div className="flex-1 w-full">
-      <h1 className="text-2xl font-bold mb-6">콘텐츠 관리</h1>
+    <div className="flex-1 w-full relative">
+      <h1 className="text-2xl font-bold mb-6">게시물 관리</h1>
 
       <TabMenu
         activeTab={activeTab}
@@ -183,13 +163,10 @@ export function ContentManagement() {
       {activeTab === 'videos' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {videos.map((video) => (
-            <ContentCard
+            <PostCard
               key={video.id}
               content={video}
-              // 클릭 이벤트 핸들러 추가
               onClick={() => handleCardClick(video)}
-              onDownload={() => handleDownload(video.id)}
-              onShare={() => handleShare(video.id)}
               onEdit={() => handleEdit(video.id)}
               onDelete={() => handleDelete(video.id)}
             />
@@ -217,10 +194,9 @@ export function ContentManagement() {
         />
       )}
 
-      {/* 상세보기 컴포넌트 조건부 렌더링 */}
-      {selectedVideo && (
+      {selectedPost && (
         <VideoDetail
-          video={selectedVideo}
+          video={selectedPost}
           onClose={handleCloseDetail}
           handleDownload={handleDownload}
           handleEdit={handleEdit}

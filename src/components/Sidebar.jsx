@@ -1,4 +1,4 @@
-import { BarChart3, LayoutDashboard, Library, LogOut, Share2, Store, Video } from 'lucide-react';
+import { BarChart3, LayoutDashboard, Library, LogOut, Newspaper, Share2, Store, Video } from 'lucide-react';
 import React from 'react';
 
 export function Sidebar({ activePage, onNavigate }) {
@@ -21,7 +21,7 @@ export function Sidebar({ activePage, onNavigate }) {
     {
       id: 'post-management',
       label: '게시글 관리',
-      icon: <Video size={20} />
+      icon: <Newspaper size={20} />
     },
     {
       id: 'content-management',

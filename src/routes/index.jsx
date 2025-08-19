@@ -6,6 +6,7 @@ import {
   ContentManagement,
   Dashboard,
   Login,
+  PostManagement,
   Register,
   SnsIntegration,
   StoreManagement,
@@ -63,6 +64,7 @@ function AppRoutes() {
             <Route path={ROUTES.ANALYTICS.route} element={<Analytics/>}/>
             <Route path={ROUTES.CONTENT_CREATION.route} element={<ContentCreation/>}/>
             <Route path={ROUTES.CONTENT_MANAGEMENT.route} element={<ContentManagement/>}/>
+            <Route path={ROUTES.POST_MANAGEMENT.route} element={<PostManagement/>}/>
             <Route path={ROUTES.STORE_MANAGEMENT.route} element={<StoreManagement/>}/>
             <Route path={ROUTES.SNS_INTEGRATION.route} element={<SnsIntegration/>}/>
             <Route path="/" element={<Navigate to={ROUTES.STORE_SELECTION.route} replace/>}/>
