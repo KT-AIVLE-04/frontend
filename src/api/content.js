@@ -1,6 +1,6 @@
 import api from './axios';
 
-const BASE_URL = '/api/contents'
+const BASE_URL = '/contents'
 
 export const contentApi = {
   // 콘텐츠 업로드 (multipart/form-data)
@@ -38,33 +38,4 @@ export const contentApi = {
     storeId: true
   }),
 
-  // 시나리오 생성 요청
-  createScenarios: (data) => api.post(`/shorts/scenario`, data, {
-    storeId: true,
-  }),
-
-  // 숏폼 생성 요청
-  createShorts: (requestData, images) => {
-    const formData = new FormData();
-
-    const jsonBlob = new Blob([JSON.stringify(requestData)], {
-      type: 'application/json'
-    });
-    formData.append('request', jsonBlob);
-
-    if (images && images.length > 0) {
-      images.forEach((image, index) => {
-        console.log(`Adding image ${index}:`, image);
-        formData.append('images', image);
-      });
-    }
-
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
-    return api.post('/shorts', formData, {
-      storeId: true,
-    });
-  }
 } 

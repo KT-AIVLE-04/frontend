@@ -1,7 +1,7 @@
-import { ArrowRight, CheckCircle } from 'lucide-react';
+import {ArrowRight, CheckCircle} from 'lucide-react';
 import React from 'react';
-import { useShortformGeneration } from '../../context/ShortformGenerationContext';
-import { contentApi } from '../../../../api/content';
+import {useShortformGeneration} from '../../context/ShortformGenerationContext';
+import {shortApi} from "../../../../api/short.js";
 
 export const ScenarioSelection = () => {
   const {
@@ -13,7 +13,6 @@ export const ScenarioSelection = () => {
     loading,
     setLoading,
     setActiveStep,
-    setContentId,
     setVideoUrl,
     setVideoKey,
     sessionId
@@ -22,11 +21,11 @@ export const ScenarioSelection = () => {
   const handleCreateShorts = async () => {
     try {
       setLoading(true);
-      
+
       const selectedScenario = scenarios.find(scenario => scenario.id === selectedScenarioId);
-      
+
       const durationNumber = parseInt(formData.adInfo.adDuration.replace('초', ''));
-      
+
       const requestData = {
         sessionId: sessionId,
         title: selectedScenario?.title || '',
@@ -34,7 +33,7 @@ export const ScenarioSelection = () => {
         adDuration: durationNumber
       };
 
-      const images = formData.storeInfo.referenceFiles.map(file => file.file); 
+      const images = formData.storeInfo.referenceFiles.map(file => file.file);
 
       console.log('숏폼 생성 요청 데이터:', requestData);
       setActiveStep(3);
@@ -48,9 +47,9 @@ export const ScenarioSelection = () => {
       //       key: 'key'
       //     }
       //   };
-        
+
       //   console.log('숏폼 생성 응답 (테스트):', mockResponse.data);
-        
+
       //   // videoUrl과 key가 있으면 저장
       //   if (mockResponse.data.videoUrl) {
       //     setVideoUrl(mockResponse.data.videoUrl);
@@ -60,9 +59,9 @@ export const ScenarioSelection = () => {
       //   }
       // }, 2000);
 
-      const response = await contentApi.createShorts(requestData, images);
+      const response = await shortApi.createShorts(requestData, images);
       console.log('숏폼 생성 응답:', response.data);
-      
+
       // videoUrl과 key가 있으면 저장
       if (response.data.videoUrl) {
         setVideoUrl(response.data.videoUrl);
@@ -83,12 +82,12 @@ export const ScenarioSelection = () => {
       <h2 className="text-lg font-semibold mb-6">시나리오 선택</h2>
       <div className="space-y-4">
         {scenarios.map((scenario) => (
-          <div 
-            key={scenario.id} 
+          <div
+            key={scenario.id}
             onClick={() => setSelectedScenarioId(scenario.id)}
             className={`border rounded-lg p-6 hover:shadow-md transition-all cursor-pointer ${
-              selectedScenarioId === scenario.id 
-                ? 'border-blue-500 bg-blue-50' 
+              selectedScenarioId === scenario.id
+                ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-200 hover:border-blue-500'
             }`}
           >
@@ -97,7 +96,7 @@ export const ScenarioSelection = () => {
                 <div className="text-blue-600 font-semibold">시나리오{scenario.id}</div>
                 {selectedScenarioId === scenario.id && (
                   <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                    <CheckCircle size={16} className="text-white" />
+                    <CheckCircle size={16} className="text-white"/>
                   </div>
                 )}
               </div>
@@ -107,7 +106,7 @@ export const ScenarioSelection = () => {
                 </div>
               )}
             </div>
-            <hr className="border-gray-200 mb-4" />
+            <hr className="border-gray-200 mb-4"/>
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">{scenario.title}</h3>
             </div>
@@ -120,16 +119,16 @@ export const ScenarioSelection = () => {
         ))}
       </div>
       <div className="mt-8 flex justify-between">
-        <button 
+        <button
           onClick={() => setActiveStep(1)}
           className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
         >
           이전
         </button>
-        <button 
+        <button
           onClick={() => {
             if (selectedScenarioId) {
-              setFormData(prev => ({ ...prev, scenarioId: selectedScenarioId }));
+              setFormData(prev => ({...prev, scenarioId: selectedScenarioId}));
               handleCreateShorts();
             }
           }}
@@ -137,7 +136,7 @@ export const ScenarioSelection = () => {
           className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? '생성 중...' : '이 시나리오로 제작하기'}
-          <ArrowRight size={16} className="ml-2" />
+          <ArrowRight size={16} className="ml-2"/>
         </button>
       </div>
     </div>
