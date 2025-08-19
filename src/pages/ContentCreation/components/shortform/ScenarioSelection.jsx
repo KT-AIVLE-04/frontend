@@ -1,7 +1,7 @@
-import {ArrowRight, CheckCircle} from 'lucide-react';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 import React from 'react';
-import {useShortformGeneration} from '../../context/ShortformGenerationContext';
-import {shortApi} from "../../../../api/short.js";
+import { shortApi } from "../../../../api/short.js";
+import { useShortformGeneration } from '../../context/ShortformGenerationContext';
 
 export const ScenarioSelection = () => {
   const {
@@ -63,11 +63,11 @@ export const ScenarioSelection = () => {
       console.log('숏폼 생성 응답:', response.data);
 
       // videoUrl과 key가 있으면 저장
-      if (response.data.videoUrl) {
-        setVideoUrl(response.data.videoUrl);
+      if (response.data?.result?.videoUrl) {
+        setVideoUrl(response.data.result.videoUrl);
       }
-      if (response.data.key) {
-        setVideoKey(response.data.key);
+      if (response.data?.result?.key) {
+        setVideoKey(response.data.result.key);
       }
     } catch (error) {
       console.error('숏폼 생성 실패:', error);
