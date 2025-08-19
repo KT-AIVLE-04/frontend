@@ -39,7 +39,7 @@ export const InformationInput = () => {
         brandConcepts: formData.storeInfo.brandConcepts
       };
 
-      const response = await shortApi.createScenarios(selectedStoreId, scenarioData);
+      const response = await shortApi.createScenarios(scenarioData);
       console.log('시나리오 생성 응답:', response.data);
 
       if (response.data?.isSuccess && response.data?.result?.scenarios) {
