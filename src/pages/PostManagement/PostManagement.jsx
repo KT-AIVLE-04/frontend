@@ -1,8 +1,8 @@
-import { Image as ImageIcon, Video } from 'lucide-react';
+import { Video } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 // import { contentApi } from '../../api/content'; // Temporarily disable real API call
 import { EmptyStateBox, ErrorPage, LoadingSpinner, PostCard } from '../../components';
-import { SearchFilter, TabMenu, VideoDetail } from './components';
+import { SearchFilter, VideoDetail } from './components';
 
 // --- Mock Data for UI Development ---
 const mockContents = [
@@ -58,7 +58,6 @@ const mockContents = [
 // --- End of Mock Data ---
 
 export function PostManagement() {
-  const [activeTab, setActiveTab] = useState('videos');
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -68,7 +67,7 @@ export function PostManagement() {
 
   useEffect(() => {
     fetchContents();
-  }, [activeTab, sortBy]);
+  }, [sortBy]);
 
   const fetchContents = async () => {
     try {
@@ -138,12 +137,6 @@ export function PostManagement() {
     <div className="flex-1 w-full relative">
       <h1 className="text-2xl font-bold mb-6">게시물 관리</h1>
 
-      <TabMenu
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        videoCount={videos.length}
-      />
-
       <SearchFilter
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -152,15 +145,13 @@ export function PostManagement() {
         onSearch={handleSearch}
       />
 
-      {videos.length === 0 && activeTab === 'videos' ? (
+      {videos.length === 0 ? (
         <EmptyStateBox
           icon={Video}
           title="비디오가 없습니다"
           description="생성된 비디오가 여기에 표시됩니다."
         />
-      ) : null}
-
-      {activeTab === 'videos' && (
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {videos.map((video) => (
             <PostCard
@@ -172,26 +163,6 @@ export function PostManagement() {
             />
           ))}
         </div>
-      )}
-
-      {activeTab === 'images' && (
-        <EmptyStateBox
-          icon={ImageIcon}
-          title="이미지가 없습니다"
-          description="생성된 이미지가 여기에 표시됩니다"
-          actionText="이미지 생성하기"
-          onAction={() => {}}
-        />
-      )}
-
-      {activeTab === 'posts' && (
-        <EmptyStateBox
-          icon={Video}
-          title="게시글이 없습니다"
-          description="생성된 게시글이 여기에 표시됩니다"
-          actionText="게시글 생성하기"
-          onAction={() => {}}
-        />
       )}
 
       {selectedPost && (
