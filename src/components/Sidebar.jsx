@@ -19,6 +19,11 @@ export function Sidebar({ activePage, onNavigate }) {
       icon: <Video size={20} />
     },
     {
+      id: 'post-management',
+      label: '게시글 관리',
+      icon: <Video size={20} />
+    },
+    {
       id: 'content-management',
       label: '콘텐츠 관리',
       icon: <Library size={20} />
