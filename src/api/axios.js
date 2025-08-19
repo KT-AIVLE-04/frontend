@@ -127,3 +127,42 @@ api.interceptors.response.use(
 )
 
 export default api 
+
+export const testApi = axios.create({
+  baseURL: 'http://localhost:8080/api',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  withCredentials: false, // CORS 에러 해결
+  timeout: 10000
+})
+
+// 요청 인터셉터
+testApi.interceptors.request.use(
+  (config) => {
+    const accessToken = store.getState().auth.accessToken
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+    config.headers['X-USER-ID'] = 3;
+    // storeId가 true인 경우 X-STORE-ID 헤더 자동 추가
+    if (config.storeId === true) {
+      const selectedStore = store.getState().store.selectedStore
+      if (selectedStore?.id) {
+        console.log('currentStoreId', selectedStore.id)
+        config.headers['X-STORE-ID'] = selectedStore.id
+      }
+      delete config.storeId // 헤더 추가 후 제거
+    }
+    
+    // FormData인 경우 Content-Type 헤더 제거
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+    
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
