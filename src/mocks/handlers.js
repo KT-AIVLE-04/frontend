@@ -13,6 +13,8 @@ export const handlers = [
     const workingEndpoints = [
       '/api/auth',
       '/api/stores'
+        '/api/videos', // 비디오 조회 API 추가
+        '/api/images'  // 이미지 조회 API 추가
     ]
 
     // msw 작동 안하는 조건들
@@ -535,7 +537,292 @@ export const handlers = [
     })
   }),
 
-  // ===== 콘텐츠 API =====
+
+    // ===== 이미지 관리 API =====
+
+    // 이미지 목록 조회
+    http.get(`${API_BASE_URL}/api/images`, ({request}) => {
+      const url = new URL(request.url);
+      const sortBy = url.searchParams.get('sortBy') || 'recent';
+      const search = url.searchParams.get('search') || '';
+      const page = parseInt(url.searchParams.get('page')) || 1;
+      const size = parseInt(url.searchParams.get('size')) || 20;
+      const userId = url.searchParams.get('userId');
+
+      // 목업 이미지 데이터
+      let mockImages = [
+        {
+          id: 1,
+          title: '카페 신메뉴 이미지',
+          description: '달콤한 디저트와 함께하는 새로운 음료',
+          imageUrl: 'https://picsum.photos/400/300?random=1',
+          thumbnailUrl: 'https://picsum.photos/200/150?random=1',
+          fileName: 'cafe-menu-1.jpg',
+          fileSize: 245760,
+          mimeType: 'image/jpeg',
+          userId: 'user123',
+          author: '카페 운영자',
+          views: 245,
+          likes: 32,
+          createdAt: '2024-08-17T10:30:00Z',
+          updatedAt: '2024-08-17T10:30:00Z'
+        },
+        {
+          id: 2,
+          title: '여름 시즌 프로모션',
+          description: '시원한 여름 음료 특가 행사',
+          imageUrl: 'https://picsum.photos/400/300?random=2',
+          thumbnailUrl: 'https://picsum.photos/200/150?random=2',
+          fileName: 'summer-promo.png',
+          fileSize: 180240,
+          mimeType: 'image/png',
+          userId: 'user123',
+          author: '마케팅팀',
+          views: 189,
+          likes: 24,
+          createdAt: '2024-08-16T14:20:00Z',
+          updatedAt: '2024-08-16T14:20:00Z'
+        },
+        {
+          id: 3,
+          title: '매장 인테리어',
+          description: '새롭게 단장한 매장 내부 모습',
+          imageUrl: 'https://picsum.photos/400/300?random=3',
+          thumbnailUrl: 'https://picsum.photos/200/150?random=3',
+          fileName: 'interior-design.jpg',
+          fileSize: 312450,
+          mimeType: 'image/jpeg',
+          userId: 'user123',
+          author: '매장 관리자',
+          views: 156,
+          likes: 18,
+          createdAt: '2024-08-15T09:15:00Z',
+          updatedAt: '2024-08-15T09:15:00Z'
+        },
+        {
+          id: 4,
+          title: '이벤트 포스터',
+          description: '특별 할인 이벤트 안내',
+          imageUrl: 'https://picsum.photos/400/300?random=4',
+          thumbnailUrl: 'https://picsum.photos/200/150?random=4',
+          fileName: 'event-poster.jpg',
+          fileSize: 425120,
+          mimeType: 'image/jpeg',
+          userId: 'user456',
+          author: '이벤트팀',
+          views: 298,
+          likes: 45,
+          createdAt: '2024-08-14T16:45:00Z',
+          updatedAt: '2024-08-14T16:45:00Z'
+        }
+      ];
+
+      // 검색 필터링
+      if (search) {
+        mockImages = mockImages.filter(image =>
+          image.title.toLowerCase().includes(search.toLowerCase()) ||
+          image.description.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      // 사용자 필터링
+      if (userId) {
+        mockImages = mockImages.filter(image => image.userId === userId);
+      }
+
+      // 정렬
+      mockImages.sort((a, b) => {
+        switch (sortBy) {
+          case 'popular':
+            return b.likes - a.likes;
+          case 'views':
+            return b.views - a.views;
+          case 'recent':
+          default:
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+      });
+
+      // 페이지네이션
+      const startIndex = (page - 1) * size;
+      const endIndex = startIndex + size;
+      const paginatedImages = mockImages.slice(startIndex, endIndex);
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: '이미지 목록 조회 성공',
+        result: {
+          images: paginatedImages,
+          pagination: {
+            page,
+            size,
+            totalItems: mockImages.length,
+            totalPages: Math.ceil(mockImages.length / size),
+            hasNext: endIndex < mockImages.length,
+            hasPrevious: page > 1
+          }
+        }
+      });
+    }),
+
+    // 이미지 업로드
+    http.post(`${API_BASE_URL}/api/images/upload`, async ({request}) => {
+      const formData = await request.formData();
+      const file = formData.get('file');
+      const title = formData.get('title');
+      const description = formData.get('description');
+      const userId = formData.get('userId');
+
+      // 파일 검증
+      if (!file) {
+        return HttpResponse.json({
+          isSuccess: false,
+          message: '업로드할 파일이 없습니다.',
+          result: null
+        }, { status: 400 });
+      }
+
+      if (!title) {
+        return HttpResponse.json({
+          isSuccess: false,
+          message: '이미지 제목을 입력해주세요.',
+          result: null
+        }, { status: 400 });
+      }
+
+      // 파일 크기 검증 (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        return HttpResponse.json({
+          isSuccess: false,
+          message: '파일 크기는 10MB를 초과할 수 없습니다.',
+          result: null
+        }, { status: 400 });
+      }
+
+      // 파일 타입 검증
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        return HttpResponse.json({
+          isSuccess: false,
+          message: '지원하지 않는 파일 형식입니다. (JPG, PNG, GIF, WebP만 지원)',
+          result: null
+        }, { status: 400 });
+      }
+
+      // 성공 응답 (실제로는 파일이 서버에 저장되고 URL이 생성됨)
+      const imageId = Math.floor(Math.random() * 10000) + 1000;
+      const imageUrl = `https://picsum.photos/400/300?random=${imageId}`;
+      const thumbnailUrl = `https://picsum.photos/200/150?random=${imageId}`;
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: '이미지 업로드 성공',
+        result: {
+          id: imageId,
+          title: title,
+          description: description || '',
+          imageUrl: imageUrl,
+          thumbnailUrl: thumbnailUrl,
+          fileName: file.name,
+          fileSize: file.size,
+          mimeType: file.type,
+          userId: userId,
+          author: '현재 사용자',
+          views: 0,
+          likes: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      });
+    }),
+
+    // 이미지 상세 조회
+    http.get(`${API_BASE_URL}/api/images/:imageId`, ({params}) => {
+      const imageId = parseInt(params.imageId);
+
+      // 목업 데이터에서 찾기
+      const mockImage = {
+        id: imageId,
+        title: `이미지 ${imageId}`,
+        description: `이미지 ${imageId}에 대한 상세 설명입니다.`,
+        imageUrl: `https://picsum.photos/800/600?random=${imageId}`,
+        thumbnailUrl: `https://picsum.photos/200/150?random=${imageId}`,
+        fileName: `image-${imageId}.jpg`,
+        fileSize: 256000 + (imageId * 1000),
+        mimeType: 'image/jpeg',
+        userId: 'user123',
+        author: '사용자',
+        views: Math.floor(Math.random() * 1000),
+        likes: Math.floor(Math.random() * 100),
+        tags: ['카페', '음료', '디저트'],
+        metadata: {
+          width: 800,
+          height: 600,
+          colorDepth: 24,
+          hasAlpha: false
+        },
+        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+      };
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: '이미지 상세 조회 성공',
+        result: mockImage
+      });
+    }),
+
+    // 이미지 메타데이터 수정
+    http.patch(`${API_BASE_URL}/api/images/:imageId`, async ({params, request}) => {
+      const imageId = params.imageId;
+      const updateData = await request.json();
+
+      if (!updateData.title && !updateData.description) {
+        return HttpResponse.json({
+          isSuccess: false,
+          message: '수정할 데이터가 없습니다.',
+          result: null
+        }, { status: 400 });
+      }
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: '이미지 정보가 수정되었습니다.',
+        result: {
+          id: imageId,
+          ...updateData,
+          updatedAt: new Date().toISOString()
+        }
+      });
+    }),
+
+    // 이미지 삭제
+    http.delete(`${API_BASE_URL}/api/images/:imageId`, ({params, request}) => {
+      const imageId = params.imageId;
+      const url = new URL(request.url);
+      const userId = url.searchParams.get('userId');
+
+      if (!userId) {
+        return HttpResponse.json({
+          isSuccess: false,
+          message: '사용자 ID가 필요합니다.',
+          result: null
+        }, { status: 400 });
+      }
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: '이미지가 삭제되었습니다.',
+        result: {
+          deletedImageId: imageId,
+          deletedAt: new Date().toISOString()
+        }
+      });
+    }),
+
+
+    //콘텐츠 api
+
 
   // 콘텐츠 목록 조회
   http.get(`${API_BASE_URL}/api/content`, ({request}) => {
