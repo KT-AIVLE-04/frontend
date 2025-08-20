@@ -6,6 +6,7 @@ import { VideoPreview } from './VideoPreview';
 
 export const ShortsGeneration = ({ setContentType }) => {
   const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   
   const {
     contentId,
@@ -65,7 +66,7 @@ export const ShortsGeneration = ({ setContentType }) => {
       return;
     }
 
-    if (isSaving) {
+    if (isSaving || isSaved) {
       return;
     }
 
@@ -75,6 +76,7 @@ export const ShortsGeneration = ({ setContentType }) => {
       const response = await shortApi.saveShorts(videoKey);
       console.log('숏폼 저장 성공:', response.data);
       alert('숏폼이 성공적으로 저장되었습니다!');
+      setIsSaved(true);
     } catch (error) {
       console.error('숏폼 저장 실패:', error);
       alert('숏폼 저장에 실패했습니다. 다시 시도해주세요.');
@@ -94,6 +96,7 @@ export const ShortsGeneration = ({ setContentType }) => {
         onRegenerate={handleRegenerate}
         onSave={handleSave}
         isSaving={isSaving}
+        isSaved={isSaved}
       />
     );
   }
