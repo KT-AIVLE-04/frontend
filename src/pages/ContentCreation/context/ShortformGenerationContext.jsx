@@ -231,6 +231,20 @@ export const ShortformGenerationProvider = ({ children }) => {
     setFileInputRef(null);
   };
 
+  const resetToInputStep = () => {
+    setActiveStep(1);
+    setScenarios([]);
+    setSelectedScenarioId(null);
+    setSessionId(null);
+    setContentStatus(null);
+    setContentId(null);
+    setVideoUrl(null);
+    setVideoKey(null);
+    setError(null);
+    setLoading(false);
+    // formData는 유지
+  };
+
   const value = {
     // State
     selectedStoreId,
@@ -270,6 +284,7 @@ export const ShortformGenerationProvider = ({ children }) => {
     handleRemoveFile,
     handleFileButtonClick,
     resetForm,
+    resetToInputStep,
     fetchCurrentStoreInfo
   };
 

@@ -14,7 +14,7 @@ export const ShortsGeneration = ({ setContentType }) => {
     videoUrl,
     videoKey,
     setActiveStep,
-    resetForm
+    resetToInputStep
   } = useShortformGeneration();
 
   // useEffect(() => {
@@ -50,8 +50,13 @@ export const ShortsGeneration = ({ setContentType }) => {
   // };
 
   const handleRegenerate = () => {
-    // TODO: 다시 생성하기 기능 구현
-    console.log('다시 생성하기');
+    const userConfirmed = window.confirm(
+      '정보 입력 단계로 돌아가시겠습니까?\n\n매장 정보와 광고 정보를 수정하고 시나리오를 다시 생성할 수 있습니다.'
+    );
+    
+    if (userConfirmed) {
+      resetToInputStep();
+    }
   };
 
   const handleSave = async () => {
