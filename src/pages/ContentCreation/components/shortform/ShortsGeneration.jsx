@@ -1,10 +1,12 @@
 import { CheckCircle, Clock, Sparkles } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useShortformGeneration } from '../../context/ShortformGenerationContext';
-import { contentApi } from '../../../../api/content';
+import { shortApi } from '../../../../api/short';
 import { VideoPreview } from './VideoPreview';
 
 export const ShortsGeneration = ({ setContentType }) => {
+  const [isSaving, setIsSaving] = useState(false);
+  
   const {
     contentId,
     contentStatus,
@@ -52,9 +54,28 @@ export const ShortsGeneration = ({ setContentType }) => {
     console.log('다시 생성하기');
   };
 
-  const handleSave = () => {
-    // TODO: 저장하기 기능 구현
-    console.log('저장하기');
+  const handleSave = async () => {
+    if (!videoKey) {
+      alert('저장할 비디오가 없습니다.');
+      return;
+    }
+
+    if (isSaving) {
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      console.log('숏폼 저장 시작:', videoKey);
+      const response = await shortApi.saveShorts(videoKey);
+      console.log('숏폼 저장 성공:', response.data);
+      alert('숏폼이 성공적으로 저장되었습니다!');
+    } catch (error) {
+      console.error('숏폼 저장 실패:', error);
+      alert('숏폼 저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   
@@ -67,6 +88,7 @@ export const ShortsGeneration = ({ setContentType }) => {
         videoUrl={displayVideoUrl}
         onRegenerate={handleRegenerate}
         onSave={handleSave}
+        isSaving={isSaving}
       />
     );
   }
