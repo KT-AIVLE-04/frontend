@@ -218,6 +218,15 @@ export function Login() {
                 </button>
               </div>
             </div>
+            <div className="mt-8 text-center text-sm text-gray-600">
+              <a href="/AIVLE.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-900">
+                이용약관
+              </a>
+              <span className="mx-2">|</span>
+              <a href="/Open_Source.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-900">
+                오픈소스 라이선스
+              </a>
+            </div>
           </div>
         </div>
       </div>
