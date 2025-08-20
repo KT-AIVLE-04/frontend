@@ -1,9 +1,11 @@
 import {ArrowRight, Upload, X, Trash2, Loader2} from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import {useShortformGeneration} from '../../context/ShortformGenerationContext';
 import {shortApi} from "../../../../api/short.js";
 
 export const InformationInput = () => {
+  const [validationErrors, setValidationErrors] = useState({});
+  
   const {
     formData,
     loading,
@@ -67,16 +69,107 @@ export const InformationInput = () => {
     }
   };
 
-  const isFormValid = () => {
-    return (
-      formData.storeId &&
-      formData.storeInfo.brandConcepts.length > 0 &&
-      formData.storeInfo.referenceFiles.length > 0 &&
-      formData.adInfo.adType &&
-      formData.adInfo.adPlatform &&
-      formData.adInfo.adTarget &&
-      formData.adInfo.adDuration
-    );
+  const validateForm = () => {
+    const errors = {};
+    
+    // 브랜드 컨셉 검증
+    if (formData.storeInfo.brandConcepts.length === 0) {
+      errors.brandConcepts = true;
+    }
+    
+    // 이미지 업로드 검증
+    if (formData.storeInfo.referenceFiles.length === 0) {
+      errors.referenceFiles = true;
+    }
+    
+    // 광고 타입 검증
+    if (!formData.adInfo.adType) {
+      errors.adType = true;
+    }
+    
+    // 광고 플랫폼 검증
+    if (!formData.adInfo.adPlatform) {
+      errors.adPlatform = true;
+    }
+    
+    // 광고 타겟 검증
+    if (!formData.adInfo.adTarget?.trim()) {
+      errors.adTarget = true;
+    }
+    
+    // 광고 시간 검증
+    if (!formData.adInfo.adDuration) {
+      errors.adDuration = true;
+    }
+    
+    // 광고 요구사항 검증
+    if (!formData.adInfo.additionalInfo?.trim()) {
+      errors.additionalInfo = true;
+    }
+    
+    setValidationErrors(errors);
+    return { isValid: Object.keys(errors).length === 0, errors };
+  };
+
+  const focusFirstErrorField = (errors) => {
+    // 우선순위 순서대로 포커스 (위쪽, 왼쪽 우선)
+    const errorFieldMap = [
+      { field: 'brandConcepts', elementId: 'brandConcept' },
+      { field: 'adType', elementId: 'adType' },
+      { field: 'adPlatform', elementId: 'adPlatform' },
+      { field: 'adTarget', elementId: 'adTarget' },
+      { field: 'adDuration', elementId: 'adDuration' },
+      { field: 'additionalInfo', elementId: 'adAdditionalInfo' }
+    ];
+    
+    for (const { field, elementId } of errorFieldMap) {
+      if (errors[field]) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          setTimeout(() => {
+            element.focus();
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100); // DOM 업데이트 후 포커스
+          break;
+        }
+      }
+    }
+  };
+
+  const clearValidationError = (fieldName) => {
+    if (validationErrors[fieldName]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [fieldName]: false
+      }));
+    }
+  };
+
+  const handleLocalInputChange = (e) => {
+    const { name, value } = e.target;
+    const fieldName = name.split('.')[1];
+    clearValidationError(fieldName);
+    handleInputChange(e);
+  };
+
+  const handleBrandConceptInputChange = (e) => {
+    setBrandConceptInput(e.target.value);
+    // 브랜드 컨셉이 입력되면 validation error 제거
+    if (e.target.value.trim() || formData.storeInfo.brandConcepts.length > 0) {
+      clearValidationError('brandConcepts');
+    }
+  };
+
+  const handleLocalAddBrandConcept = (e) => {
+    handleAddBrandConcept(e);
+    // 브랜드 컨셉이 추가되면 validation error 제거
+    clearValidationError('brandConcepts');
+  };
+
+  const handleLocalFileSelect = async (e) => {
+    await handleFileSelect(e);
+    // 파일이 선택되면 validation error 제거
+    clearValidationError('referenceFiles');
   };
 
   return (
@@ -140,7 +233,7 @@ export const InformationInput = () => {
               {/* 브랜드 컨셉 (태그 형태) */}
               <div>
                 <label htmlFor="brandConcept" className="block text-sm font-medium text-gray-700 mb-1">
-                  브랜드 컨셉 *
+                  브랜드 컨셉 <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
                   {/* 입력 필드 */}
@@ -148,9 +241,11 @@ export const InformationInput = () => {
                     id="brandConcept"
                     type="text"
                     value={brandConceptInput}
-                    onChange={(e) => setBrandConceptInput(e.target.value)}
-                    onKeyDown={handleAddBrandConcept}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={handleBrandConceptInputChange}
+                    onKeyDown={handleLocalAddBrandConcept}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.brandConcepts ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="브랜드 컨셉을 입력하고 엔터를 누르세요 (예: 트렌디한, 친환경적인, 고급스러운)"
                   />
 
@@ -181,19 +276,21 @@ export const InformationInput = () => {
             {/* 오른쪽: 이미지 업로드 */}
             <div className="flex flex-col h-full">
               <h4 className="text-sm font-medium text-gray-700 mb-3">
-                이미지 업로드 * ({formData.storeInfo.referenceFiles.length}/5)
+                이미지 업로드 <span className="text-red-500">*</span> ({formData.storeInfo.referenceFiles.length}/5)
               </h4>
 
               {/* 파일이 없는 경우 업로드 영역 */}
               {formData.storeInfo.referenceFiles.length === 0 ? (
                 <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center flex-1 flex flex-col justify-center min-h-[240px]">
+                  className={`border-2 border-dashed rounded-lg p-6 text-center flex-1 flex flex-col justify-center min-h-[240px] ${
+                    validationErrors.referenceFiles ? 'border-red-500' : 'border-gray-300'
+                  }`}>
                   <Upload size={32} className="text-gray-400 mx-auto mb-3"/>
                   <p className="text-sm text-gray-500 mb-2">
                     매장 이미지나 제품 사진을 업로드하세요
                   </p>
                   <p className="text-xs text-gray-400 mb-4">
-                    JPG, PNG 파일 지원 (최대 50MB, 최대 5개)
+                    JPG, JPEG, PNG 파일 지원 (최대 50MB, 최대 5개)
                   </p>
                   <button
                     type="button"
@@ -205,7 +302,7 @@ export const InformationInput = () => {
                   <input
                     type="file"
                     ref={setFileInputRef}
-                    onChange={handleFileSelect}
+                    onChange={handleLocalFileSelect}
                     accept="image/*"
                     multiple
                     className="hidden"
@@ -265,7 +362,7 @@ export const InformationInput = () => {
                   <input
                     type="file"
                     ref={setFileInputRef}
-                    onChange={handleFileSelect}
+                    onChange={handleLocalFileSelect}
                     accept="image/*"
                     multiple
                     className="hidden"
@@ -286,14 +383,16 @@ export const InformationInput = () => {
             <div className="space-y-4">
               <div>
                 <label htmlFor="adType" className="block text-sm font-medium text-gray-700 mb-1">
-                  광고 타입 *
+                  광고 타입 <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="adType"
                   name="adInfo.adType"
                   value={formData.adInfo.adType}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={handleLocalInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.adType ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="">광고 타입을 선택하세요</option>
                   <option value="제품 홍보">제품 홍보</option>
@@ -304,14 +403,16 @@ export const InformationInput = () => {
 
               <div>
                 <label htmlFor="adPlatform" className="block text-sm font-medium text-gray-700 mb-1">
-                  광고 플랫폼 *
+                  광고 플랫폼 <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="adPlatform"
                   name="adInfo.adPlatform"
                   value={formData.adInfo.adPlatform}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={handleLocalInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.adPlatform ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="">플랫폼을 선택하세요</option>
                   <option value="인스타그램">인스타그램</option>
@@ -322,15 +423,17 @@ export const InformationInput = () => {
 
               <div>
                 <label htmlFor="adTarget" className="block text-sm font-medium text-gray-700 mb-1">
-                  광고 타겟 *
+                  광고 타겟 <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="adTarget"
                   name="adInfo.adTarget"
                   value={formData.adInfo.adTarget}
-                  onChange={handleInputChange}
+                  onChange={handleLocalInputChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.adTarget ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="타겟 고객층을 구체적으로 입력하세요 (예: 20-30대 직장인 여성)"
                 />
               </div>
@@ -338,14 +441,16 @@ export const InformationInput = () => {
               {/* 광고 시간 선택 */}
               <div>
                 <label htmlFor="adDuration" className="block text-sm font-medium text-gray-700 mb-1">
-                  광고 시간 *
+                  광고 시간 <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="adDuration"
                   name="adInfo.adDuration"
                   value={formData.adInfo.adDuration}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={handleLocalInputChange}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.adDuration ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="">광고 시간을 선택하세요</option>
                   <option value="15초">15초</option>
@@ -360,16 +465,18 @@ export const InformationInput = () => {
             <div className="flex flex-col">
               <div className="flex-1">
                 <label htmlFor="adAdditionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
-                  광고 요구사항
+                  광고 요구사항 <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="adAdditionalInfo"
                   name="adInfo.additionalInfo"
                   value={formData.adInfo.additionalInfo}
-                  onChange={handleInputChange}
+                  onChange={handleLocalInputChange}
                   rows={10}
-                  className="w-full h-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="광고에서 강조하고 싶은 포인트나 특별한 요구사항을 자세히 입력하세요&#10;&#10;예시:&#10;- 젊고 트렌디한 분위기 강조&#10;- 할인 이벤트 정보 포함&#10;- 매장 위치의 접근성 강조&#10;- 제품의 특별한 장점이나 차별화 포인트"
+                  className={`w-full h-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                    validationErrors.additionalInfo ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="광고에서 강조하고 싶은 포인트나 특별한 요구사항을 자세히 입력하세요&#10;&#10;(홍보하고자 하는 제품명을 입력하고 구체적으로 작성할수록, 보다 명확한 시나리오 설정에 도움이 됩니다)"
                 />
               </div>
             </div>
@@ -380,12 +487,18 @@ export const InformationInput = () => {
         <div className="flex justify-end">
           <button
             onClick={async () => {
+              const { isValid, errors } = validateForm();
+              if (!isValid) {
+                focusFirstErrorField(errors);
+                return;
+              }
+              
               await generateScenarios();
               if (!error) {
                 setActiveStep(2);
               }
             }}
-            disabled={loading || !isFormValid()}
+            disabled={loading}
             className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? '시나리오 생성 중...' : '다음 단계'}
