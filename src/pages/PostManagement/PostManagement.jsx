@@ -8,204 +8,171 @@ import {
   FolderOpen,
   Search,
   Eye,
-  Trash2,
-  Clock,
-  CheckCircle,
-  XCircle,
 } from "lucide-react";
 import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
-import {
-  SearchFilter,
-  PostManagementCard,
-  PostManagementVideoDetail,
-} from "./components";
+import { SearchFilter, PostManagementCard, PostDetail } from "./components";
 import { useSelector } from "react-redux";
 import { storeApi } from "../../api/store";
 import { snsApi } from "../../api/sns";
+import { contentApi } from "../../api/content";
 import { Store } from "../../models/Store";
-import { PLATFORMS } from "../../const/platforms";
+import { SNS_TYPES } from "../../const/snsTypes";
 import { INDUSTRY_OPTIONS } from "../../const/industries";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../routes/routes";
 
 const PostManagement = () => {
   /** ----------------------
    * 상태 관리
    ----------------------- */
-  const { selectedStoreId, user } = useSelector((state) => state.auth); // /src/store/index.js, /src/store/authSlice.js 참고하여 이해
+  const { selectedStoreId } = useSelector((state) => state.auth); // /src/store/index.js, /src/store/authSlice.js 참고하여 이해
 
   const [activeTab, setActiveTab] = useState("list");
-  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [selectedPost, setSelectedPost] = useState(null);
-  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [selectedThumbnail, setSelectedThumbnail] = useState(null);
-
-  const [postData, setPostData] = useState({
+  const [posts, setPosts] = useState([]);
+  const [post, setPost] = useState({
     title: "",
-    content: "",
-    hashtags: [],
+    description: "",
+    tags: [],
+  });
+  const [generatedPost, setGeneratedPost] = useState({
+    title: false,
+    description: false,
+    tags: false,
   });
 
-  // AI 생성 옵션 상태 추가
-  const [aiOptions, setAiOptions] = useState({
-    platform: "youtube",
-    keywords: [], // 문자열에서 배열로 변경
-    businessType: "", // businessType 추가
-    location: "",
-  });
-
-  const [publishOptions, setPublishOptions] = useState({
-    platforms: [],
-    scheduleType: "immediate", // "immediate" | "scheduled"
-    scheduledDate: "", // YYYY-MM-DD 형식
-    scheduledTime: "", // HH:MM 형식
-  });
+  const [uploadedContents, setUploadedContents] = useState([]);
+  const [selectedThumbnail, setSelectedThumbnail] = useState(null);
+  const [selectedSnsType, setSelectedSnsType] = useState([]); // 배열로 변경 (목록 필터용)
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
 
-  const [generatedContent, setGeneratedContent] = useState({
-    title: false,
-    content: false,
-    hashtags: false,
-  });
-
-  const [showContentLibrary, setShowContentLibrary] = useState(false);
-  const [contentLibrarySearch, setContentLibrarySearch] = useState("");
-  const [contentLibraryFilter, setContentLibraryFilter] = useState("all");
+  const [showContents, setShowContents] = useState(false);
+  const [contentsSearch, setContentsSearch] = useState("");
+  const [contentsFilter, setContentsFilter] = useState("all");
 
   const [selectedStore, setSelectedStore] = useState(null);
+  const [contents, setContents] = useState([]);
+  const [contentsLoading, setContentsLoading] = useState(false);
+
+  const [aiOptions, setAiOptions] = useState({
+    keywords: [],
+    snsType: "",
+    industry: "",
+    location: "",
+  });
+
+  const [publishOptions, setPublishOptions] = useState({
+    snsType: "",
+    isNow: true,
+    publishAt: "",
+  });
+
+  // 계정 연동 상태 확인을 위한 state 추가
+  const [snsAccountStatus, setSnsAccountStatus] = useState({});
+  const [checkingAccountStatus, setCheckingAccountStatus] = useState(false);
+
+  const navigate = useNavigate();
+
+  // 계정 연동 상태 확인 함수
+  const checkSnsAccountStatus = async (snsType) => {
+    try {
+      setCheckingAccountStatus(true);
+      const response = await snsApi.account.getAccountInfo(snsType);
+      return response.data.result !== null; // 계정 정보가 있으면 연동됨
+    } catch (error) {
+      console.error(`${snsType} 계정 연동 상태 확인 실패:`, error);
+      return false; // 에러 발생 시 연동 안됨으로 처리
+    } finally {
+      setCheckingAccountStatus(false);
+    }
+  };
+
+  // 계정 연동 페이지로 이동 함수
+  const handleSnsIntegration = () => {
+    navigate(ROUTES.SNS_INTEGRATION.route);
+  };
 
   /** ----------------------
    * 데이터 로딩
    ----------------------- */
   useEffect(() => {
-    if (activeTab === "list") fetchContents();
-  }, [sortBy, selectedPlatforms, activeTab]);
+    if (activeTab === "list") fetchPosts();
+  }, [sortBy, selectedSnsType, activeTab]); // selectedSnsType 배열 변경 시에도 다시 로드
 
   useEffect(() => {
-    if (selectedStoreId) fetchSelectedStore();
+    if (selectedStoreId && !selectedStore) {
+      fetchSelectedStore();
+    }
   }, [selectedStoreId]);
 
+  // 매장 상세 조회
   const fetchSelectedStore = async () => {
     try {
-      const response = await storeApi.getStore(selectedStoreId);
-      setSelectedStore(response.data?.result);
+      const getStoreResponse = await storeApi.getStore(selectedStoreId);
+      const getStoreResponseData = getStoreResponse.data.result;
+      // "result": {
+      //   "id": 0,
+      //   "userId": 0,
+      //   "name": "string",
+      //   "address": "string",
+      //   "phoneNumber": "string",
+      //   "businessNumber": "string",
+      //   "latitude": 0.1,
+      //   "longitude": 0.1,
+      //   "industry": "음식점"
+      // },
+      setSelectedStore(getStoreResponseData);
     } catch (error) {
       console.error("매장 정보 로딩 실패:", error);
     }
   };
 
-  const fetchContents = async () => {
+  const fetchPosts = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // 개발용: selectedStoreId가 없어도 목업 데이터 표시
       if (!selectedStoreId) {
-        console.log("⚠️ selectedStoreId가 없음 - 목업 데이터 표시");
-
-        // 목업 데이터 직접 설정
-        const mockPosts = [
-          {
-            postId: "video_001",
-            id: "video_001",
-            title: "카페 달콤 신메뉴 소개",
-            description: "새로운 시그니처 음료와 디저트를 소개합니다!",
-            thumbnailUrl: "https://picsum.photos/400/300?random=1",
-            viewCount: 2456,
-            likeCount: 342,
-            commentCount: 87,
-            publishedAt: "2024-01-15T10:30:00Z",
-            createdAt: "2024-01-15T10:30:00Z",
-            status: "completed",
-          },
-          {
-            postId: "video_002",
-            id: "video_002",
-            title: "매장 분위기 소개",
-            description: "아늑하고 편안한 우리 매장의 분위기를 느껴보세요",
-            thumbnailUrl: "https://picsum.photos/400/300?random=2",
-            viewCount: 1845,
-            likeCount: 256,
-            commentCount: 62,
-            publishedAt: "2024-01-14T15:20:00Z",
-            createdAt: "2024-01-14T15:20:00Z",
-            status: "completed",
-          },
-          {
-            postId: "video_003",
-            id: "video_003",
-            title: "특별 할인 이벤트",
-            description: "이번 주 한정 특가 이벤트를 놓치지 마세요!",
-            thumbnailUrl: "https://picsum.photos/400/300?random=3",
-            viewCount: 3124,
-            likeCount: 423,
-            commentCount: 95,
-            publishedAt: "2024-01-13T09:00:00Z",
-            createdAt: "2024-01-13T09:00:00Z",
-            status: "completed",
-          },
-        ];
-
-        const transformedPosts = mockPosts.map((post) => ({
-          id: post.postId || post.id,
-          type: "video",
-          title: post.title,
-          thumbnailUrl:
-            post.thumbnailUrl || "https://via.placeholder.com/300x200",
-          author: user?.name || "사용자",
-          views: post.viewCount || 0,
-          likes: post.likeCount || 0,
-          comments: post.commentCount || 0,
-          createdAt: post.publishedAt || post.createdAt,
-          platforms: ["youtube"],
-          status: post.status || "completed",
-          description: post.description,
-        }));
-
-        setPosts(transformedPosts);
+        setError("매장을 선택해주세요.");
+        setPosts([]);
         return;
       }
 
-      const response = await snsApi.account.getPostList(
-        "youtube",
-        selectedStoreId
-      );
+      const getPostsResponse = await snsApi.post.getPosts();
+      const getPostsResponseData = getPostsResponse.data.result || [];
+      // [
+      //   {
+      //     "id": 0,
+      //     "snsPostId": "string",
+      //     "title": "string",
+      //     "description": "string",
+      //     "snsType": "youtube",
+      //     "originalName": "string",
+      //     "objectKey": "string",
+      //     "url": "string",
+      //     "tags": [
+      //       "string"
+      //     ],
+      //     "categoryId": "string",
+      //     "publishAt": "2025-08-21T18:30:57.466Z",
+      //     "notifySubscribers": true
+      //   }
+      // ],
 
-      // 단순화된 응답 처리
-      const postsData = response.data || [];
-
-      const transformedPosts = postsData.map((post) => ({
-        id: post.postId || post.id,
-        type: "video",
-        title: post.title,
-        thumbnailUrl:
-          post.thumbnailUrl || "https://via.placeholder.com/300x200",
-        author: user?.name || "사용자",
-        views: post.viewCount || 0,
-        likes: post.likeCount || 0,
-        comments: post.commentCount || 0,
-        createdAt: post.publishedAt || post.createdAt,
-        platforms: ["youtube"],
-        status: post.status || "completed",
-        description: post.description,
-      }));
-
-      let filteredContents = transformedPosts;
-      if (selectedPlatforms.length > 0) {
-        filteredContents = transformedPosts.filter((content) =>
-          content.platforms.some((platform) =>
-            selectedPlatforms.includes(platform)
-          )
+      let filteredPosts = getPostsResponseData;
+      if (selectedSnsType.length > 0) {
+        filteredPosts = getPostsResponseData.filter(
+          (post) => selectedSnsType.includes(post.snsType) // 배열에 포함되는지 체크
         );
       }
-
-      setPosts(filteredContents);
+      setPosts(filteredPosts);
     } catch (error) {
       console.error("게시물 목록 로딩 실패:", error);
       setError("게시물 목록을 불러오는데 실패했습니다.");
@@ -221,16 +188,17 @@ const PostManagement = () => {
   const handleCardClick = (post) => setSelectedPost(post);
   const handleCloseDetail = () => setSelectedPost(null);
 
-  const handleDelete = async (contentId) => {
+  const handleDeletePost = async (postId) => {
     if (window.confirm("정말로 이 게시물을 삭제하시겠습니까?")) {
       try {
-        await snsApi.post.deleteVideo("youtube", {
-          postId: contentId,
-          storeId: selectedStoreId,
+        // posts 배열에서 해당 post의 snsType 찾기
+        const postToDelete = posts.find((p) => p.id === postId);
+        await snsApi.post.deletePost(postId, {
+          snsType: postToDelete?.snsType,
         });
 
-        setPosts((prev) => prev.filter((p) => p.id !== contentId));
-        if (selectedPost?.id === contentId) handleCloseDetail();
+        setPosts((prev) => prev.filter((p) => p.id !== postId));
+        if (selectedPost?.id === postId) handleCloseDetail();
 
         alert("게시물이 삭제되었습니다.");
       } catch (error) {
@@ -249,11 +217,9 @@ const PostManagement = () => {
         content.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    if (selectedPlatforms.length > 0) {
-      filtered = filtered.filter((content) =>
-        content.platforms.some((platform) =>
-          selectedPlatforms.includes(platform)
-        )
+    if (selectedSnsType.length > 0) {
+      filtered = filtered.filter(
+        (content) => selectedSnsType.includes(content.snsType) // 배열에 포함되는지 체크
       );
     }
 
@@ -263,7 +229,7 @@ const PostManagement = () => {
   /** ----------------------
    * AI 콘텐츠 생성
    ----------------------- */
-  const generateContent = async (type = "full") => {
+  const generatePost = async (type) => {
     try {
       setIsGenerating(true);
 
@@ -271,68 +237,74 @@ const PostManagement = () => {
         alert("대표 이미지를 선택해주세요.");
         return;
       }
-      if (!selectedStore) {
-        alert("매장 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      if (!selectedStoreId) {
+        alert("매장을 선택해주세요.");
         return;
       }
 
-      const selectedFile = uploadedFiles.find(
-        (f) => f.id === selectedThumbnail
+      const selectedContent = uploadedContents.find(
+        (c) => c.id === selectedThumbnail
       );
 
       // 사용자 입력 우선, 없으면 매장 정보 사용
-      const businessType =
-        aiOptions.businessType.trim() ||
+      const inputIndustry =
+        aiOptions.industry.trim() ||
         (selectedStore?.industry
           ? Store.getIndustryLabel(selectedStore.industry)
           : "") ||
         "일반";
-      const location = aiOptions.location.trim() || selectedStore.address || "";
-
-      // 키워드 배열 그대로 사용
-      const userKeywords = aiOptions.keywords;
+      const inputLocation = aiOptions.location.trim() || selectedStore.address;
+      const inputKeywords = aiOptions.keywords;
 
       if (type === "full") {
-        const requestData = {
-          content_data: selectedFile?.url || "",
-          user_keywords: userKeywords,
-          sns_platform: aiOptions.platform,
-          business_type: businessType,
-          location: location,
+        const AiPostRequestData = {
+          originalName: selectedContent.originalName,
+          objectKey: selectedContent.objectKey,
+          keywords: inputKeywords,
+          snsType: aiOptions.snsType,
+          industry: inputIndustry,
+          location: inputLocation,
         };
+        // console.log("@@ AiPostRequestData", AiPostRequestData);
+        const AiPostResponse = await snsApi.ai.uploadAiPost(AiPostRequestData);
+        const AiPostResponseData = AiPostResponse.data.result;
 
-        const response = await snsApi.ai.createPost(requestData);
-        const result = response.data;
-
-        setPostData({
-          title: result.title || "AI가 생성한 제목",
-          content: result.content || "AI가 생성한 본문",
-          hashtags: result.hashtags?.map((tag) => tag.replace("#", "")) || [],
+        setPost({
+          title: AiPostResponseData.title || "AI가 생성한 제목",
+          description: AiPostResponseData.description || "AI가 생성한 본문",
+          tags: AiPostResponseData.tags || [],
         });
-        setGeneratedContent({ title: true, content: true, hashtags: true });
+        setGeneratedPost({ title: true, description: true, tags: true });
       } else if (type === "hashtags") {
-        if (!postData.title.trim() && !postData.content.trim()) {
+        if (!post.title.trim() && !post.description.trim()) {
           alert("제목 또는 본문을 입력해주세요.");
           return;
         }
 
-        const requestData = {
-          post_title: postData.title,
-          post_content: postData.content,
-          user_keywords: userKeywords,
-          sns_platform: aiOptions.platform,
-          business_type: businessType,
-          location: location,
+        // AI 플랫폼이 선택되지 않은 경우 체크
+        if (!aiOptions.snsType) {
+          alert("AI 생성을 위한 대상 플랫폼을 선택해주세요.");
+          return;
+        }
+
+        const AiTagRequestData = {
+          title: post.title,
+          description: post.description,
+          keywords: inputKeywords,
+          snsType: aiOptions.snsType,
+          industry: inputIndustry,
+          location: inputLocation,
         };
 
-        const response = await snsApi.ai.createHashtags(requestData);
-        const result = response.data;
+        const AiTagResponse = await snsApi.ai.uploadAiTag(AiTagRequestData);
+        const AiTagResponseData = AiTagResponse.data.result;
 
-        setPostData((prev) => ({
+        setPost((prev) => ({
           ...prev,
-          hashtags: result.hashtags?.map((tag) => tag.replace("#", "")) || [],
+          tags:
+            AiTagResponseData.tags?.map((tag) => tag.replace("#", "")) || [],
         }));
-        setGeneratedContent((prev) => ({ ...prev, hashtags: true }));
+        setGeneratedPost((prev) => ({ ...prev, tags: true }));
       }
     } catch (error) {
       console.error("AI 콘텐츠 생성 실패:", error);
@@ -345,19 +317,19 @@ const PostManagement = () => {
   /** ----------------------
    * 해시태그 관련
    ----------------------- */
-  const addHashtag = (hashtag) => {
-    if (hashtag && !postData.hashtags.includes(hashtag)) {
-      setPostData((prev) => ({
+  const addTag = (tag) => {
+    if (tag && !post.tags.includes(tag)) {
+      setPost((prev) => ({
         ...prev,
-        hashtags: [...prev.hashtags, hashtag],
+        tags: [...prev.tags, tag],
       }));
     }
   };
 
-  const removeHashtag = (index) => {
-    setPostData((prev) => ({
+  const removeTag = (index) => {
+    setPost((prev) => ({
       ...prev,
-      hashtags: prev.hashtags.filter((_, i) => i !== index),
+      tags: prev.tags.filter((_, i) => i !== index),
     }));
   };
 
@@ -381,102 +353,164 @@ const PostManagement = () => {
   };
 
   // AI 플랫폼 선택 시 게시 옵션에도 반영
-  const handleAiPlatformChange = (platform) => {
+  const handleAiSnsTypeChange = (snsType) => {
     setAiOptions((prev) => ({
       ...prev,
-      platform: platform,
+      snsType: snsType,
     }));
 
-    // 게시 옵션에도 해당 플랫폼 추가 (중복 방지)
+    // 게시 옵션에 해당 플랫폼 선택
     setPublishOptions((prev) => ({
       ...prev,
-      platforms: prev.platforms.includes(platform)
-        ? prev.platforms
-        : [...prev.platforms, platform],
+      snsType: prev.snsType === snsType ? prev.snsType : snsType,
     }));
   };
 
   // 컴포넌트 마운트 시 AI 플랫폼을 게시 옵션에 초기 설정
   useEffect(() => {
-    if (
-      aiOptions.platform &&
-      !publishOptions.platforms.includes(aiOptions.platform)
-    ) {
+    if (aiOptions.snsType && !publishOptions.snsType) {
       setPublishOptions((prev) => ({
         ...prev,
-        platforms: [...prev.platforms, aiOptions.platform],
+        snsType: aiOptions.snsType,
       }));
     }
-  }, [aiOptions.platform]);
+  }, [aiOptions.snsType]);
 
   /** ----------------------
    * 콘텐츠 라이브러리
    ----------------------- */
-  const getFilteredContentLibrary = () => {
-    let filtered = posts;
-    if (contentLibraryFilter !== "all") {
-      filtered = filtered.filter((item) => item.type === contentLibraryFilter);
+  const fetchContents = async () => {
+    try {
+      setContentsLoading(true);
+      const getContentsResponse = await contentApi.getContents();
+      const getContentsResponseData = getContentsResponse.data?.result || [];
+      //   "result": [
+      //   {
+      //     "id": 0,
+      //     "url": "string",
+      //     "title": "string",
+      //     "originalName": "string",
+      //     "objectKey": "string",
+      //     "contentType": "string",
+      //     "createdAt": "2025-08-21T18:16:41.442Z",
+      //     "updatedAt": "2025-08-21T18:16:41.442Z"
+      //   }
+      // ]
+      console.log("@@ getContentsResponseData", getContentsResponseData[0]);
+      setContents(getContentsResponseData);
+    } catch (error) {
+      console.error("콘텐츠 라이브러리 로딩 실패:", error);
+      setContents([]);
+    } finally {
+      setContentsLoading(false);
     }
-    if (contentLibrarySearch) {
+  };
+
+  /** ----------------------
+   * 유틸리티 함수
+   ----------------------- */
+  // 콘텐츠 타입 판별 함수
+  const getContentType = (content) => {
+    const title = content.title?.toLowerCase() || "";
+    const isVideoByExtension =
+      title.includes(".mp4") ||
+      title.includes(".mov") ||
+      title.includes(".avi") ||
+      title.includes(".webm");
+    const isImageByExtension =
+      title.includes(".jpg") ||
+      title.includes(".jpeg") ||
+      title.includes(".png") ||
+      title.includes(".gif") ||
+      title.includes(".webp");
+
+    if (content.contentType.startsWith("image/") || isImageByExtension) {
+      return "image";
+    } else if (
+      content.contentType.startsWith("video/") ||
+      content.contentType === "binary/octet-stream" ||
+      isVideoByExtension
+    ) {
+      return "video";
+    }
+    return "unknown";
+  };
+
+  const getFilteredContents = () => {
+    let filtered = contents;
+    if (contentsFilter !== "all") {
+      filtered = filtered.filter((item) => item.contentType === contentsFilter);
+    }
+    if (contentsSearch) {
       filtered = filtered.filter((item) =>
-        item.title.toLowerCase().includes(contentLibrarySearch.toLowerCase())
+        item.title.toLowerCase().includes(contentsSearch.toLowerCase())
       );
     }
     return filtered;
   };
 
-  const handleSelectFromLibrary = (selectedItems) => {
-    const newFiles = selectedItems.map((item) => ({
-      id: item.id,
-      file: null,
-      url: item.thumbnailUrl,
-      type: item.type,
-      name: item.title,
+  const handleSelectFromContents = (selectedContents) => {
+    const newContents = selectedContents.map((content) => ({
+      id: content.id,
+      url: content.url,
+      title: content.title,
+      contentType: content.contentType,
+      originalName: content.originalName, // originalName 추가
+      objectKey: content.objectKey, // objectKey 추가
       fromLibrary: true,
     }));
 
-    setUploadedFiles((prev) => [...prev, ...newFiles]);
-    if (!selectedThumbnail && newFiles.length > 0) {
-      setSelectedThumbnail(newFiles[0].id);
+    setUploadedContents((prev) => [...prev, ...newContents]);
+    if (!selectedThumbnail && newContents.length > 0) {
+      setSelectedThumbnail(newContents[0].id);
     }
-    setShowContentLibrary(false);
+    setShowContents(false);
   };
 
   /** ----------------------
    * 플랫폼 필터 컴포넌트
    ----------------------- */
-  const PlatformFilter = ({ selectedPlatforms, onPlatformChange }) => (
+  const SnsTypeFilter = ({ selectedSnsTypes, onSnsTypeChange }) => (
     <div className="mb-4 p-4 bg-white rounded-xl border border-gray-200">
       <div className="flex flex-wrap gap-3">
         <span className="text-sm font-bold text-gray-700 flex items-center">
           플랫폼 필터:
         </span>
-        {PLATFORMS.map((platform) => (
+        {SNS_TYPES.map((snsType) => (
           <button
-            key={platform.id}
+            key={snsType.id}
             onClick={() => {
-              if (selectedPlatforms.includes(platform.id)) {
-                onPlatformChange(
-                  selectedPlatforms.filter((p) => p !== platform.id)
+              if (selectedSnsTypes.includes(snsType.id)) {
+                onSnsTypeChange(
+                  selectedSnsTypes.filter((p) => p !== snsType.id)
                 );
               } else {
-                onPlatformChange([...selectedPlatforms, platform.id]);
+                onSnsTypeChange([...selectedSnsTypes, snsType.id]);
               }
             }}
             className={`flex items-center px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border-2 ${
-              selectedPlatforms.includes(platform.id)
-                ? `${platform.color} border-transparent`
+              selectedSnsTypes.includes(snsType.id)
+                ? `${snsType.color} border-transparent`
                 : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
             }`}
           >
             <img
-              src={platform.icon}
-              alt={platform.name}
+              src={snsType.icon}
+              alt={snsType.name}
               className="w-5 h-5 mr-2"
             />
-            {platform.name}
+            {snsType.name}
           </button>
         ))}
+        {/* 전체 선택/해제 버튼 추가 */}
+        {selectedSnsTypes.length > 0 && (
+          <button
+            onClick={() => onSnsTypeChange([])}
+            className="flex items-center px-3 py-1 rounded-full text-xs text-gray-500 border border-gray-300 hover:bg-gray-50 transition-colors"
+          >
+            ✕ 전체 해제
+          </button>
+        )}
       </div>
     </div>
   );
@@ -506,9 +540,9 @@ const PostManagement = () => {
         </div>
 
         {/* 플랫폼 필터 */}
-        <PlatformFilter
-          selectedPlatforms={selectedPlatforms}
-          onPlatformChange={setSelectedPlatforms}
+        <SnsTypeFilter
+          selectedSnsTypes={selectedSnsType}
+          onSnsTypeChange={setSelectedSnsType}
         />
 
         {/* 검색 필터 */}
@@ -536,7 +570,7 @@ const PostManagement = () => {
                 key={post.id}
                 content={post}
                 onClick={() => handleCardClick(post)}
-                onDelete={() => handleDelete(post.id)}
+                onDelete={() => handleDeletePost(post.id)}
               />
             ))}
           </div>
@@ -544,10 +578,10 @@ const PostManagement = () => {
 
         {/* 게시물 상세보기 */}
         {selectedPost && (
-          <PostManagementVideoDetail
-            video={selectedPost}
+          <PostDetail
+            post={selectedPost}
             onClose={handleCloseDetail}
-            handleDelete={handleDelete}
+            handleDelete={handleDeletePost}
           />
         )}
       </div>
@@ -558,80 +592,97 @@ const PostManagement = () => {
    ----------------------- */
   const handleUpload = async () => {
     try {
-      if (
-        !postData.title ||
-        !postData.content ||
-        publishOptions.platforms.length === 0
-      ) {
+      // console.log("@@ post.title", post.title);
+      // console.log("@@ post.description", post.description);
+      // console.log("@@ post.tags", post.tags);
+      if (!post.title || !post.description || publishOptions.snsType === "") {
         alert("필수 정보를 모두 입력해주세요.");
         return;
       }
-      if (!selectedThumbnail) {
-        alert("대표 이미지를 선택해주세요.");
+
+      const selectedContent = uploadedContents.find(
+        (c) => c.id === selectedThumbnail
+      );
+
+      // 계정 연동 상태 확인
+      const isConnected = await checkSnsAccountStatus(publishOptions.snsType);
+      if (!isConnected) {
+        if (
+          window.confirm(
+            `${publishOptions.snsType.toUpperCase()} 계정 연동이 필요합니다.\n계정 연동 페이지로 이동하시겠습니까?`
+          )
+        ) {
+          handleSnsIntegration();
+        }
         return;
       }
 
-      const selectedFile = uploadedFiles.find(
-        (f) => f.id === selectedThumbnail
-      );
-
       // 현재는 YouTube만 지원
-      if (publishOptions.platforms.includes("youtube")) {
+      if (publishOptions.snsType === "youtube") {
         // 해시태그를 #과 함께 문자열로 변환
         const hashtagsText =
-          postData.hashtags.length > 0
-            ? "\n\n" + postData.hashtags.map((tag) => `#${tag}`).join(" ")
-            : "";
+          post.tags.length > 0 ? "\n\n" + post.tags.join(" ") : "";
 
         // 예약 발행 시간 처리
         const getPublishAt = () => {
-          if (publishOptions.scheduleType === "scheduled") {
-            if (publishOptions.scheduledDate && publishOptions.scheduledTime) {
-              // 사용자가 설정한 날짜와 시간을 ISO 형식으로 변환
-              const dateTime = `${publishOptions.scheduledDate}T${publishOptions.scheduledTime}:00Z`;
+          if (publishOptions.isNow === false) {
+            if (publishOptions.publishAt) {
+              const dateTime = new Date(publishOptions.publishAt).toISOString();
               return dateTime;
             }
             // 기본값: 1시간 후
             const oneHourLater = new Date(Date.now() + 60 * 60 * 1000);
             return oneHourLater.toISOString();
           }
-          return undefined; // 즉시 발행인 경우 publishAt 없음
+          // 즉시 발행인 경우 현재 시각
+          return new Date().toISOString();
         };
 
         const uploadData = {
-          storeId: selectedStoreId,
-          title: postData.title,
-          description: postData.content + hashtagsText, // 본문 + 해시태그 조합
-          contentPath: selectedFile?.url || "",
-          tags: postData.hashtags, // String[] 형태로 전송
-          detail: {
-            categoryId: "22", // YouTube 카테고리 ID (22: People & Blogs)
-            notifySubscribers: true,
-            ...(publishOptions.scheduleType === "scheduled" && {
-              publishAt: getPublishAt(),
-            }),
-          },
+          snsType: publishOptions.snsType,
+          originalName: selectedContent.originalName,
+          objectKey: selectedContent.objectKey,
+          title: post.title,
+          description: post.description + hashtagsText,
+          tags: post.tags,
+          isNow: publishOptions.isNow,
+          publishAt: getPublishAt(),
         };
 
-        console.log("업로드 데이터:", uploadData); // 디버깅용
-
-        await snsApi.post.uploadVideo("youtube", uploadData);
+        await snsApi.post.uploadPost(uploadData);
         alert("게시물이 업로드되었습니다!");
       }
 
       setActiveTab("list");
 
       // 초기화
-      setUploadedFiles([]);
+      setUploadedContents([]);
       setSelectedThumbnail(null);
-      setPostData({ title: "", content: "", hashtags: [] });
-      setPublishOptions({ platforms: [], scheduleType: "immediate" });
-      setGeneratedContent({ title: false, content: false, hashtags: false });
+      setPost({ title: "", description: "", tags: [] });
+      setPublishOptions({ snsType: "", isNow: true, publishAt: "" });
+      setGeneratedPost({ title: false, description: false, tags: false });
 
-      fetchContents();
+      fetchPosts();
     } catch (error) {
       console.error("게시물 업로드 실패:", error);
-      alert("게시물 업로드에 실패했습니다. 다시 시도해주세요.");
+      console.error("에러 상세:", error.response?.data);
+
+      // 계정 연동 관련 에러인지 확인
+      if (
+        error.response?.data?.message?.includes("토큰") ||
+        error.response?.data?.message?.includes("연동") ||
+        error.response?.status === 401
+      ) {
+        if (
+          window.confirm(
+            "계정 연동에 문제가 있습니다.\n계정 연동 페이지로 이동하시겠습니까?"
+          )
+        ) {
+          handleSnsIntegration();
+        }
+      } else {
+        alert("게시물 업로드에 실패했습니다. 다시 시도해주세요.");
+      }
     }
   };
 
@@ -660,7 +711,10 @@ const PostManagement = () => {
           {/* 콘텐츠 라이브러리 버튼 */}
           <div className="space-y-3">
             <button
-              onClick={() => setShowContentLibrary(true)}
+              onClick={() => {
+                setShowContents(true);
+                fetchContents();
+              }}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <FolderOpen size={20} />
@@ -673,19 +727,19 @@ const PostManagement = () => {
         </div>
 
         {/* 업로드된 콘텐츠 */}
-        {uploadedFiles.length > 0 && (
+        {uploadedContents.length > 0 && (
           <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                 <h4 className="font-semibold text-gray-900">업로드된 콘텐츠</h4>
                 <span className="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  {uploadedFiles.length}개
+                  {uploadedContents.length}개
                 </span>
               </div>
               <button
                 onClick={() => {
-                  setUploadedFiles([]);
+                  setUploadedContents([]);
                   setSelectedThumbnail(null);
                 }}
                 className="text-gray-400 hover:text-red-500 text-sm flex items-center space-x-1 transition-colors"
@@ -697,21 +751,21 @@ const PostManagement = () => {
 
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="grid grid-cols-4 gap-4">
-                {uploadedFiles.map((file) => (
+                {uploadedContents.map((content) => (
                   <div
-                    key={file.id}
+                    key={content.id}
                     className={`relative rounded-lg overflow-hidden cursor-pointer border-2 transition-all group ${
-                      selectedThumbnail === file.id
+                      selectedThumbnail === content.id
                         ? "border-blue-500 ring-2 ring-blue-200 shadow-md"
                         : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                     }`}
-                    onClick={() => setSelectedThumbnail(file.id)}
+                    onClick={() => setSelectedThumbnail(content.id)}
                   >
-                    {file.type === "image" ? (
+                    {getContentType(content) === "image" ? (
                       <img
-                        src={file.url}
-                        alt={file.name}
-                        className="w-full h-24 object-cover"
+                        src={content.url}
+                        alt={content.title}
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-24 bg-gray-100 flex items-center justify-center">
@@ -725,7 +779,7 @@ const PostManagement = () => {
                     )}
 
                     {/* 대표 이미지 배지 */}
-                    {selectedThumbnail === file.id && (
+                    {selectedThumbnail === content.id && (
                       <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-md text-xs font-medium shadow-sm">
                         ✓ 대표
                       </div>
@@ -734,7 +788,7 @@ const PostManagement = () => {
                     {/* 파일명 */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                       <p className="text-white text-xs font-medium truncate">
-                        {file.name}
+                        {content.title}
                       </p>
                     </div>
 
@@ -742,12 +796,12 @@ const PostManagement = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setUploadedFiles((prev) =>
-                          prev.filter((f) => f.id !== file.id)
+                        setUploadedContents((prev) =>
+                          prev.filter((c) => c.id !== content.id)
                         );
-                        if (selectedThumbnail === file.id) {
-                          const remaining = uploadedFiles.filter(
-                            (f) => f.id !== file.id
+                        if (selectedThumbnail === content.id) {
+                          const remaining = uploadedContents.filter(
+                            (c) => c.id !== content.id
                           );
                           setSelectedThumbnail(
                             remaining.length > 0 ? remaining[0].id : null
@@ -805,28 +859,28 @@ const PostManagement = () => {
                 대상 플랫폼
               </label>
               <div className="grid grid-cols-3 gap-4">
-                {PLATFORMS.map((platform) => (
+                {SNS_TYPES.map((snsType) => (
                   <label
-                    key={platform.id}
+                    key={snsType.id}
                     className="flex items-center space-x-2 cursor-pointer"
                   >
                     <input
                       type="radio"
-                      name="aiPlatform"
-                      value={platform.id}
-                      checked={aiOptions.platform === platform.id}
-                      onChange={(e) => handleAiPlatformChange(e.target.value)}
+                      name="aiSnsType"
+                      value={snsType.id}
+                      checked={aiOptions.snsType === snsType.id}
+                      onChange={(e) => handleAiSnsTypeChange(e.target.value)}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                     />
                     <span
-                      className={`px-3 py-2 ${platform.color} rounded-lg flex-1 text-center flex items-center justify-center`}
+                      className={`px-3 py-2 ${snsType.color} rounded-lg flex-1 text-center flex items-center justify-center`}
                     >
                       <img
-                        src={platform.icon}
-                        alt={platform.name}
+                        src={snsType.icon}
+                        alt={snsType.name}
                         className="w-4 h-4 mr-2"
                       />
-                      {platform.name}
+                      {snsType.name}
                     </span>
                   </label>
                 ))}
@@ -887,18 +941,18 @@ const PostManagement = () => {
                   업종
                 </label>
                 <select
-                  value={aiOptions.businessType}
+                  value={aiOptions.industry}
                   onChange={(e) =>
                     setAiOptions((prev) => ({
                       ...prev,
-                      businessType: e.target.value,
+                      industry: e.target.value,
                     }))
                   }
                   className={`w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                    !aiOptions.businessType ? "text-gray-500" : "text-gray-900"
+                    !aiOptions.industry ? "text-gray-500" : "text-gray-900"
                   }`}
                   style={{
-                    color: !aiOptions.businessType ? "#6B7280" : "#111827",
+                    color: !aiOptions.industry ? "#6B7280" : "#111827",
                   }}
                 >
                   <option value="" disabled>
@@ -949,7 +1003,7 @@ const PostManagement = () => {
           {/* 기존 버튼들 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
             <button
-              onClick={() => generateContent("full")}
+              onClick={() => generatePost("full")}
               disabled={isGenerating || !selectedThumbnail}
               className="bg-purple-500 text-white px-4 py-2.5 rounded-lg hover:bg-purple-600 transition-colors flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
             >
@@ -960,18 +1014,18 @@ const PostManagement = () => {
             </button>
 
             <button
-              onClick={() => generateContent("hashtags")}
+              onClick={() => generatePost("hashtags")}
               disabled={
                 isGenerating ||
                 !selectedThumbnail ||
-                (!postData.title.trim() && !postData.content.trim())
+                (!post.title.trim() && !post.description.trim())
               }
               className="bg-blue-500 text-white px-4 py-2.5 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
             >
               <Hash size={14} />
               <span>{isGenerating ? "생성 중..." : "해시태그 생성"}</span>
-              {!postData.title.trim() &&
-                !postData.content.trim() &&
+              {!post.title.trim() &&
+                !post.description.trim() &&
                 selectedThumbnail && (
                   <span className="text-xs opacity-75">(제목/본문 필요)</span>
                 )}
@@ -987,9 +1041,9 @@ const PostManagement = () => {
               </div>
             ) : (
               <div className="space-y-1">
-                {!postData.title.trim() &&
-                  !postData.content.trim() &&
-                  postData.hashtags.length === 0 && (
+                {!post.title.trim() &&
+                  !post.description.trim() &&
+                  post.tags.length === 0 && (
                     <div className="flex items-center space-x-2 text-purple-700 bg-purple-50 px-3 py-2 rounded-lg">
                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                       <span>
@@ -997,9 +1051,9 @@ const PostManagement = () => {
                       </span>
                     </div>
                   )}
-                {postData.title.trim() &&
-                  postData.content.trim() &&
-                  postData.hashtags.length === 0 && (
+                {post.title.trim() &&
+                  post.description.trim() &&
+                  post.tags.length === 0 && (
                     <div className="flex items-center space-x-2 text-blue-700 bg-blue-50 px-3 py-2 rounded-lg">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <span>
@@ -1008,9 +1062,9 @@ const PostManagement = () => {
                       </span>
                     </div>
                   )}
-                {postData.title.trim() &&
-                  !postData.content.trim() &&
-                  postData.hashtags.length === 0 && (
+                {post.title.trim() &&
+                  !post.description.trim() &&
+                  post.tags.length === 0 && (
                     <div className="flex items-center space-x-2 text-blue-700 bg-blue-50 px-3 py-2 rounded-lg">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                       <span>
@@ -1029,7 +1083,7 @@ const PostManagement = () => {
             <label className="block text-sm font-medium text-gray-700">
               제목
             </label>
-            {generatedContent.title && (
+            {generatedPost.title && (
               <span className="inline-flex items-center space-x-1 text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full font-medium">
                 <Sparkles size={10} />
                 <span>AI 생성됨</span>
@@ -1038,10 +1092,10 @@ const PostManagement = () => {
           </div>
           <input
             type="text"
-            value={postData.title}
+            value={post.title}
             onChange={(e) => {
-              setPostData((prev) => ({ ...prev, title: e.target.value }));
-              setGeneratedContent((prev) => ({ ...prev, title: false }));
+              setPost((prev) => ({ ...prev, title: e.target.value }));
+              setGeneratedPost((prev) => ({ ...prev, title: false }));
             }}
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-sm"
             placeholder="직접 입력하거나 AI로 생성해보세요"
@@ -1054,7 +1108,7 @@ const PostManagement = () => {
             <label className="block text-sm font-medium text-gray-700">
               본문
             </label>
-            {generatedContent.content && (
+            {generatedPost.description && (
               <span className="inline-flex items-center space-x-1 text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full font-medium">
                 <Sparkles size={10} />
                 <span>AI 생성됨</span>
@@ -1062,10 +1116,10 @@ const PostManagement = () => {
             )}
           </div>
           <textarea
-            value={postData.content}
+            value={post.description}
             onChange={(e) => {
-              setPostData((prev) => ({ ...prev, content: e.target.value }));
-              setGeneratedContent((prev) => ({ ...prev, content: false }));
+              setPost((prev) => ({ ...prev, description: e.target.value }));
+              setGeneratedPost((prev) => ({ ...prev, description: false }));
             }}
             rows={5}
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none placeholder:text-sm"
@@ -1079,7 +1133,7 @@ const PostManagement = () => {
             <label className="block text-sm font-medium text-gray-700">
               해시태그
             </label>
-            {generatedContent.hashtags && (
+            {generatedPost.tags && (
               <span className="inline-flex items-center space-x-1 text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full font-medium">
                 <Sparkles size={10} />
                 <span>AI 생성됨</span>
@@ -1088,21 +1142,21 @@ const PostManagement = () => {
           </div>
 
           {/* 해시태그 목록 */}
-          {postData.hashtags.length > 0 && (
+          {post.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-1 p-3 rounded-lg">
-              {postData.hashtags.map((hashtag, index) => (
+              {post.tags.map((tag, index) => (
                 <span
                   key={index}
                   className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center space-x-2 text-sm"
                 >
-                  <span>#{hashtag}</span>
+                  <span>{tag}</span>
                   <button
                     onClick={() => {
-                      removeHashtag(index);
-                      if (postData.hashtags.length === 1) {
-                        setGeneratedContent((prev) => ({
+                      removeTag(index);
+                      if (post.tags.length === 1) {
+                        setGeneratedPost((prev) => ({
                           ...prev,
-                          hashtags: false,
+                          tags: false,
                         }));
                       }
                     }}
@@ -1125,11 +1179,11 @@ const PostManagement = () => {
                 if (e.key === "Enter") {
                   const value = e.target.value.replace("#", "").trim();
                   if (value) {
-                    addHashtag(value);
+                    addTag(value);
                     e.target.value = "";
-                    setGeneratedContent((prev) => ({
+                    setGeneratedPost((prev) => ({
                       ...prev,
-                      hashtags: false,
+                      tags: false,
                     }));
                   }
                 }
@@ -1148,45 +1202,47 @@ const PostManagement = () => {
           {/* 플랫폼 선택 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              게시할 플랫폼 (복수 선택 가능)
+              게시할 플랫폼
             </label>
             <div className="grid grid-cols-3 gap-4">
-              {PLATFORMS.map((platform) => (
+              {SNS_TYPES.map((snsType) => (
                 <label
-                  key={platform.id}
+                  key={snsType.id}
                   className="flex items-center space-x-2 cursor-pointer"
                 >
                   <input
-                    type="checkbox"
-                    checked={publishOptions.platforms.includes(platform.id)}
-                    onChange={(e) => {
+                    type="radio"
+                    checked={publishOptions.snsType === snsType.id}
+                    onChange={async (e) => {
                       if (e.target.checked) {
                         setPublishOptions((prev) => ({
                           ...prev,
-                          platforms: [...prev.platforms, platform.id],
+                          snsType: snsType.id,
                         }));
-                      } else {
-                        setPublishOptions((prev) => ({
+
+                        // 선택 시 계정 연동 상태 확인
+                        const isConnected = await checkSnsAccountStatus(
+                          snsType.id
+                        );
+                        setSnsAccountStatus((prev) => ({
                           ...prev,
-                          platforms: prev.platforms.filter(
-                            (p) => p !== platform.id
-                          ),
+                          [snsType.id]: isConnected,
                         }));
                       }
                     }}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   />
                   <span
-                    className={`px-3 py-2 ${platform.color} rounded-lg flex-1 text-center flex items-center justify-center`}
+                    className={`px-3 py-2 ${snsType.color} rounded-lg flex-1 text-center flex items-center justify-center`}
                   >
                     <img
-                      src={platform.icon}
-                      alt={platform.name}
+                      src={snsType.icon}
+                      alt={snsType.name}
                       className="w-4 h-4 mr-2"
                     />
-                    {platform.name}
+                    {snsType.name}
                     {/* AI 대상 플랫폼 표시 */}
-                    {platform.id === aiOptions.platform && (
+                    {snsType.id === aiOptions.snsType && (
                       <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
                         AI 최적화
                       </span>
@@ -1195,11 +1251,50 @@ const PostManagement = () => {
                 </label>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              AI 대상 플랫폼(
-              {PLATFORMS.find((p) => p.id === aiOptions.platform)?.name})이
-              자동으로 선택되며, 추가로 다른 플랫폼도 선택할 수 있습니다.
-            </p>
+
+            {/* 선택된 플랫폼의 계정 연동 상태를 별도 영역에 표시 */}
+            {publishOptions.snsType && (
+              <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      {
+                        SNS_TYPES.find((s) => s.id === publishOptions.snsType)
+                          ?.name
+                      }{" "}
+                      연동 상태:
+                    </span>
+                    <span
+                      className={`text-sm font-bold flex items-center space-x-1 ${
+                        snsAccountStatus[publishOptions.snsType] === true
+                          ? "text-green-600"
+                          : snsAccountStatus[publishOptions.snsType] === false
+                          ? "text-red-600"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      <span>
+                        {snsAccountStatus[publishOptions.snsType] === true
+                          ? "✓ 연동됨"
+                          : snsAccountStatus[publishOptions.snsType] === false
+                          ? "⚠️ 연동 필요"
+                          : "⏳ 확인중"}
+                      </span>
+                    </span>
+                  </div>
+
+                  {/* 연동 버튼 */}
+                  {snsAccountStatus[publishOptions.snsType] === false && (
+                    <button
+                      onClick={handleSnsIntegration}
+                      className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full transition-colors"
+                    >
+                      연동하기
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 게시 시점 */}
@@ -1213,11 +1308,11 @@ const PostManagement = () => {
                   type="radio"
                   name="scheduleType"
                   value="immediate"
-                  checked={publishOptions.scheduleType === "immediate"}
-                  onChange={(e) =>
+                  checked={publishOptions.isNow === true}
+                  onChange={() =>
                     setPublishOptions((prev) => ({
                       ...prev,
-                      scheduleType: e.target.value,
+                      isNow: true,
                     }))
                   }
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
@@ -1229,11 +1324,11 @@ const PostManagement = () => {
                   type="radio"
                   name="scheduleType"
                   value="scheduled"
-                  checked={publishOptions.scheduleType === "scheduled"}
-                  onChange={(e) =>
+                  checked={publishOptions.isNow === false}
+                  onChange={() =>
                     setPublishOptions((prev) => ({
                       ...prev,
-                      scheduleType: e.target.value,
+                      isNow: false,
                     }))
                   }
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
@@ -1243,14 +1338,35 @@ const PostManagement = () => {
             </div>
 
             {/* 예약 옵션 */}
-            {publishOptions.scheduleType === "scheduled" && (
+            {publishOptions.isNow === false && (
               <div className="mt-3 grid grid-cols-2 gap-4">
                 <input
                   type="date"
+                  value={publishOptions.publishAt?.split("T")[0] || ""}
+                  onChange={(e) => {
+                    const date = e.target.value;
+                    const time =
+                      publishOptions.publishAt?.split("T")[1] || "12:00";
+                    setPublishOptions((prev) => ({
+                      ...prev,
+                      publishAt: `${date}T${time}`,
+                    }));
+                  }}
                   className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <input
                   type="time"
+                  value={publishOptions.publishAt?.split("T")[1] || "12:00"}
+                  onChange={(e) => {
+                    const time = e.target.value;
+                    const date =
+                      publishOptions.publishAt?.split("T")[0] ||
+                      new Date().toISOString().split("T")[0];
+                    setPublishOptions((prev) => ({
+                      ...prev,
+                      publishAt: `${date}T${time}`,
+                    }));
+                  }}
                   className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -1279,14 +1395,15 @@ const PostManagement = () => {
           <div className="mb-6 space-y-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* 유튜브 미리보기 */}
-              {publishOptions.platforms.includes("youtube") && (
+              {publishOptions.snsType === "youtube" && (
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm max-w-sm mx-auto">
                   {selectedThumbnail && (
                     <div className="relative aspect-[9/16] bg-black m-2">
                       <img
                         src={
-                          uploadedFiles.find((f) => f.id === selectedThumbnail)
-                            ?.url
+                          uploadedContents.find(
+                            (c) => c.id === selectedThumbnail
+                          )?.url
                         }
                         alt="미리보기"
                         className="w-full h-full object-cover"
@@ -1300,19 +1417,19 @@ const PostManagement = () => {
                   )}
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {postData.title || "비디오 제목"}
+                      {post.title || "비디오 제목"}
                     </h3>
                     <p className="text-sm text-gray-600 line-clamp-3">
-                      {postData.content || "비디오 설명"}
+                      {post.description || "비디오 설명"}
                     </p>
-                    {postData.hashtags.length > 0 && (
+                    {post.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {postData.hashtags.map((tag, index) => (
+                        {post.tags.map((tag, index) => (
                           <span
                             key={index}
                             className="text-blue-600 text-sm hover:underline cursor-pointer"
                           >
-                            #{tag}
+                            {tag}
                           </span>
                         ))}
                       </div>
@@ -1335,7 +1452,7 @@ const PostManagement = () => {
               )}
 
               {/* 인스타그램 미리보기 */}
-              {publishOptions.platforms.includes("instagram") && (
+              {publishOptions.snsType === "instagram" && (
                 <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto">
                   <div className="flex items-center p-3 border-b border-gray-100">
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
@@ -1354,14 +1471,15 @@ const PostManagement = () => {
                     <div className="relative aspect-square bg-gray-100">
                       <img
                         src={
-                          uploadedFiles.find((f) => f.id === selectedThumbnail)
-                            ?.url
+                          uploadedContents.find(
+                            (c) => c.id === selectedThumbnail
+                          )?.url
                         }
                         alt="미리보기"
                         className="w-full h-full object-cover"
                       />
-                      {uploadedFiles.find((f) => f.id === selectedThumbnail)
-                        ?.type === "video" && (
+                      {uploadedContents.find((c) => c.id === selectedThumbnail)
+                        ?.contentType === "video" && (
                         <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
                           📹 동영상
                         </div>
@@ -1380,20 +1498,20 @@ const PostManagement = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs text-gray-500">좋아요 234개</p>
+                      <p className="text-xs text-gray-500">좋아요 22개</p>
                       <div className="text-sm">
                         <span className="font-semibold">your_store</span>
                         <span className="ml-2">
-                          {postData.title && <strong>{postData.title}</strong>}
-                          {postData.title && postData.content && <br />}
-                          {postData.content}
+                          {post.title && <strong>{post.title}</strong>}
+                          {post.title && post.description && <br />}
+                          {post.description}
                         </span>
                       </div>
-                      {postData.hashtags.length > 0 && (
+                      {post.tags.length > 0 && (
                         <div className="text-sm text-blue-600">
-                          {postData.hashtags.map((tag, index) => (
+                          {post.tags.map((tag, index) => (
                             <span key={index} className="mr-1">
-                              #{tag}
+                              {tag}
                             </span>
                           ))}
                         </div>
@@ -1404,7 +1522,7 @@ const PostManagement = () => {
               )}
 
               {/* 페이스북 미리보기 */}
-              {publishOptions.platforms.includes("facebook") && (
+              {publishOptions.snsType === "facebook" && (
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm max-w-sm mx-auto">
                   <div className="flex items-center p-4 border-b border-gray-100">
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -1424,22 +1542,22 @@ const PostManagement = () => {
 
                   <div className="p-4">
                     <div className="space-y-2 mb-4">
-                      {postData.title && (
+                      {post.title && (
                         <h3 className="font-semibold text-gray-900">
-                          {postData.title}
+                          {post.title}
                         </h3>
                       )}
-                      {postData.content && (
-                        <p className="text-gray-800">{postData.content}</p>
+                      {post.description && (
+                        <p className="text-gray-800">{post.description}</p>
                       )}
-                      {postData.hashtags.length > 0 && (
+                      {post.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {postData.hashtags.map((tag, index) => (
+                          {post.tags.map((tag, index) => (
                             <span
                               key={index}
                               className="text-blue-600 hover:underline cursor-pointer"
                             >
-                              #{tag}
+                              {tag}
                             </span>
                           ))}
                         </div>
@@ -1450,15 +1568,16 @@ const PostManagement = () => {
                       <div className="relative rounded-lg overflow-hidden bg-gray-100">
                         <img
                           src={
-                            uploadedFiles.find(
-                              (f) => f.id === selectedThumbnail
+                            uploadedContents.find(
+                              (c) => c.id === selectedThumbnail
                             )?.url
                           }
                           alt="미리보기"
                           className="w-full h-48 object-cover"
                         />
-                        {uploadedFiles.find((f) => f.id === selectedThumbnail)
-                          ?.type === "video" && (
+                        {uploadedContents.find(
+                          (c) => c.id === selectedThumbnail
+                        )?.contentType === "video" && (
                           <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-12 h-12 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
                               <div className="w-0 h-0 border-l-[16px] border-l-blue-600 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent ml-1"></div>
@@ -1472,9 +1591,9 @@ const PostManagement = () => {
                   <div className="border-t border-gray-100 px-4 py-2">
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
                       <span className="text-xs text-gray-500">
-                        👍 ❤️ 😊 234명이 좋아합니다
+                        👍 ❤️ 😊 22명이 좋아합니다
                       </span>
-                      <span className="text-xs text-gray-500">댓글 12개</span>
+                      <span className="text-xs text-gray-500">댓글 22개</span>
                     </div>
                     <div className="flex border-t border-gray-100 pt-2">
                       <button className="flex-1 flex items-center justify-center py-2 text-gray-600 hover:bg-gray-50 rounded">
@@ -1493,7 +1612,7 @@ const PostManagement = () => {
             </div>
 
             {/* 미리보기 없을 때 */}
-            {publishOptions.platforms.length === 0 && (
+            {publishOptions.snsType === "" && (
               <div className="text-center py-8 text-gray-500">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Eye size={24} className="text-gray-400" />
@@ -1507,13 +1626,14 @@ const PostManagement = () => {
         <button
           onClick={handleUpload}
           disabled={
-            !postData.title ||
-            !postData.content ||
-            publishOptions.platforms.length === 0
+            !post.title ||
+            !post.description ||
+            publishOptions.snsType === "" ||
+            checkingAccountStatus
           }
           className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          업로드하기
+          {checkingAccountStatus ? "계정 연동 확인 중..." : "업로드하기"}
         </button>
       </div>
     </div>
@@ -1526,13 +1646,13 @@ const PostManagement = () => {
       </div>
 
       {/* 콘텐츠 라이브러리 모달 */}
-      {showContentLibrary && (
+      {showContents && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-2xl font-bold">콘텐츠 라이브러리</h2>
               <button
-                onClick={() => setShowContentLibrary(false)}
+                onClick={() => setShowContents(false)}
                 className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100"
               >
                 <X size={24} />
@@ -1549,14 +1669,14 @@ const PostManagement = () => {
                   <input
                     type="text"
                     placeholder="콘텐츠 검색..."
-                    value={contentLibrarySearch}
-                    onChange={(e) => setContentLibrarySearch(e.target.value)}
+                    value={contentsSearch}
+                    onChange={(e) => setContentsSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <select
-                  value={contentLibraryFilter}
-                  onChange={(e) => setContentLibraryFilter(e.target.value)}
+                  value={contentsFilter}
+                  onChange={(e) => setContentsFilter(e.target.value)}
                   className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="all">전체</option>
@@ -1567,32 +1687,49 @@ const PostManagement = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {getFilteredContentLibrary().map((item) => (
-                  <div
-                    key={item.id}
-                    className="relative rounded-lg overflow-hidden cursor-pointer border-2 border-gray-200 hover:border-blue-500 transition-all"
-                    onClick={() => handleSelectFromLibrary([item])}
-                  >
-                    <img
-                      src={item.thumbnailUrl}
-                      alt={item.title}
-                      className="w-full h-32 object-cover"
-                    />
-                    <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                      {item.type === "video" ? "📹" : "🖼️"} {item.type}
+              {contentsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {getFilteredContents().map((content) => (
+                    <div
+                      key={content.id}
+                      className="relative rounded-lg overflow-hidden cursor-pointer border-2 border-gray-200 hover:border-blue-500 transition-all"
+                      onClick={() => handleSelectFromContents([content])}
+                    >
+                      <img
+                        src={content.url}
+                        alt={content.title}
+                        className="w-full h-32 object-cover"
+                      />
+                      <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                        {getContentType(content) === "video" ? "📹" : "🖼️"}{" "}
+                        {/* {getContentType(content)} */}
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2">
+                        <p className="text-sm truncate">{content.title}</p>
+                      </div>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-2">
-                      <p className="text-sm truncate">{item.title}</p>
-                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!contentsLoading && getFilteredContents().length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FolderOpen size={24} className="text-gray-400" />
                   </div>
-                ))}
-              </div>
+                  <p>콘텐츠가 없습니다</p>
+                  <p className="text-sm">먼저 콘텐츠를 업로드해주세요</p>
+                </div>
+              )}
             </div>
 
             <div className="p-6 border-t border-gray-200 flex justify-end">
               <button
-                onClick={() => setShowContentLibrary(false)}
+                onClick={() => setShowContents(false)}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 닫기

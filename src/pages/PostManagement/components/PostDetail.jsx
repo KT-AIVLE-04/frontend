@@ -1,14 +1,14 @@
 import React from "react";
 import { Trash2, Eye, Calendar, User, X } from "lucide-react";
 
-export function PostManagementVideoDetail({ video, onClose, handleDelete }) {
-  if (!video) {
+export function PostDetail({ post, onClose, handleDelete }) {
+  if (!post) {
     return null;
   }
 
   const onDeleteClick = () => {
     if (handleDelete) {
-      handleDelete(video.id);
+      handleDelete(post.id);
     }
   };
 
@@ -18,8 +18,8 @@ export function PostManagementVideoDetail({ video, onClose, handleDelete }) {
         {/* 왼쪽: 비디오 영역 */}
         <div className="lg:w-2/3 bg-black flex items-center justify-center relative">
           <img
-            src={video.thumbnailUrl}
-            alt={video.title}
+            src={post.thumbnailUrl}
+            alt={post.title}
             className="max-w-full max-h-full object-contain"
           />
 
@@ -37,35 +37,35 @@ export function PostManagementVideoDetail({ video, onClose, handleDelete }) {
           <div className="flex-1">
             {/* 제목 */}
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-              {video.title}
+              {post.title}
             </h2>
 
             {/* 메타 정보 */}
             <div className="space-y-4 mb-6">
               <div className="flex items-center text-gray-600 dark:text-gray-300">
                 <User className="w-5 h-5 mr-3 text-blue-500" />
-                <span className="font-medium">{video.author}</span>
+                <span className="font-medium">{post.author}</span>
               </div>
 
               <div className="flex items-center text-gray-600 dark:text-gray-300">
                 <Calendar className="w-5 h-5 mr-3 text-green-500" />
-                <span>{video.createdAt}</span>
+                <span>{post.createdAt}</span>
               </div>
 
               <div className="flex items-center text-gray-600 dark:text-gray-300">
                 <Eye className="w-5 h-5 mr-3 text-purple-500" />
-                <span>조회수 {video.views?.toLocaleString()}</span>
+                <span>조회수 {post.views?.toLocaleString()}</span>
               </div>
             </div>
 
             {/* 설명 */}
-            {video.description && (
+            {post.description && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   설명
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {video.description}
+                  {post.description}
                 </p>
               </div>
             )}
@@ -74,7 +74,7 @@ export function PostManagementVideoDetail({ video, onClose, handleDelete }) {
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {video.views?.toLocaleString() || "0"}
+                  {post.views?.toLocaleString() || "0"}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   조회수
@@ -82,7 +82,7 @@ export function PostManagementVideoDetail({ video, onClose, handleDelete }) {
               </div>
               <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {video.likes || "0"}
+                  {post.likes || "0"}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   좋아요
@@ -90,7 +90,7 @@ export function PostManagementVideoDetail({ video, onClose, handleDelete }) {
               </div>
               <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {video.comments || "0"}
+                  {post.comments || "0"}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   댓글

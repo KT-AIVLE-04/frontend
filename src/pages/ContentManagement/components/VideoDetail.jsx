@@ -1,20 +1,23 @@
 // src/pages/ContentManagement/components/VideoDetail.jsx
 
-import React from 'react';
 import {
+  Calendar,
   Download,
   Edit,
+  Eye,
+  Play,
   Share2,
   Trash2,
-  Eye,
-  Calendar,
   User,
 } from 'lucide-react';
+import React from 'react';
 
 export function VideoDetail({ video, onClose, handleDownload, handleEdit, handleShare, handleDelete }) {
   if (!video) {
     return null;
   }
+
+  const isVideo = video.type === 'video';
 
   const onDownloadClick = () => {
     if (handleDownload) {
@@ -43,25 +46,35 @@ export function VideoDetail({ video, onClose, handleDownload, handleEdit, handle
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm p-2 md:p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col lg:flex-row animate-in fade-in zoom-in duration-300">
-        {/* Video Player Section */}
+        {/* Media Player Section */}
         <div className="flex-1 min-w-0 bg-black flex items-center justify-center relative min-h-[400px] lg:min-h-[600px]">
-          {/* 비디오 재생 버튼 오버레이 */}
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <button className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-4 transition-all duration-200 backdrop-blur-sm">
-              <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </button>
-          </div>
-          <video
-            controls
-            poster={video.thumbnailUrl}
-            className="w-full h-full object-cover"
-            style={{ maxHeight: '600px' }}
-          >
-            <source src={video.videoUrl || 'https://www.w3schools.com/html/mov_bbb.mp4'} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          {isVideo ? (
+            <>
+              {/* 비디오 재생 버튼 오버레이 */}
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <button className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-4 transition-all duration-200 backdrop-blur-sm">
+                  <Play className="w-12 h-12 text-white" fill="currentColor" />
+                </button>
+              </div>
+              <video
+                controls
+                poster={video.thumbnailUrl}
+                className="w-full h-full object-cover"
+                style={{ maxHeight: '600px' }}
+              >
+                <source src={video.url || video.thumbnailUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </>
+          ) : (
+            /* 이미지 표시 */
+            <img
+              src={video.thumbnailUrl}
+              alt={video.title}
+              className="w-full h-full object-contain"
+              style={{ maxHeight: '600px' }}
+            />
+          )}
         </div>
 
         {/* Content Details and Actions Section */}
@@ -99,7 +112,7 @@ export function VideoDetail({ video, onClose, handleDownload, handleEdit, handle
             </div>
 
             <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-              {video.description || '비디오에 대한 설명이 없습니다.'}
+              {video.description || `${isVideo ? '비디오' : '이미지'}에 대한 설명이 없습니다.`}
             </p>
 
             {/* 통계 정보 */}
@@ -109,7 +122,7 @@ export function VideoDetail({ video, onClose, handleDownload, handleEdit, handle
                   <Eye className="w-5 h-5 mr-2 text-blue-500" />
                   <div>
                     <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      {video.views.toLocaleString()}
+                      {video.views?.toLocaleString() || '0'}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">조회수</div>
                   </div>

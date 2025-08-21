@@ -1,7 +1,7 @@
 /**
  * SNS 플랫폼 상수 정의
  */
-export const PLATFORMS = [
+export const SNS_TYPES = [
   {
     id: "youtube",
     name: "YouTube",
@@ -23,6 +23,6 @@ export const PLATFORMS = [
 ];
 
 // 플랫폼 ID로 플랫폼 정보 찾기
-export const getPlatformById = (id) => {
-  return PLATFORMS.find((platform) => platform.id === id);
+export const getSnsTypeById = (id) => {
+  return SNS_TYPES.find((snsType) => snsType.id === id);
 };

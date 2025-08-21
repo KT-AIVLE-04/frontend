@@ -40,7 +40,7 @@ const StoreRequiredRoute = () => {
 const NotFoundRoute = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   return isAuthenticated ? (
-    <Navigate to={ROUTES.DASHBOARD.route} replace />
+    <Navigate to={ROUTES.ANALYTICS.route} replace />
   ) : (
     <Navigate to={ROUTES.LOGIN.route} replace />
   );
@@ -50,7 +50,7 @@ const NotFoundRoute = () => {
 const AlreadyLoggedInRoute = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   return isAuthenticated ? (
-    <Navigate to={ROUTES.DASHBOARD.route} replace />
+    <Navigate to={ROUTES.ANALYTICS.route} replace />
   ) : (
     <Outlet />
   );
