@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { Container } from '../../components/Container';
 import { Store } from '../../models/Store';
+import { formatContactNumber } from '../../utils/formatUtils';
 import { StoreForm } from './components';
 
 export function StoreUpdate() {
@@ -16,22 +17,7 @@ export function StoreUpdate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 연락처 포맷팅 함수
-  const formatContactNumber = (value) => {
-    const numbers = value.replace(/[^\d]/g, '');
-    
-    if (numbers.length <= 2) {
-      return numbers;
-    } else if (numbers.length <= 6) {
-      return `${numbers.slice(0, 2)}-${numbers.slice(2)}`;
-    } else if (numbers.length <= 10) {
-      return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}-${numbers.slice(6)}`;
-    } else if (numbers.length <= 11) {
-      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
-    } else {
-      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
-    }
-  };
+
 
   // 연락처 입력 핸들러
   const handleContactChange = (e) => {
@@ -133,7 +119,13 @@ export function StoreUpdate() {
       navigate(-1);
     } catch (error) {
       console.error('매장 저장 실패:', error);
-      setError('매장 저장에 실패했습니다.');
+      
+      // 서버에서 보내준 에러 메시지가 있으면 사용, 없으면 기본 메시지
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.errors?.[0]?.message ||
+                          '매장 저장에 실패했습니다.';
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
