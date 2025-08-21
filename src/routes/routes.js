@@ -1,10 +1,4 @@
 export const ROUTES = {
-
-  ANALYTICS: {
-    route: '/analytics',
-    krName: '성과 분석',
-    inMenu: true
-  },
   DASHBOARD: {
     route: '/dashboard',
     krName: '대시보드',
@@ -18,6 +12,16 @@ export const ROUTES = {
   CONTENT_MANAGEMENT: {
     route: '/content-management',
     krName: '콘텐츠 관리',
+    inMenu: true
+  },
+  POST_MANAGEMENT: {
+    route: '/post-management',
+    krName: '게시물 관리',
+    inMenu: true
+  },
+  ANALYTICS: {
+    route: '/analytics',
+    krName: '성과 분석',
     inMenu: true
   },
   SNS_INTEGRATION: {

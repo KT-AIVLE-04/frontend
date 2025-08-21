@@ -3,6 +3,7 @@ export { ContentCreation } from './ContentCreation/ContentCreation';
 export { ContentManagement } from './ContentManagement/ContentManagement';
 export { Dashboard } from './Dashboard/Dashboard';
 export { Login } from './Login/Login';
+export { PostManagement } from './PostManagement/PostManagement';
 export { Register } from './Register/Register';
 export { SnsIntegration } from './SnsIntegration/SnsIntegration';
 export { StoreManagement } from './StoreManagement/StoreManagement';

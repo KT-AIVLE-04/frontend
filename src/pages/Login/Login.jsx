@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import { Button, FormField } from '../../components';
 import { ROUTES } from '../../routes/routes';
@@ -52,6 +52,8 @@ export function Login() {
   const onRegisterClick = () => {
     navigate(ROUTES.REGISTER.route);
   }
+
+  
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -217,6 +219,15 @@ export function Login() {
                   <span>{loading ? '네이버 로그인 중...' : '네이버로 로그인'}</span>
                 </button>
               </div>
+            </div>
+            <div className="mt-8 text-center text-sm text-gray-600">
+              <Link to="/AIVLE.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-900">
+                이용약관
+              </Link>
+              <span className="mx-2">|</span>
+              <Link to="/Open_Source.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-900">
+                오픈소스 라이선스
+              </Link>
             </div>
           </div>
         </div>

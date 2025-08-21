@@ -51,4 +51,4 @@ jobs:
           aws s3 cp \
           --recursive \
           --region ap-southeast-2 \
-          dist s3://big-pj
+          dist s3://aivle-file
