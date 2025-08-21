@@ -1,20 +1,16 @@
 import { ArrowLeft } from 'lucide-react';
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import { Button, Container, FormField } from '../../components';
-import { ROUTES } from '../../routes/routes';
-import { login } from '../../store/authSlice';
 import { ageOptions } from './components';
 
 export function Register({ onRegister, onLoginClick }) {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phoneNumber: '',
+    phone: '',
     age: '',
     password: ''
   });
@@ -27,18 +23,10 @@ export function Register({ onRegister, onLoginClick }) {
     setError('');
 
     try {
-      const result = await authApi.register(formData);
+      await authApi.register(formData);
       
-      // 회원가입 성공 시 토큰을 받아서 로그인 상태로 만듦
-      if (result.data?.result?.accessToken) {
-        const { accessToken, refreshToken } = result.data.result;
-        dispatch(login({ accessToken, refreshToken }));
-        navigate(ROUTES.STORE_SELECTION.route);
-      } else {
-        // 토큰이 없는 경우 로그인 페이지로 이동
-        if (onRegister) {
-          onRegister();
-        }
+      if (onRegister) {
+        onRegister();
       }
     } catch (error) {
       console.error('회원가입 실패:', error);
@@ -103,9 +91,9 @@ export function Register({ onRegister, onLoginClick }) {
           />
           <FormField
             label="전화번호"
-            name="phoneNumber"
+            name="phone"
             type="tel"
-            value={formData.phoneNumber}
+            value={formData.phone}
             onChange={handleInputChange}
             placeholder="전화번호를 입력하세요"
             required

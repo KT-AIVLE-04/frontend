@@ -1,5 +1,4 @@
 import { INDUSTRY_LABELS } from '../const/industries';
-import { isValidPhoneNumber } from '../utils/formatUtils';
 
 /**
  * Store 모델 - 백엔드 StoreResponse와 일치
@@ -50,7 +49,7 @@ export class Store {
 
   // 유효성 검사
   isValid() {
-    return this.name && this.address && this.phoneNumber && this.industry && isValidPhoneNumber(this.phoneNumber);
+    return this.name && this.address && this.phoneNumber && this.industry;
   }
 
   // 에러 메시지 가져오기
@@ -59,7 +58,6 @@ export class Store {
     if (!this.name) errors.push('매장명을 입력해주세요.');
     if (!this.address) errors.push('주소를 입력해주세요.');
     if (!this.phoneNumber) errors.push('연락처를 입력해주세요.');
-    if (!isValidPhoneNumber(this.phoneNumber)) errors.push('올바른 연락처 형식을 입력해주세요. (예: 02-1234-5678)');
     if (!this.industry) errors.push('업종을 선택해주세요.');
     return errors;
   }
@@ -73,7 +71,7 @@ export class Store {
       businessNumber: this.businessNumber,
       latitude: this.latitude,
       longitude: this.longitude,
-      industry: INDUSTRY_LABELS[this.industry] || this.industry
+      industry: this.industry
     };
   }
 
@@ -85,7 +83,7 @@ export class Store {
       phoneNumber: this.phoneNumber,
       latitude: this.latitude,
       longitude: this.longitude,
-      industry: INDUSTRY_LABELS[this.industry] || this.industry
+      industry: this.industry
     };
   }
 } 
