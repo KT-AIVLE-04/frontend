@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, RotateCcw, Save } from 'lucide-react';
 
-export const VideoPreview = ({ videoUrl, onRegenerate, onSave }) => {
+export const VideoPreview = ({ videoUrl, onRegenerate, onSave, isSaving = false, isSaved = false }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -204,10 +204,15 @@ export const VideoPreview = ({ videoUrl, onRegenerate, onSave }) => {
           
           <button
             onClick={onSave}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            disabled={isSaving || isSaved}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
+              isSaved 
+                ? 'bg-green-600 text-white cursor-not-allowed opacity-80' 
+                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+            }`}
           >
             <Save size={16} />
-            저장하기
+            {isSaving ? '저장 중...' : isSaved ? '저장완료' : '저장하기'}
           </button>
         </div>
       </div>

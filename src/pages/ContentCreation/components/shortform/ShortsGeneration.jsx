@@ -1,10 +1,13 @@
 import { CheckCircle, Clock, Sparkles } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useShortformGeneration } from '../../context/ShortformGenerationContext';
-import { contentApi } from '../../../../api/content';
+import { shortApi } from '../../../../api/short';
 import { VideoPreview } from './VideoPreview';
 
 export const ShortsGeneration = ({ setContentType }) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  
   const {
     contentId,
     contentStatus,
@@ -12,7 +15,7 @@ export const ShortsGeneration = ({ setContentType }) => {
     videoUrl,
     videoKey,
     setActiveStep,
-    resetForm
+    resetToInputStep
   } = useShortformGeneration();
 
   // useEffect(() => {
@@ -48,13 +51,38 @@ export const ShortsGeneration = ({ setContentType }) => {
   // };
 
   const handleRegenerate = () => {
-    // TODO: 다시 생성하기 기능 구현
-    console.log('다시 생성하기');
+    const userConfirmed = window.confirm(
+      '정보 입력 단계로 돌아가시겠습니까?\n\n매장 정보와 광고 정보를 수정하고 시나리오를 다시 생성할 수 있습니다.'
+    );
+    
+    if (userConfirmed) {
+      resetToInputStep();
+    }
   };
 
-  const handleSave = () => {
-    // TODO: 저장하기 기능 구현
-    console.log('저장하기');
+  const handleSave = async () => {
+    if (!videoKey) {
+      alert('저장할 비디오가 없습니다.');
+      return;
+    }
+
+    if (isSaving || isSaved) {
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      console.log('숏폼 저장 시작:', videoKey);
+      const response = await shortApi.saveShorts(videoKey);
+      console.log('숏폼 저장 성공:', response.data);
+      alert('숏폼이 성공적으로 저장되었습니다!');
+      setIsSaved(true);
+    } catch (error) {
+      console.error('숏폼 저장 실패:', error);
+      alert('숏폼 저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   
@@ -67,6 +95,8 @@ export const ShortsGeneration = ({ setContentType }) => {
         videoUrl={displayVideoUrl}
         onRegenerate={handleRegenerate}
         onSave={handleSave}
+        isSaving={isSaving}
+        isSaved={isSaved}
       />
     );
   }
@@ -107,7 +137,7 @@ export const ShortsGeneration = ({ setContentType }) => {
         </div>
       </div>
       <div className="mt-8 flex justify-between">
-        <button 
+        {/* <button 
           onClick={() => setActiveStep(2)}
           className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
         >
@@ -121,7 +151,7 @@ export const ShortsGeneration = ({ setContentType }) => {
           className="px-6 py-2 bg-gray-800 text-white rounded-md text-sm font-medium hover:bg-gray-700"
         >
           취소
-        </button>
+        </button> */}
       </div>
     </div>
   );
