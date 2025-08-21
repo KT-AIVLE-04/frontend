@@ -1,23 +1,20 @@
-import { ArrowRight, CheckCircle, Clock, Sparkles, Upload } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { contentApi } from "../../api/content";
-import { storeApi } from "../../api/store";
-import { Container } from "../../components/Container";
-import { ErrorPage } from "../../components/ErrorPage";
-import { ROUTES } from "../../routes/routes";
-import { ContentTypeSelector } from "./components";
+import { ArrowRight, CheckCircle, Clock, Sparkles, Upload } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { contentApi } from '../../api/content';
+import { storeApi } from '../../api/store';
+import { Container } from '../../components/Container';
+import { ErrorPage } from '../../components/ErrorPage';
+import { ContentTypeSelector } from './components';
 
 export function ContentCreation() {
-  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(1);
   const [contentType, setContentType] = useState(null);
   const [stores, setStores] = useState([]);
   const [scenarios, setScenarios] = useState([]);
   const [formData, setFormData] = useState({
-    storeId: "",
-    additionalInfo: "",
-    scenarioId: "",
+    storeId: '',
+    additionalInfo: '',
+    scenarioId: ''
   });
   const [loading, setLoading] = useState(false);
   const [contentStatus, setContentStatus] = useState(null);
@@ -25,13 +22,7 @@ export function ContentCreation() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (contentType === "post") {
-      navigate(ROUTES.SNS_POST_SERVICE.route);
-    }
-  }, [contentType, navigate]);
-
-  useEffect(() => {
-    if (contentType === "video") {
+    if (contentType === 'video') {
       fetchStores();
       fetchScenarios();
     }
@@ -49,8 +40,8 @@ export function ContentCreation() {
       const response = await storeApi.getStores();
       setStores(response.data || []);
     } catch (error) {
-      console.error("매장 목록 로딩 실패:", error);
-      setError("매장 목록을 불러오는데 실패했습니다.");
+      console.error('매장 목록 로딩 실패:', error);
+      setError('매장 목록을 불러오는데 실패했습니다.');
     }
   };
 
@@ -60,8 +51,8 @@ export function ContentCreation() {
       const response = await contentApi.getScenarios();
       setScenarios(response.data || []);
     } catch (error) {
-      console.error("시나리오 목록 로딩 실패:", error);
-      setError("시나리오 목록을 불러오는데 실패했습니다.");
+      console.error('시나리오 목록 로딩 실패:', error);
+      setError('시나리오 목록을 불러오는데 실패했습니다.');
     }
   };
 
@@ -73,19 +64,19 @@ export function ContentCreation() {
       const status = response.data;
       setContentStatus(status);
 
-      if (status.status === "completed") {
+      if (status.status === 'completed') {
         setTimeout(() => {
           setActiveStep(1);
           setContentType(null);
           setContentId(null);
           setContentStatus(null);
         }, 2000);
-      } else if (status.status === "failed") {
-        alert("콘텐츠 생성에 실패했습니다.");
+      } else if (status.status === 'failed') {
+        alert('콘텐츠 생성에 실패했습니다.');
         setActiveStep(2);
       }
     } catch (error) {
-      console.error("콘텐츠 상태 확인 실패:", error);
+      console.error('콘텐츠 상태 확인 실패:', error);
     }
   };
 
@@ -96,14 +87,14 @@ export function ContentCreation() {
         type: contentType,
         storeId: formData.storeId,
         additionalInfo: formData.additionalInfo,
-        scenarioId: formData.scenarioId,
+        scenarioId: formData.scenarioId
       });
-
+      
       setContentId(response.data.contentId);
       setActiveStep(3);
     } catch (error) {
-      console.error("콘텐츠 생성 실패:", error);
-      alert("콘텐츠 생성에 실패했습니다.");
+      console.error('콘텐츠 생성 실패:', error);
+      alert('콘텐츠 생성에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -111,9 +102,9 @@ export function ContentCreation() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
@@ -124,71 +115,36 @@ export function ContentCreation() {
   return (
     <div className="flex-1 w-full">
       <h1 className="text-2xl font-bold mb-6">콘텐츠 제작</h1>
-
+      
       {!contentType && (
         <Container className="p-8 text-center">
           <h2 className="text-xl font-semibold mb-8">
             제작할 콘텐츠 유형을 선택하세요
           </h2>
-          <ContentTypeSelector
-            contentType={contentType}
-            setContentType={setContentType}
-          />
+          <ContentTypeSelector contentType={contentType} setContentType={setContentType} />
         </Container>
       )}
 
-      {contentType === "video" && (
+      {contentType === 'video' && (
         <Container className="overflow-hidden">
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center">
-              <div
-                className={`flex items-center ${
-                  activeStep >= 1 ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    activeStep >= 1 ? "bg-blue-100" : "bg-gray-100"
-                  }`}
-                >
+              <div className={`flex items-center ${activeStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeStep >= 1 ? 'bg-blue-100' : 'bg-gray-100'}`}>
                   <span className="text-sm font-medium">1</span>
                 </div>
                 <span className="ml-2 text-sm font-medium">정보 입력</span>
               </div>
-              <div
-                className={`w-12 h-0.5 mx-2 ${
-                  activeStep >= 2 ? "bg-blue-600" : "bg-gray-200"
-                }`}
-              ></div>
-              <div
-                className={`flex items-center ${
-                  activeStep >= 2 ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    activeStep >= 2 ? "bg-blue-100" : "bg-gray-100"
-                  }`}
-                >
+              <div className={`w-12 h-0.5 mx-2 ${activeStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+              <div className={`flex items-center ${activeStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeStep >= 2 ? 'bg-blue-100' : 'bg-gray-100'}`}>
                   <span className="text-sm font-medium">2</span>
                 </div>
                 <span className="ml-2 text-sm font-medium">시나리오 선택</span>
               </div>
-              <div
-                className={`w-12 h-0.5 mx-2 ${
-                  activeStep >= 3 ? "bg-blue-600" : "bg-gray-200"
-                }`}
-              ></div>
-              <div
-                className={`flex items-center ${
-                  activeStep >= 3 ? "text-blue-600" : "text-gray-400"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    activeStep >= 3 ? "bg-blue-100" : "bg-gray-100"
-                  }`}
-                >
+              <div className={`w-12 h-0.5 mx-2 ${activeStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+              <div className={`flex items-center ${activeStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeStep >= 3 ? 'bg-blue-100' : 'bg-gray-100'}`}>
                   <span className="text-sm font-medium">3</span>
                 </div>
                 <span className="ml-2 text-sm font-medium">콘텐츠 생성</span>
@@ -207,40 +163,32 @@ export function ContentCreation() {
                     <h3 className="text-md font-medium mb-3">매장 정보</h3>
                     <div className="space-y-4">
                       <div>
-                        <label
-                          htmlFor="storeName"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
+                        <label htmlFor="storeName" className="block text-sm font-medium text-gray-700 mb-1">
                           매장 선택
                         </label>
-                        <select
-                          id="storeName"
+                        <select 
+                          id="storeName" 
                           name="storeId"
                           value={formData.storeId}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">매장을 선택하세요</option>
-                          {stores.map((store) => (
-                            <option key={store.id} value={store.id}>
-                              {store.name}
-                            </option>
+                          {stores.map(store => (
+                            <option key={store.id} value={store.id}>{store.name}</option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <label
-                          htmlFor="additionalInfo"
-                          className="block text-sm font-medium text-gray-700 mb-1"
-                        >
+                        <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 mb-1">
                           추가 정보 입력
                         </label>
-                        <textarea
-                          id="additionalInfo"
+                        <textarea 
+                          id="additionalInfo" 
                           name="additionalInfo"
                           value={formData.additionalInfo}
                           onChange={handleInputChange}
-                          rows={3}
+                          rows={3} 
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="숏폼에 포함되었으면 하는 내용을 입력하세요"
                         ></textarea>
@@ -252,10 +200,7 @@ export function ContentCreation() {
                       참고 자료 업로드
                     </h3>
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                      <Upload
-                        size={32}
-                        className="text-gray-400 mx-auto mb-4"
-                      />
+                      <Upload size={32} className="text-gray-400 mx-auto mb-4" />
                       <p className="text-sm text-gray-500 mb-2">
                         참고할 이미지나 영상을 업로드하세요
                       </p>
@@ -269,7 +214,7 @@ export function ContentCreation() {
                   </div>
                 </div>
                 <div className="mt-8 flex justify-end">
-                  <button
+                  <button 
                     onClick={() => setActiveStep(2)}
                     disabled={!formData.storeId}
                     className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -286,10 +231,7 @@ export function ContentCreation() {
                 <h2 className="text-lg font-semibold mb-4">시나리오 선택</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {scenarios.map((scenario) => (
-                    <div
-                      key={scenario.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 cursor-pointer"
-                    >
+                    <div key={scenario.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 cursor-pointer">
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="font-medium">시나리오 {scenario.id}</h3>
                         {scenario.isRecommended && (
@@ -302,12 +244,9 @@ export function ContentCreation() {
                         {scenario.description}
                       </p>
                       <div className="flex justify-end">
-                        <button
+                        <button 
                           onClick={() => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              scenarioId: scenario.id,
-                            }));
+                            setFormData(prev => ({ ...prev, scenarioId: scenario.id }));
                             setActiveStep(3);
                           }}
                           className="text-sm text-blue-600 font-medium"
@@ -319,18 +258,18 @@ export function ContentCreation() {
                   ))}
                 </div>
                 <div className="mt-8 flex justify-between">
-                  <button
+                  <button 
                     onClick={() => setActiveStep(1)}
                     className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
                   >
                     이전
                   </button>
-                  <button
+                  <button 
                     onClick={handleCreateContent}
                     disabled={loading || !formData.scenarioId}
                     className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading ? "생성 중..." : "이 시나리오로 제작하기"}
+                    {loading ? '생성 중...' : '이 시나리오로 제작하기'}
                     <ArrowRight size={16} className="ml-2" />
                   </button>
                 </div>
@@ -373,13 +312,13 @@ export function ContentCreation() {
                   </div>
                 </div>
                 <div className="mt-8 flex justify-between">
-                  <button
+                  <button 
                     onClick={() => setActiveStep(2)}
                     className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
                   >
                     이전
                   </button>
-                  <button
+                  <button 
                     onClick={() => {
                       setActiveStep(1);
                       setContentType(null);
@@ -395,13 +334,13 @@ export function ContentCreation() {
         </Container>
       )}
 
-      {contentType === "image" && (
+      {contentType === 'image' && (
         <Container className="overflow-hidden p-6">
           <h2 className="text-lg font-semibold mb-4">이미지 생성</h2>
           <p className="text-gray-500 mb-6">
             AI 이미지 생성 기능은 준비 중입니다. 곧 서비스될 예정입니다.
           </p>
-          <button
+          <button 
             onClick={() => setContentType(null)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
           >
@@ -411,4 +350,4 @@ export function ContentCreation() {
       )}
     </div>
   );
-}
+} 

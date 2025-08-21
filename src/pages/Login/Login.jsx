@@ -26,7 +26,7 @@ export function Login() {
 
     try {
       const result = await authApi.login(formData);
-      const { accessToken, refreshToken } = result.data.result;
+      const { accessToken, refreshToken } = result;
       dispatch(login({ accessToken, refreshToken }));
       navigate(ROUTES.STORE_SELECTION.route);
     } catch (error) {
