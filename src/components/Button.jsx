@@ -11,7 +11,7 @@ export function Button({
   type = "button",
   className = ""
 }) {
-  const baseClasses = "inline-flex items-center justify-center font-black rounded-2xl focus:outline-none focus:ring-4 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] transform hover:translate-x-0.5 hover:translate-y-0.5 whitespace-nowrap";
+  const baseClasses = "inline-flex items-center justify-center font-black rounded-2xl focus:outline-none focus:ring-4 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] transform hover:translate-x-0.5 hover:translate-y-0.5";
   
   const variantClasses = {
     primary: "bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-700 focus:ring-blue-200",
@@ -41,7 +41,7 @@ export function Button({
         </svg>
       )}
       {Icon && !loading && <Icon size={18} className="mr-2" />}
-      <span className="whitespace-nowrap">{children}</span>
+      {children}
     </button>
   );
 } 
