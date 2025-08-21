@@ -14,6 +14,11 @@ export const ROUTES = {
     krName: '콘텐츠 관리',
     inMenu: true
   },
+  POST_MANAGEMENT: {
+    route: '/post-management',
+    krName: '게시물 관리',
+    inMenu: true
+  },
   ANALYTICS: {
     route: '/analytics',
     krName: '성과 분석',

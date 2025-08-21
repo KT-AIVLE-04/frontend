@@ -48,7 +48,7 @@ export function StoreSelection() {
 
   const handleStoreSelect = (store) => {
     dispatch(setSelectedStore(store));
-    navigate(ROUTES.DASHBOARD.route);
+    navigate(ROUTES.ANALYTICS.route);
   };
 
   const handleAddStore = () => {

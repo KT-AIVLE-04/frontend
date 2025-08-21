@@ -1,45 +1,69 @@
 import { http, HttpResponse, passthrough } from 'msw';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL.replace('/api', '');
 
 export const handlers = [
   // // 전역 딜레이 미들웨어
   // http.all('*', async () => {
   //   await delay(2000);
   // }),
-  http.get('*', ({ request }) => {
+  // 모든 HTTP 메서드에 대해 passthrough 조건 적용
+  http.all('*', ({request}) => {
     const url = new URL(request.url);
     const workingEndpoints = [
-      '/api/auth', 
-      '/api/stores'
+      '/api/auth',
+      '/api/stores',
+      '/api/shorts',
+      '/api/contents',
+      // '/api/analytics',
     ]
 
     // msw 작동 안하는 조건들
     const isStaticFile = /\.(css|js|png|jpg|svg|ico|woff|woff2|ttf|eot)$/.test(url.pathname);
-    const isNotApi = !url.pathname.startsWith('/api/');
-    const isNotLocalhost = url.origin !== 'http://localhost:8080';
-    const isWorkingEndpoint = workingEndpoints.some(endpoint => 
+    const isNotHost = url.origin !== API_BASE_URL;
+    const isWorkingEndpoint = workingEndpoints.some(endpoint =>
       url.pathname.includes(endpoint)
     )
-    if(isStaticFile || isNotApi || isNotLocalhost || isWorkingEndpoint) {
-      console.log("passthrough", url.pathname)
+    const isLocalHost = url.origin === "http://localhost:8080"
+    if (isStaticFile || isNotHost || isWorkingEndpoint || isLocalHost) {
+      console.log("🛳️ passthrough", url.pathname, {
+        isStaticFile,
+        isNotHost,
+        isWorkingEndpoint,
+        isLocalHost
+      })
       return passthrough()
     }
+    console.log("🍪 MSW", url.pathname)
   }),
   http.post(`${API_BASE_URL}/api/auth/new`, async ({request}) => {
-    const {email, password} = await request.json()
+    const {email, password, name, phoneNumber} = await request.json()
 
-    if (!email || !password) {
+    if (!email || !password || !name || !phoneNumber) {
       return HttpResponse.json({
         isSuccess: false,
-        message: '아이디와 비밀번호를 입력해주세요.',
-        result: null
+        message: '모든 필드를 입력해주세요.',
+        result: null,
+        errors: [
+          {
+            field: 'email',
+            message: '이메일을 입력해주세요.'
+          }
+        ]
       }, {status: 400})
     }
 
     return HttpResponse.json({
       isSuccess: true,
-      message: '회원가입이 완료되었습니다.'
+      message: '회원가입이 완료되었습니다.',
+      result: {
+        type: 'USER',
+        accessToken: 'mock-access-token',
+        accessTokenExpiration: Date.now() + 3600000, // 1시간
+        refreshToken: 'mock-refresh-token',
+        refreshTokenExpiration: Date.now() + 2592000000 // 30일
+      },
+      errors: []
     })
   }),
 
@@ -51,7 +75,13 @@ export const handlers = [
       return HttpResponse.json({
         isSuccess: false,
         message: '아이디와 비밀번호를 입력해주세요.',
-        result: null
+        result: null,
+        errors: [
+          {
+            field: 'email',
+            message: '이메일을 입력해주세요.'
+          }
+        ]
       }, {status: 400})
     }
 
@@ -59,10 +89,13 @@ export const handlers = [
       isSuccess: true,
       message: '성공입니다.',
       result: {
-        memberId: 1,
+        type: 'USER',
         accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token'
-      }
+        accessTokenExpiration: Date.now() + 3600000, // 1시간
+        refreshToken: 'mock-refresh-token',
+        refreshTokenExpiration: Date.now() + 2592000000 // 30일
+      },
+      errors: []
     })
   }),
 
@@ -71,7 +104,8 @@ export const handlers = [
     return HttpResponse.json({
       isSuccess: true,
       message: '로그아웃되었습니다.',
-      result: null
+      result: '로그아웃 성공',
+      errors: []
     })
   }),
 
@@ -81,9 +115,13 @@ export const handlers = [
       isSuccess: true,
       message: '토큰이 갱신되었습니다.',
       result: {
+        type: 'USER',
         accessToken: 'new-mock-access-token',
-        refreshToken: 'new-mock-refresh-token'
-      }
+        accessTokenExpiration: Date.now() + 3600000, // 1시간
+        refreshToken: 'new-mock-refresh-token',
+        refreshTokenExpiration: Date.now() + 2592000000 // 30일
+      },
+      errors: []
     })
   }),
 
@@ -135,7 +173,7 @@ export const handlers = [
     const startIndex = (page - 1) * size
     const endIndex = Math.min(startIndex + size, totalItems)
 
-    const articles = Array.from({ length: endIndex - startIndex }, (_, i) => ({
+    const articles = Array.from({length: endIndex - startIndex}, (_, i) => ({
       articleId: startIndex + i + 1,
       title: `게시글 제목 ${startIndex + i + 1}${keyword ? ` - ${keyword}` : ''}`,
       content: `게시글 내용 ${startIndex + i + 1}입니다.`,
@@ -281,7 +319,7 @@ export const handlers = [
   }),
 
   // ===== 매장 관리 API =====
-  
+
   // 매장 목록 조회
   http.get(`${API_BASE_URL}/api/stores`, () => {
     const stores = [
@@ -330,7 +368,7 @@ export const handlers = [
   // 매장 생성
   http.post(`${API_BASE_URL}/api/stores`, async ({request}) => {
     const data = await request.json()
-    
+
     if (!data.name || !data.address || !data.phoneNumber || !data.industry) {
       return HttpResponse.json({
         isSuccess: false,
@@ -354,7 +392,7 @@ export const handlers = [
   // 매장 수정 (PATCH 사용)
   http.patch(`${API_BASE_URL}/api/stores/:storeId`, async ({params, request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '매장 정보가 수정되었습니다.',
@@ -377,12 +415,12 @@ export const handlers = [
   }),
 
   // ===== 분석 API =====
-  
+
   // 대시보드 통계
   http.get(`${API_BASE_URL}/api/analytics/dashboard`, ({request}) => {
     const url = new URL(request.url)
     const dateRange = url.searchParams.get('dateRange') || 'last7'
-    
+
     const stats = [
       {
         type: 'views',
@@ -503,12 +541,12 @@ export const handlers = [
   }),
 
   // ===== 콘텐츠 API =====
-  
+
   // 콘텐츠 목록 조회
   http.get(`${API_BASE_URL}/api/content`, ({request}) => {
     const url = new URL(request.url)
     const type = url.searchParams.get('type') || 'videos'
-    
+
     const contents = [
       {
         id: 1,
@@ -542,7 +580,7 @@ export const handlers = [
   // 콘텐츠 생성 (AI)
   http.post(`${API_BASE_URL}/api/content`, async ({request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '콘텐츠 생성이 시작되었습니다.',
@@ -558,7 +596,7 @@ export const handlers = [
   http.get(`${API_BASE_URL}/api/content/:contentId/status`, ({params}) => {
     const statuses = ['processing', 'completed', 'failed']
     const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '성공입니다.',
@@ -601,7 +639,7 @@ export const handlers = [
   }),
 
   // ===== SNS API =====
-  
+
   // 연동된 SNS 계정 목록
   http.get(`${API_BASE_URL}/api/sns/accounts`, () => {
     const accounts = [
@@ -641,7 +679,7 @@ export const handlers = [
   // SNS 계정 연결
   http.post(`${API_BASE_URL}/api/sns/accounts/:platform`, async ({params, request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: `${params.platform} 계정이 연결되었습니다.`,
@@ -682,7 +720,7 @@ export const handlers = [
   // 예약 게시물 생성
   http.post(`${API_BASE_URL}/api/sns/scheduled-posts`, async ({request}) => {
     const data = await request.json()
-    
+
     return HttpResponse.json({
       isSuccess: true,
       message: '게시물이 예약되었습니다.',
@@ -722,7 +760,7 @@ export const handlers = [
   http.get(`${API_BASE_URL}/api/sns/hashtags`, ({request}) => {
     const url = new URL(request.url)
     const keyword = url.searchParams.get('keyword') || ''
-    
+
     const hashtags = [
       '#여름맞이',
       '#카페추천',
@@ -735,6 +773,468 @@ export const handlers = [
       isSuccess: true,
       message: '성공입니다.',
       result: hashtags
+    })
+  }),
+
+  // ===== Analytics API Mocks =====
+
+  // 실시간 게시물 메트릭
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/:postId/metrics`, ({params}) => {
+    const postId = params.postId
+
+    // postId에 따라 다른 데이터 반환
+    const metricsData = {
+      1: {views: 115374, likes: "6032", comments: 198, shares: null},
+      2: {views: 89234, likes: "3456", comments: 234, shares: null},
+      3: {views: 23456, likes: "1234", comments: 89, shares: null},
+      4: {views: 34567, likes: "1890", comments: 156, shares: null},
+      5: {views: 67890, likes: "2987", comments: 267, shares: null}
+    };
+
+    const data = metricsData[postId] || {views: 15000, likes: "800", comments: 120, shares: null};
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '요청이 성공적으로 처리되었습니다.',
+      result: [{
+        postId: parseInt(postId),
+        snsPostId: `w7YKHjH_MpM_${postId}`,
+        accountId: 1,
+        likes: data.likes,
+        dislikes: 0,
+        comments: data.comments,
+        shares: data.shares,
+        views: data.views,
+        fetchedAt: new Date().toISOString(),
+        dataSource: 'youtube_api',
+        isCached: false
+      }]
+    })
+  }),
+
+  // 실시간 계정 메트릭
+  http.get(`${API_BASE_URL}/api/analytics/realtime/accounts/:accountId/metrics`, ({params}) => {
+    const accountId = params.accountId
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '요청이 성공적으로 처리되었습니다.',
+      result: [{
+        accountId: parseInt(accountId),
+        snsAccountId: `UC_BDaOejkuzpT4Jlt_r2vlA`,
+        followers: 43400,
+        views: 13739858,
+        fetchedAt: new Date().toISOString(),
+        dataSource: 'youtube_api',
+        isCached: false
+      }]
+    })
+  }),
+
+  // 실시간 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/:postId/comments`, ({params, request}) => {
+    const postId = params.postId
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page')) || 0
+    const size = parseInt(url.searchParams.get('size')) || 20
+
+    const comments = [
+      {
+        commentId: `UgzDE8pqJ_c_${postId}_${page}_1`,
+        authorId: 123456789,
+        text: '정말 맛있어 보여요! 다음에 꼭 가보고 싶습니다 😋',
+        likeCount: 15,
+        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        crawledAt: new Date().toISOString()
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${postId}_${page}_2`,
+        authorId: 987654321,
+        text: '인테리어가 너무 예쁘네요. 분위기 좋아 보여요!',
+        likeCount: 8,
+        publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        crawledAt: new Date().toISOString()
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${postId}_${page}_3`,
+        authorId: 456789123,
+        text: '가격대비 퀄리티가 정말 좋은 것 같아요 👍',
+        likeCount: 12,
+        publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        crawledAt: new Date().toISOString()
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${postId}_${page}_4`,
+        authorId: 789123456,
+        text: '주차는 어떻게 되나요?',
+        likeCount: 3,
+        publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+        crawledAt: new Date().toISOString()
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${postId}_${page}_5`,
+        authorId: 321654987,
+        text: '사진이 너무 잘 나와요! 카메라 앵글 대박 👏',
+        likeCount: 20,
+        publishedAt: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
+        crawledAt: new Date().toISOString()
+      }
+    ].slice(0, Math.min(size, 5))
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '실시간 댓글 조회 성공',
+      result: comments
+    })
+  }),
+
+  // 히스토리 게시물 메트릭
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/:postId/metrics`, ({params, request}) => {
+    const postId = params.postId
+    const url = new URL(request.url)
+    const date = url.searchParams.get('date')
+
+    if (!date) {
+      return HttpResponse.json({
+        isSuccess: false,
+        message: '날짜 파라미터가 필요합니다.',
+        result: null
+      }, {status: 400})
+    }
+
+    // 어제 데이터는 실시간 데이터보다 약간 적게
+    const yesterdayData = {
+      1: {views: 115172, likes: "6026", comments: 198, shares: null},
+      2: {views: 85000, likes: "3200", comments: 210, shares: null},
+      3: {views: 21000, likes: "1100", comments: 75, shares: null},
+      4: {views: 31000, likes: "1700", comments: 140, shares: null},
+      5: {views: 62000, likes: "2700", comments: 240, shares: null}
+    };
+
+    const data = yesterdayData[postId] || {views: 13500, likes: "720", comments: 105, shares: null};
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '요청이 성공적으로 처리되었습니다.',
+      result: [{
+        postId: parseInt(postId),
+        likes: data.likes,
+        dislikes: 0,
+        comments: data.comments,
+        shares: data.shares,
+        views: data.views,
+        crawledAt: `${date}T12:00:00`
+      }]
+    })
+  }),
+
+  // 히스토리 계정 메트릭
+  http.get(`${API_BASE_URL}/api/analytics/history/accounts/:accountId/metrics`, ({params, request}) => {
+    const accountId = params.accountId
+    const url = new URL(request.url)
+    const date = url.searchParams.get('date')
+
+    if (!date) {
+      return HttpResponse.json({
+        isSuccess: false,
+        message: '날짜 파라미터가 필요합니다.',
+        result: null
+      }, {status: 400})
+    }
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '요청이 성공적으로 처리되었습니다.',
+      result: [{
+        accountId: parseInt(accountId),
+        followers: 43300, // 어제 팔로워 수 (실시간보다 적음)
+        views: 13726084,  // 어제 총 조회 수
+        crawledAt: `${date}T12:00:00`
+      }]
+    })
+  }),
+
+  // 히스토리 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/:postId/comments`, ({params, request}) => {
+    const postId = params.postId
+    const url = new URL(request.url)
+    const date = url.searchParams.get('date')
+    const page = parseInt(url.searchParams.get('page')) || 0
+    const size = parseInt(url.searchParams.get('size')) || 20
+
+    if (!date) {
+      return HttpResponse.json({
+        isSuccess: false,
+        message: '날짜 파라미터가 필요합니다.',
+        result: null
+      }, {status: 400})
+    }
+
+    const comments = [
+      {
+        commentId: `UgzDE8pqJ_c_${date}_${postId}_1`,
+        authorId: 123456789,
+        text: '어제 갔는데 정말 맛있었어요! 추천합니다 😊',
+        likeCount: 12,
+        publishedAt: `${date}T14:30:00`,
+        crawledAt: `${date}T12:00:00`
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${date}_${postId}_2`,
+        authorId: 987654321,
+        text: '분위기가 너무 좋아서 오래 앉아있었어요',
+        likeCount: 6,
+        publishedAt: `${date}T16:45:00`,
+        crawledAt: `${date}T12:00:00`
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${date}_${postId}_3`,
+        authorId: 456789123,
+        text: '가격이 조금 비싸지만 퀄리티가 좋아요',
+        likeCount: 9,
+        publishedAt: `${date}T18:20:00`,
+        crawledAt: `${date}T12:00:00`
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${date}_${postId}_4`,
+        authorId: 789123456,
+        text: '직원분들이 친절하시네요 👍',
+        likeCount: 4,
+        publishedAt: `${date}T20:15:00`,
+        crawledAt: `${date}T12:00:00`
+      },
+      {
+        commentId: `UgzDE8pqJ_c_${date}_${postId}_5`,
+        authorId: 321654987,
+        text: '다음에 친구들이랑 같이 가려고 해요!',
+        likeCount: 7,
+        publishedAt: `${date}T21:30:00`,
+        crawledAt: `${date}T12:00:00`
+      }
+    ].slice(0, Math.min(size, 5))
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '히스토리 댓글 조회 성공',
+      result: comments
+    })
+  }),
+
+  // 대시보드 통계 (기존 호환성)
+  http.get(`${API_BASE_URL}/api/analytics/dashboard`, ({request}) => {
+    const url = new URL(request.url)
+    const dateRange = url.searchParams.get('dateRange') || 'last7'
+
+    const stats = [
+      {
+        type: 'views',
+        value: Math.floor(Math.random() * 50000) + 10000,
+        change: '+12.5%'
+      },
+      {
+        type: 'likes',
+        value: Math.floor(Math.random() * 2000) + 500,
+        change: '+8.3%'
+      },
+      {
+        type: 'comments',
+        value: Math.floor(Math.random() * 500) + 100,
+        change: '+15.2%'
+      },
+      {
+        type: 'shares',
+        value: Math.floor(Math.random() * 200) + 50,
+        change: '+5.7%'
+      }
+    ]
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '대시보드 통계 조회 성공',
+      result: stats
+    })
+  }),
+
+  // 대시보드 통계 (새로운 엔드포인트)
+  http.get(`${API_BASE_URL}/api/analytics/dashboard-stats`, ({request}) => {
+    const url = new URL(request.url)
+    const dateRange = url.searchParams.get('dateRange') || 'last7'
+
+    const stats = [
+      {
+        type: 'views',
+        value: Math.floor(Math.random() * 50000) + 10000,
+        change: '+12.5%'
+      },
+      {
+        type: 'likes',
+        value: Math.floor(Math.random() * 2000) + 500,
+        change: '+8.3%'
+      },
+      {
+        type: 'comments',
+        value: Math.floor(Math.random() * 500) + 100,
+        change: '+15.2%'
+      },
+      {
+        type: 'shares',
+        value: Math.floor(Math.random() * 200) + 50,
+        change: '+5.7%'
+      }
+    ]
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '대시보드 통계 조회 성공',
+      result: stats
+    })
+  }),
+
+  // 콘텐츠 성과 분석
+  http.get(`${API_BASE_URL}/api/analytics/content-performance`, ({request}) => {
+    const url = new URL(request.url)
+    const dateRange = url.searchParams.get('dateRange') || 'last7'
+
+    const performance = [
+      {
+        id: 1,
+        title: '여름 특별 메뉴 출시! 🍹',
+        platform: 'instagram',
+        thumbnail: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300&h=200&fit=crop',
+        views: 45678,
+        likes: 2345,
+        comments: 189,
+        shares: 67
+      },
+      {
+        id: 2,
+        title: '카페 인테리어 투어 - 히든 스팟 공개',
+        platform: 'youtube',
+        thumbnail: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=300&h=200&fit=crop',
+        views: 89234,
+        likes: 3456,
+        comments: 234,
+        shares: 123
+      },
+      {
+        id: 3,
+        title: '오늘의 추천 디저트 🍰',
+        platform: 'facebook',
+        thumbnail: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=300&h=200&fit=crop',
+        views: 23456,
+        likes: 1234,
+        comments: 89,
+        shares: 45
+      },
+      {
+        id: 4,
+        title: '바리스타 추천 커피 레시피',
+        platform: 'instagram',
+        thumbnail: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&h=200&fit=crop',
+        views: 34567,
+        likes: 1890,
+        comments: 156,
+        shares: 78
+      },
+      {
+        id: 5,
+        title: '주말 브런치 메뉴 소개',
+        platform: 'youtube',
+        thumbnail: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=300&h=200&fit=crop',
+        views: 67890,
+        likes: 2987,
+        comments: 267,
+        shares: 134
+      }
+    ]
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '콘텐츠 성과 분석 조회 성공',
+      result: performance
+    })
+  }),
+
+  // 댓글 감성 분석
+  http.get(`${API_BASE_URL}/api/analytics/comment-sentiment`, ({request}) => {
+    const url = new URL(request.url)
+    const dateRange = url.searchParams.get('dateRange') || 'last7'
+
+    const sentiment = [
+      {sentiment: 'positive', count: 156, percentage: 68},
+      {sentiment: 'neutral', count: 52, percentage: 23},
+      {sentiment: 'negative', count: 21, percentage: 9}
+    ]
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '댓글 감성 분석 조회 성공',
+      result: sentiment
+    })
+  }),
+
+  // 팔로워 트렌드
+  http.get(`${API_BASE_URL}/api/analytics/follower-trend`, ({request}) => {
+    const url = new URL(request.url)
+    const dateRange = url.searchParams.get('dateRange') || 'last7'
+
+    const trend = {
+      totalFollowers: 3247,
+      newFollowers: 187,
+      unfollowers: 23,
+      netGrowth: 164,
+      weeklyData: [45, 52, 38, 67, 89, 124, 156]
+    }
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '팔로워 트렌드 조회 성공',
+      result: trend
+    })
+  }),
+
+  // 최적 게시 시간
+  http.get(`${API_BASE_URL}/api/analytics/optimal-posting-time`, () => {
+    const optimalTime = {
+      instagram: {
+        bestTimes: ['18:00-20:00', '12:00-14:00', '21:00-23:00'],
+        engagementRate: 0.85
+      },
+      facebook: {
+        bestTimes: ['10:00-12:00', '15:00-17:00', '19:00-21:00'],
+        engagementRate: 0.72
+      },
+      youtube: {
+        bestTimes: ['19:00-21:00', '14:00-16:00', '20:00-22:00'],
+        engagementRate: 0.91
+      },
+      recommendation: '다음 콘텐츠는 월요일 오후 6시에 게시하는 것이 가장 효과적입니다. 평균 참여율이 15% 높아집니다.'
+    }
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '최적 게시 시간 조회 성공',
+      result: optimalTime
+    })
+  }),
+
+  // 키워드 분석
+  http.get(`${API_BASE_URL}/api/analytics/keyword-analysis`, ({request}) => {
+    const url = new URL(request.url)
+    const keyword = url.searchParams.get('keyword') || ''
+
+    const analysis = {
+      keyword: keyword || '카페',
+      frequency: Math.floor(Math.random() * 100) + 20,
+      sentiment: ['positive', 'neutral', 'negative'][Math.floor(Math.random() * 3)],
+      relatedKeywords: ['커피', '디저트', '분위기', '맛집', '추천'],
+      trend: 'increasing'
+    }
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: '키워드 분석 조회 성공',
+      result: analysis
     })
   })
 ] 
