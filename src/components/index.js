@@ -8,6 +8,7 @@ export { FormField } from './FormField';
 export { IconButton } from './IconButton';
 export { LoadingSpinner } from './LoadingSpinner';
 export { PageNavigation } from './PageNavigation';
+export { PostCard } from './PostCard';
 export { ProgressBar } from './ProgressBar';
 export { Sidebar } from './Sidebar';
 export { StatCard } from './StatCard';

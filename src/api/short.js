@@ -32,5 +32,10 @@ export const shortApi = {
     return api.post('/shorts', formData, {
       storeId: true,
     });
-  }
+  },
+
+  // 숏폼 저장 요청
+  saveShorts: (key) => api.post('/shorts/save', { key }, {
+    storeId: true,
+  })
 }
