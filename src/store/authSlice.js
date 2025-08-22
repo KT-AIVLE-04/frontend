@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import {createSlice} from '@reduxjs/toolkit';
 
 const getRefreshToken = () => {
   // localStorage에서 refreshToken 가져오기
@@ -23,6 +23,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action) => {
+      console.log('login', action.payload)
       const {accessToken, refreshToken} = action.payload
       state.isAuthenticated = true
       state.accessToken = accessToken
@@ -51,7 +52,7 @@ const authSlice = createSlice({
       // Store 객체에서 ID만 저장
       const store = action.payload;
       state.selectedStoreId = store ? store.id : null;
-      
+
       // localStorage에 저장
       if (store) {
         localStorage.setItem('selectedStoreId', store.id.toString());
