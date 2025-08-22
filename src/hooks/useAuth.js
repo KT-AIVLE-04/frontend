@@ -1,8 +1,8 @@
-import {useEffect, useMemo, useState} from 'react'
-import {useDispatch, useSelector} from 'react-redux'
-import {useLocation} from 'react-router-dom'
-import {authApi} from '../api/auth'
-import {login, logout, updateToken} from '../store/authSlice'
+import { useEffect, useMemo, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useLocation } from 'react-router-dom'
+import { authApi } from '../api/auth'
+import { login, logout, updateToken } from '../store/authSlice'
 
 export const useAuth = () => {
   const dispatch = useDispatch()
@@ -41,20 +41,20 @@ export const useAuth = () => {
     }
   }
 
-  // 쿠키에서 토큰 추출 (oauth-success 경로에서만)
+  // URL fragment에서 토큰 추출 (oauth-success 경로에서만)
   const oauthParams = useMemo(() => {
     if (location.pathname !== '/oauth-success') {
       return null
     }
 
-    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split('=')
-      acc[key] = value
-      return acc
-    }, {})
-
-    const accessToken = cookies.accessToken
-    const refreshToken = cookies.refreshToken
+    // URL fragment에서 토큰 파라미터 추출
+    const fragment = window.location.hash.substring(1) // '#' 제거
+    const params = new URLSearchParams(fragment)
+    
+    const accessToken = params.get('accessToken')
+    const refreshToken = params.get('refreshToken')
+    console.log('accessToken', accessToken)
+    console.log('refreshToken', refreshToken)
 
     if (accessToken && refreshToken) {
       return {accessToken, refreshToken}

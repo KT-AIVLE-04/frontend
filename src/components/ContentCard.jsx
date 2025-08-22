@@ -7,6 +7,7 @@ export function ContentCard({
   onClick,
   onDownload,
   onEdit,
+  onShare,
   onDelete,
   showActions = true,
 }) {
@@ -37,8 +38,8 @@ export function ContentCard({
   return (
     <Container
       variant="hover"
-      className="overflow-hidden group cursor-pointer"
-      onClick={handleCardClick}
+      className="overflow-hidden group cursor-pointer" // cursor-pointer 추가
+      onClick={handleCardClick} // 카드 전체 클릭 이벤트
     >
       <div className="relative">
         <img
@@ -63,8 +64,19 @@ export function ContentCard({
             </div>
           </div>
         )}
+        {/* 재생 버튼 오버레이 추가 */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4">
+            <svg
+              className="w-8 h-8 text-white"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
       </div>
-
       <div className="p-6">
         <h3
           className="font-black mb-3 line-clamp-2 text-gray-800 group-hover:text-blue-700 transition-colors"
@@ -72,9 +84,10 @@ export function ContentCard({
         >
           {content.title}
         </h3>
-
         <div className="flex items-center text-sm text-gray-600 mb-3 font-bold">
-          <span>{formatDate(content.createdAt)}</span>
+          <span className="font-black">{content.author || content.store}</span>
+          <span className="mx-2">•</span>
+          <span>{content.createdAt}</span>
         </div>
 
         <div className="flex justify-between items-center text-xs text-gray-500 mb-4 font-bold">
@@ -100,27 +113,33 @@ export function ContentCard({
                 onDownload?.(content.id);
               }}
               className="text-gray-500 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50 border-2 border-transparent hover:border-blue-200"
-              title="다운로드"
             >
               <Download size={18} />
             </button>
             <button
               onClick={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // 카드 클릭 이벤트 방지
+                onShare?.(content.id);
+              }}
+              className="text-gray-500 hover:text-green-600 transition-colors p-2 rounded-lg hover:bg-green-50 border-2 border-transparent hover:border-green-200"
+            >
+              <Share2 size={18} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // 카드 클릭 이벤트 방지
                 onEdit?.(content.id);
               }}
               className="text-gray-500 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-indigo-50 border-2 border-transparent hover:border-indigo-200"
-              title="수정"
             >
               <Edit size={18} />
             </button>
             <button
               onClick={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // 카드 클릭 이벤트 방지
                 onDelete?.(content.id);
               }}
               className="text-gray-500 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50 border-2 border-transparent hover:border-red-200"
-              title="삭제"
             >
               <Trash2 size={18} />
             </button>
