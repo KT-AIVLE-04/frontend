@@ -251,8 +251,7 @@ const PostManagement = () => {
         aiOptions.industry.trim() ||
         (selectedStore?.industry
           ? Store.getIndustryLabel(selectedStore.industry)
-          : "") ||
-        "일반";
+          : "");
       const inputLocation = aiOptions.location.trim() || selectedStore.address;
       const inputKeywords = aiOptions.keywords;
 
@@ -302,7 +301,10 @@ const PostManagement = () => {
         setPost((prev) => ({
           ...prev,
           tags:
-            AiTagResponseData.tags?.map((tag) => tag.replace("#", "")) || [],
+            AiTagResponseData.tags?.map((tag) => {
+              // AI에서 온 태그는 #을 제거하고 저장 (일관성 위해)
+              return tag.replace("#", "").trim();
+            }) || [],
         }));
         setGeneratedPost((prev) => ({ ...prev, tags: true }));
       }
@@ -396,7 +398,7 @@ const PostManagement = () => {
       //     "updatedAt": "2025-08-21T18:16:41.442Z"
       //   }
       // ]
-      console.log("@@ getContentsResponseData", getContentsResponseData[0]);
+      // console.log("@@ getContentsResponseData", getContentsResponseData[0]);
       setContents(getContentsResponseData);
     } catch (error) {
       console.error("콘텐츠 라이브러리 로딩 실패:", error);
@@ -620,8 +622,8 @@ const PostManagement = () => {
       // 현재는 YouTube만 지원
       if (publishOptions.snsType === "youtube") {
         // 해시태그를 #과 함께 문자열로 변환
-        const hashtagsText =
-          post.tags.length > 0 ? "\n\n" + post.tags.join(" ") : "";
+        // const hashtagsText =
+        //   post.tags.length > 0 ? "\n\n" + post.tags.join(" ") : "";
 
         // 예약 발행 시간 처리
         const getPublishAt = () => {
@@ -637,18 +639,18 @@ const PostManagement = () => {
           // 즉시 발행인 경우 현재 시각
           return new Date().toISOString();
         };
-
+        console.log("@@ uploadData 전", post.tags);
         const uploadData = {
           snsType: publishOptions.snsType,
           originalName: selectedContent.originalName,
           objectKey: selectedContent.objectKey,
           title: post.title,
-          description: post.description + hashtagsText,
+          description: post.description,
           tags: post.tags,
           isNow: publishOptions.isNow,
           publishAt: getPublishAt(),
         };
-
+        console.log("@@ uploadData 후", uploadData);
         await snsApi.post.uploadPost(uploadData);
         alert("게시물이 업로드되었습니다!");
       }
@@ -907,7 +909,7 @@ const PostManagement = () => {
                       <span>{keyword}</span>
                       <button
                         onClick={() => removeKeyword(index)}
-                        className="hover:bg-green-200 rounded-full p-1 transition-colors"
+                        className="hover:bg-gray-300 rounded-full p-1 transition-colors"
                       >
                         <X size={12} />
                       </button>
@@ -957,9 +959,7 @@ const PostManagement = () => {
                 >
                   <option value="" disabled>
                     {selectedStore?.industry
-                      ? `${Store.getIndustryLabel(
-                          selectedStore.industry
-                        )} (매장 설정)`
+                      ? `${Store.getIndustryLabel(selectedStore.industry)}`
                       : "선택"}
                   </option>
                   {INDUSTRY_OPTIONS.map((industry) => (
@@ -1149,7 +1149,7 @@ const PostManagement = () => {
                   key={index}
                   className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center space-x-2 text-sm"
                 >
-                  <span>{tag}</span>
+                  <span>#{tag}</span> {/* 항상 #를 붙여서 표시 */}
                   <button
                     onClick={() => {
                       removeTag(index);
@@ -1267,7 +1267,7 @@ const PostManagement = () => {
                     <span
                       className={`text-sm font-bold flex items-center space-x-1 ${
                         snsAccountStatus[publishOptions.snsType] === true
-                          ? "text-green-600"
+                          ? "text-emerald-600"
                           : snsAccountStatus[publishOptions.snsType] === false
                           ? "text-red-600"
                           : "text-gray-600"
@@ -1393,10 +1393,29 @@ const PostManagement = () => {
         {/* 미리보기 */}
         {showPreview && (
           <div className="mb-6 space-y-6">
+            {/* 3개 플랫폼 미리보기를 모두 표시 */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* 유튜브 미리보기 */}
-              {publishOptions.snsType === "youtube" && (
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm max-w-sm mx-auto">
+              <div className="relative">
+                {/* 게시 예정 배지 */}
+                {publishOptions.snsType === "youtube" && (
+                  <div className="absolute -top-2 -right-2 z-10 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    게시예정
+                  </div>
+                )}
+                <div
+                  className={`bg-white border-2 rounded-xl overflow-hidden shadow-sm transition-all ${
+                    publishOptions.snsType === "youtube"
+                      ? "border-emerald-500 shadow-emerald-100 ring-2 ring-emerald-200"
+                      : "border-gray-200"
+                  }`}
+                >
+                  {/* YouTube 미리보기 상단에 추가 */}
+                  <div className="p-3 border-b border-gray-100">
+                    <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded">
+                      YouTube
+                    </span>
+                  </div>
                   {selectedThumbnail && (
                     <div className="relative aspect-[9/16] bg-black m-2">
                       <img
@@ -1405,7 +1424,7 @@ const PostManagement = () => {
                             (c) => c.id === selectedThumbnail
                           )?.url
                         }
-                        alt="미리보기"
+                        alt="YouTube 미리보기"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -1429,7 +1448,7 @@ const PostManagement = () => {
                             key={index}
                             className="text-blue-600 text-sm hover:underline cursor-pointer"
                           >
-                            {tag}
+                            #{tag}
                           </span>
                         ))}
                       </div>
@@ -1449,11 +1468,29 @@ const PostManagement = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* 인스타그램 미리보기 */}
-              {publishOptions.snsType === "instagram" && (
-                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm max-w-sm mx-auto">
+              <div className="relative">
+                {/* 게시 예정 배지 */}
+                {publishOptions.snsType === "instagram" && (
+                  <div className="absolute -top-2 -right-2 z-10 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    게시예정
+                  </div>
+                )}
+                <div
+                  className={`bg-white border-2 rounded-2xl overflow-hidden shadow-sm transition-all ${
+                    publishOptions.snsType === "instagram"
+                      ? "border-emerald-500 shadow-emerald-100 ring-2 ring-emerald-200"
+                      : "border-gray-200"
+                  }`}
+                >
+                  {/* Instagram 미리보기 상단에 추가 */}
+                  <div className="p-3 border-b border-gray-100">
+                    <span className="text-xs font-medium text-pink-600 bg-pink-50 px-2 py-1 rounded">
+                      Instagram
+                    </span>
+                  </div>
                   <div className="flex items-center p-3 border-b border-gray-100">
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">나</span>
@@ -1475,7 +1512,7 @@ const PostManagement = () => {
                             (c) => c.id === selectedThumbnail
                           )?.url
                         }
-                        alt="미리보기"
+                        alt="instagram 미리보기"
                         className="w-full h-full object-cover"
                       />
                       {uploadedContents.find((c) => c.id === selectedThumbnail)
@@ -1511,7 +1548,7 @@ const PostManagement = () => {
                         <div className="text-sm text-blue-600">
                           {post.tags.map((tag, index) => (
                             <span key={index} className="mr-1">
-                              {tag}
+                              #{tag}
                             </span>
                           ))}
                         </div>
@@ -1519,11 +1556,29 @@ const PostManagement = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* 페이스북 미리보기 */}
-              {publishOptions.snsType === "facebook" && (
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm max-w-sm mx-auto">
+              <div className="relative">
+                {/* 게시 예정 배지 */}
+                {publishOptions.snsType === "facebook" && (
+                  <div className="absolute -top-2 -right-2 z-10 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    게시예정
+                  </div>
+                )}
+                <div
+                  className={`bg-white border-2 rounded-xl overflow-hidden shadow-sm transition-all ${
+                    publishOptions.snsType === "facebook"
+                      ? "border-emerald-500 shadow-emerald-100 ring-2 ring-emerald-200"
+                      : "border-gray-200"
+                  }`}
+                >
+                  {/* Facebook 미리보기 상단에도 추가 */}
+                  <div className="p-4 border-b border-gray-100">
+                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      Facebook
+                    </span>
+                  </div>
                   <div className="flex items-center p-4 border-b border-gray-100">
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">나</span>
@@ -1557,7 +1612,7 @@ const PostManagement = () => {
                               key={index}
                               className="text-blue-600 hover:underline cursor-pointer"
                             >
-                              {tag}
+                              #{tag}
                             </span>
                           ))}
                         </div>
@@ -1572,7 +1627,7 @@ const PostManagement = () => {
                               (c) => c.id === selectedThumbnail
                             )?.url
                           }
-                          alt="미리보기"
+                          alt="facebook 미리보기"
                           className="w-full h-48 object-cover"
                         />
                         {uploadedContents.find(
@@ -1608,7 +1663,7 @@ const PostManagement = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* 미리보기 없을 때 */}
@@ -1617,7 +1672,7 @@ const PostManagement = () => {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Eye size={24} className="text-gray-400" />
                 </div>
-                <p>플랫폼을 선택하면 미리보기를 볼 수 있습니다</p>
+                <p>플랫폼을 선택하면 게시 예정 플랫폼이 강조됩니다</p>
               </div>
             )}
           </div>

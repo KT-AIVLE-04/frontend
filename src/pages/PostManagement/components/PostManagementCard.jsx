@@ -24,8 +24,8 @@ export function PostManagementCard({ content, onClick, onDelete }) {
     const statusMap = {
       completed: {
         icon: CheckCircle,
-        color: "text-green-500",
-        bg: "bg-green-50",
+        color: "text-emerald-500",
+        bg: "bg-emerald-50",
         text: "업로드 완료",
       },
       scheduled: {
