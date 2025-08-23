@@ -1,42 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { analyticsApi } from '../../api/analytics';
 import { ErrorPage, LoadingSpinner, StatCard } from '../../components';
+import { useApi } from '../../hooks';
 import { ActivityItem, createStatCard, TrendSection } from './components';
 
 export function Dashboard() {
-  const [stats, setStats] = useState([]);
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // useApi 훅 사용
+  const { data: dashboardData, loading, error, execute: fetchDashboardData } = useApi(analyticsApi.getDashboardStats);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await analyticsApi.getDashboardStats();
-        const data = response.data;
-        
-        const newStats = [
-          createStatCard('stores', data.stores, data.storesChange),
-          createStatCard('contents', data.contents, data.contentsChange),
-          createStatCard('posts', data.posts, data.postsChange),
-          createStatCard('views', data.totalViews?.toLocaleString(), data.viewsChange)
-        ];
-
-        setStats(newStats);
-        setActivities(data.activities || []);
-      } catch (error) {
-        console.error('대시보드 데이터 로딩 실패:', error);
-        setError('대시보드 데이터를 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  React.useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
+
+  const stats = React.useMemo(() => {
+    if (!dashboardData?.data) return [];
+    
+    const data = dashboardData.data;
+    return [
+      createStatCard('stores', data.stores, data.storesChange),
+      createStatCard('contents', data.contents, data.contentsChange),
+      createStatCard('posts', data.posts, data.postsChange),
+      createStatCard('views', data.totalViews?.toLocaleString(), data.viewsChange)
+    ];
+  }, [dashboardData]);
+
+  const activities = dashboardData?.data?.activities || [];
 
   if (error) {
     return <ErrorPage title="대시보드 로딩 실패" message={error} />;

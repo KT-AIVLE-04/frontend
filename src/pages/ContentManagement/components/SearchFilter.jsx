@@ -1,6 +1,7 @@
 import { ChevronDown, Filter, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Container } from '../../../components/Container';
+import { Card } from '../../../components';
+import { useClickOutside } from '../../../hooks';
 
 export const SearchFilter = ({ 
   searchTerm, 
@@ -12,6 +13,9 @@ export const SearchFilter = ({
   setContentTypeFilter 
 }) => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  
+  // 외부 클릭 감지
+  const dropdownRef = useClickOutside(() => setShowFilterDropdown(false));
 
   const handleContentTypeChange = (type) => {
     setContentTypeFilter(prev => ({
@@ -21,7 +25,7 @@ export const SearchFilter = ({
   };
 
   return (
-    <Container className="mb-6 p-6">
+    <Card className="mb-6 p-6">
       <div className="flex flex-wrap gap-4">
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
@@ -41,7 +45,7 @@ export const SearchFilter = ({
         </div>
 
         <div className="flex space-x-3">
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
               className="flex items-center px-4 py-3 border-2 border-gray-400 rounded-2xl bg-white text-sm font-black text-gray-700 hover:bg-gray-100 transition-all duration-150">
@@ -91,13 +95,7 @@ export const SearchFilter = ({
         </div>
       </div>
       
-      {/* 필터 드롭다운 외부 클릭 시 닫기 */}
-      {showFilterDropdown && (
-        <div 
-          className="fixed inset-0 z-0" 
-          onClick={() => setShowFilterDropdown(false)}
-        />
-      )}
-    </Container>
+
+          </Card>
   );
 }; 

@@ -1,7 +1,6 @@
 import { MapPin } from 'lucide-react';
 import React from 'react';
-import { Button } from '../../../components/Button';
-import { FormField } from '../../../components/FormField';
+import { Alert, Button, FormField } from '../../../components';
 import { INDUSTRY_OPTIONS } from '../../../const/industries';
 
 export function StoreForm({
@@ -91,9 +90,11 @@ export function StoreForm({
       />
 
       {error && (
-        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-          {error}
-        </div>
+        <Alert
+          type="error"
+          title="오류"
+          message={error}
+        />
       )}
 
       <div className="flex justify-end pt-4">

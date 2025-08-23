@@ -17,7 +17,7 @@ import { storeApi } from "../../api/store";
 import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
 import { INDUSTRY_OPTIONS } from "../../const/industries";
 import { SNS_TYPES } from "../../const/snsTypes";
-import { useApi } from "../../hooks";
+import { useApi, useConfirm, useNotification } from "../../hooks";
 import { Store } from "../../models/Store";
 import { ROUTES } from "../../routes/routes";
 import { PostDetail, PostManagementCard, SearchFilter } from "./components";
@@ -34,7 +34,6 @@ const PostManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [selectedPost, setSelectedPost] = useState(null);
-  const [posts, setPosts] = useState([]);
   const [post, setPost] = useState({
     title: "",
     description: "",
@@ -85,6 +84,10 @@ const PostManagement = () => {
   const { execute: deletePostApi } = useApi(snsApi.post.deletePost);
   const { execute: getStoreApi } = useApi(storeApi.getStore);
   const { execute: getContentsApi } = useApi(contentApi.getContents);
+
+  // 새로운 훅들 사용
+  const { confirm } = useConfirm();
+  const { success, error: showError } = useNotification();
 
   // 계정 연동 상태 확인 함수
   const checkSnsAccountStatus = async (snsType) => {
@@ -170,7 +173,12 @@ const PostManagement = () => {
   const handleCloseDetail = () => setSelectedPost(null);
 
   const handleDeletePost = async (postId) => {
-    if (window.confirm("정말로 이 게시물을 삭제하시겠습니까?")) {
+    const confirmed = await confirm({
+      title: "게시물 삭제",
+      message: "정말로 이 게시물을 삭제하시겠습니까?"
+    });
+
+    if (confirmed) {
       try {
         // posts 배열에서 해당 post의 snsType 찾기
         const postToDelete = posts.find((p) => p.id === postId);
@@ -181,10 +189,10 @@ const PostManagement = () => {
         setPosts((prev) => prev.filter((p) => p.id !== postId));
         if (selectedPost?.id === postId) handleCloseDetail();
 
-        alert("게시물이 삭제되었습니다.");
+        success("게시물이 삭제되었습니다.");
       } catch (error) {
         console.error("게시물 삭제 실패:", error);
-        alert("게시물 삭제에 실패했습니다. 다시 시도해주세요.");
+        showError("게시물 삭제에 실패했습니다. 다시 시도해주세요.");
       }
     }
   };

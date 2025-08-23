@@ -1,9 +1,9 @@
 import { ChevronDown, Filter, Search } from 'lucide-react';
-import { Container } from '../../../components/Container';
+import { Card } from '../../../components';
 
 export const SearchFilter = ({ searchTerm, setSearchTerm, sortBy, setSortBy, onSearch }) => {
   return (
-    <Container className="mb-6 p-6">
+    <Card className="mb-6 p-6">
       <div className="flex flex-wrap gap-4">
         <div className="flex-1 min-w-[200px]">
           <div className="relative">
@@ -39,6 +39,6 @@ export const SearchFilter = ({ searchTerm, setSearchTerm, sortBy, setSortBy, onS
           </select>
         </div>
       </div>
-    </Container>
+          </Card>
   );
 }; 

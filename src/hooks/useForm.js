@@ -41,7 +41,7 @@ export const useForm = (initialValues = {}) => {
     }));
   }, []);
 
-  const setErrors = useCallback((newErrors) => {
+  const setAllErrors = useCallback((newErrors) => {
     setErrors(newErrors);
   }, []);
 
@@ -76,7 +76,7 @@ export const useForm = (initialValues = {}) => {
     handleBlur,
     setFieldValue,
     setFieldError,
-    setErrors,
+    setAllErrors,
     resetForm,
     validateForm
   };

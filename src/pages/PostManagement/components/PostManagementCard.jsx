@@ -1,6 +1,6 @@
-import { Trash2, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, Clock, Eye, Trash2, XCircle } from "lucide-react";
 import React from "react";
-import { Container } from "../../../components/Container";
+import { Card } from "../../../components";
 
 export function PostManagementCard({ content, onClick, onDelete }) {
   const handleCardClick = () => {
@@ -48,7 +48,7 @@ export function PostManagementCard({ content, onClick, onDelete }) {
   const StatusIcon = statusInfo.icon;
 
   return (
-    <Container
+    <Card
       variant="hover"
       className="overflow-hidden group cursor-pointer"
       onClick={handleCardClick}
@@ -144,6 +144,6 @@ export function PostManagementCard({ content, onClick, onDelete }) {
           </button>
         </div>
       </div>
-    </Container>
+          </Card>
   );
 }

@@ -2,8 +2,8 @@ import { ArrowLeft } from 'lucide-react';
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
-import { Card } from '../../components';
-import { useApi } from '../../hooks';
+import { Button, FormPageLayout } from '../../components';
+import { useApi, useNotification } from '../../hooks';
 import { Store } from '../../models/Store';
 import { StoreForm } from './components';
 
@@ -18,6 +18,9 @@ export function StoreUpdate() {
   // useApi 훅 사용
   const { loading, error, execute: createStore } = useApi(storeApi.createStore);
   const { execute: updateStore } = useApi(storeApi.updateStore);
+
+  // 새로운 훅들 사용
+  const { success, error: showError } = useNotification();
 
   // 연락처 포맷팅 함수
   const formatContactNumber = (value) => {
@@ -123,16 +126,17 @@ export function StoreUpdate() {
 
       if (isEditMode) {
         await updateStore(editStore.id, storeRequest.toCreateRequest());
-        alert('매장 정보가 수정되었습니다.');
+        success('매장 정보가 수정되었습니다.');
       } else {
         await createStore(storeRequest.toCreateRequest());
-        alert('새 매장이 추가되었습니다.');
+        success('새 매장이 추가되었습니다.');
       }
       
       // 이전 페이지로 돌아가기
       navigate(-1);
     } catch (error) {
       console.error('매장 저장 실패:', error);
+      showError('매장 저장에 실패했습니다.');
     }
   };
 
@@ -141,31 +145,52 @@ export function StoreUpdate() {
   };
 
   return (
-    <div className="flex-1 max-w-2xl mx-auto">
-      <div className="flex items-center mt-4">
-        <button
-          onClick={handleCancel}
-          className="mr-2! p-3 text-gray-600  rounded-xl"
-        >
-          <ArrowLeft size={20} strokeWidth={4} />
-        </button>
-        <h1 className="text-2xl font-bold" >{isEditMode ? '매장 정보 수정' : '새 매장 추가'}</h1>
-      </div>
-
-      <Card className="p-8 ">
-        <StoreForm
-          formData={formData}
-          setFormData={setFormData}
-          handleSubmit={handleSubmit}
-          handleInputChange={handleInputChange}
-          handleContactChange={handleContactChange}
-          handleAddressSearch={handleAddressSearch}
+    <FormPageLayout
+      loading={loading}
+      error={error}
+      topSection={
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">{isEditMode ? '매장 정보 수정' : '새 매장 추가'}</h1>
+          <Button
+            onClick={handleCancel}
+            variant="ghost"
+            icon={ArrowLeft}
+          >
+            돌아가기
+          </Button>
+        </div>
+      }
+      onSubmit={handleSubmit}
+      submitButton={
+        <Button
+          type="submit"
           loading={loading}
-          error={error}
-          onCancel={handleCancel}
-          isEditMode={isEditMode}
-        />
-      </Card>
-    </div>
+        >
+          {isEditMode ? '수정하기' : '추가하기'}
+        </Button>
+      }
+      cancelButton={
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleCancel}
+        >
+          취소
+        </Button>
+      }
+    >
+      <StoreForm
+        formData={formData}
+        setFormData={setFormData}
+        handleSubmit={handleSubmit}
+        handleInputChange={handleInputChange}
+        handleContactChange={handleContactChange}
+        handleAddressSearch={handleAddressSearch}
+        loading={loading}
+        error={error}
+        onCancel={handleCancel}
+        isEditMode={isEditMode}
+      />
+    </FormPageLayout>
   );
 } 
