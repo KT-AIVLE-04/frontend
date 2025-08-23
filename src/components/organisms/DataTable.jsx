@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container } from './Container';
+import { Card } from '../molecules';
 
 export function DataTable({ 
   columns, 
@@ -9,7 +9,7 @@ export function DataTable({
   className = ""
 }) {
   return (
-    <Container className={`overflow-hidden ${className}`}>
+    <Card className={`overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-gray-100">
@@ -52,6 +52,6 @@ export function DataTable({
           </tbody>
         </table>
       </div>
-    </Container>
+    </Card>
   );
-} 
+}

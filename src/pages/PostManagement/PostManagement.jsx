@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from "react";
 import {
-  Video,
-  Plus,
-  Hash,
-  Sparkles,
-  X,
-  FolderOpen,
-  Search,
-  Eye,
+    Eye,
+    FolderOpen,
+    Hash,
+    Plus,
+    Search,
+    Sparkles,
+    Video,
+    X,
 } from "lucide-react";
-import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
-import { SearchFilter, PostManagementCard, PostDetail } from "./components";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { storeApi } from "../../api/store";
-import { snsApi } from "../../api/sns";
-import { contentApi } from "../../api/content";
-import { Store } from "../../models/Store";
-import { SNS_TYPES } from "../../const/snsTypes";
-import { INDUSTRY_OPTIONS } from "../../const/industries";
 import { useNavigate } from "react-router-dom";
+import { contentApi } from "../../api/content";
+import { snsApi } from "../../api/sns";
+import { storeApi } from "../../api/store";
+import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
+import { INDUSTRY_OPTIONS } from "../../const/industries";
+import { SNS_TYPES } from "../../const/snsTypes";
+import { useApi } from "../../hooks";
+import { Store } from "../../models/Store";
 import { ROUTES } from "../../routes/routes";
+import { PostDetail, PostManagementCard, SearchFilter } from "./components";
 
 const PostManagement = () => {
   /** ----------------------
@@ -28,8 +29,7 @@ const PostManagement = () => {
   const { selectedStoreId } = useSelector((state) => state.auth); // /src/store/index.js, /src/store/authSlice.js 참고하여 이해
 
   const [activeTab, setActiveTab] = useState("list");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [posts, setPosts] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
@@ -79,6 +79,12 @@ const PostManagement = () => {
   const [checkingAccountStatus, setCheckingAccountStatus] = useState(false);
 
   const navigate = useNavigate();
+
+  // useApi 훅 사용
+  const { loading, error, execute: fetchPostsApi } = useApi(snsApi.post.getPosts);
+  const { execute: deletePostApi } = useApi(snsApi.post.deletePost);
+  const { execute: getStoreApi } = useApi(storeApi.getStore);
+  const { execute: getContentsApi } = useApi(contentApi.getContents);
 
   // 계정 연동 상태 확인 함수
   const checkSnsAccountStatus = async (snsType) => {
@@ -135,36 +141,14 @@ const PostManagement = () => {
   };
 
   const fetchPosts = async () => {
+    if (!selectedStoreId) {
+      setPosts([]);
+      return;
+    }
+
     try {
-      setLoading(true);
-      setError(null);
-
-      if (!selectedStoreId) {
-        setError("매장을 선택해주세요.");
-        setPosts([]);
-        return;
-      }
-
-      const getPostsResponse = await snsApi.post.getPosts();
+      const getPostsResponse = await fetchPostsApi();
       const getPostsResponseData = getPostsResponse.data.result || [];
-      // [
-      //   {
-      //     "id": 0,
-      //     "snsPostId": "string",
-      //     "title": "string",
-      //     "description": "string",
-      //     "snsType": "youtube",
-      //     "originalName": "string",
-      //     "objectKey": "string",
-      //     "url": "string",
-      //     "tags": [
-      //       "string"
-      //     ],
-      //     "categoryId": "string",
-      //     "publishAt": "2025-08-21T18:30:57.466Z",
-      //     "notifySubscribers": true
-      //   }
-      // ],
 
       let filteredPosts = getPostsResponseData;
       if (selectedSnsType.length > 0) {
@@ -175,10 +159,7 @@ const PostManagement = () => {
       setPosts(filteredPosts);
     } catch (error) {
       console.error("게시물 목록 로딩 실패:", error);
-      setError("게시물 목록을 불러오는데 실패했습니다.");
       setPosts([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -193,7 +174,7 @@ const PostManagement = () => {
       try {
         // posts 배열에서 해당 post의 snsType 찾기
         const postToDelete = posts.find((p) => p.id === postId);
-        await snsApi.post.deletePost(postId, {
+        await deletePostApi(postId, {
           snsType: postToDelete?.snsType,
         });
 

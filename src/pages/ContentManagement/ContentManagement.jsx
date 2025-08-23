@@ -2,68 +2,48 @@ import { Upload, Video } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../../api/content';
 import { ContentCard, EmptyStateBox, ErrorPage, LoadingSpinner } from '../../components';
+import { useApi } from '../../hooks';
 import { Content } from '../../models';
 import { SearchFilter } from './components';
 import { VideoDetail } from './components/VideoDetail';
 
 export function ContentManagement() {
-  const [contents, setContents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [selectedContent, setSelectedContent] = useState(null);
-  const [uploading, setUploading] = useState(false);
   const [contentTypeFilter, setContentTypeFilter] = useState({
     videos: true,
     images: true
   });
 
+  // useApi 훅 사용
+  const { data: contentsData, loading, error, execute: fetchContents } = useApi(contentApi.getContents);
+  const { loading: uploading, execute: uploadContent } = useApi(contentApi.uploadContent);
+  const { execute: deleteContent } = useApi(contentApi.deleteContent);
+  const { execute: updateContentTitle } = useApi(contentApi.updateContentTitle);
+
   useEffect(() => {
-    fetchContents();
-  }, [sortBy]);
+    fetchContents({ query: searchTerm || undefined });
+  }, [sortBy, searchTerm, fetchContents]);
 
-  const fetchContents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params = {
-        query: searchTerm || undefined
-      };
-
-      const {data} = await contentApi.getContents(params);
-      if(data){
-        const {message, result} = data;
-        const contentModels = Content.fromResponseArray(result || []);
-        setContents(contentModels);
-      }else{
-        throw new Error("콘텐츠 목록 형식이 올바르지 않습니다.");
-      }
-    } catch (error) {
-      console.error('콘텐츠 목록 로딩 실패:', error);
-      setError('콘텐츠 목록을 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const contents = contentsData?.data ? 
+    Content.fromResponseArray(contentsData.data.result || []) : [];
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     try {
-      setUploading(true);
-      const response = await contentApi.uploadContent(file);
+      const response = await uploadContent(file);
       const newContent = Content.fromResponse(response.data.data);
       
-      setContents(prev => [newContent, ...prev]);
+      // 새 콘텐츠를 목록에 추가하기 위해 다시 fetch
+      fetchContents({ query: searchTerm || undefined });
       alert('파일이 성공적으로 업로드되었습니다.');
     } catch (error) {
       console.error('파일 업로드 실패:', error);
       alert('파일 업로드에 실패했습니다.');
     } finally {
-      setUploading(false);
       event.target.value = ''; // 파일 input 초기화
     }
   };
@@ -80,9 +60,10 @@ export function ContentManagement() {
   const handleDelete = async (contentId) => {
     if (window.confirm('정말로 이 콘텐츠를 삭제하시겠습니까?')) {
       try {
-        await contentApi.deleteContent(contentId);
-        setContents(prev => prev.filter(c => c.id !== contentId));
+        await deleteContent(contentId);
         setSelectedContent(null);
+        // 목록 다시 fetch
+        fetchContents({ query: searchTerm || undefined });
         alert('콘텐츠가 삭제되었습니다.');
       } catch (error) {
         console.error('콘텐츠 삭제 실패:', error);
@@ -93,11 +74,11 @@ export function ContentManagement() {
 
   const handleEditTitle = async (contentId, newTitle) => {
     try {
-      const response = await contentApi.updateContentTitle(contentId, newTitle);
+      const response = await updateContentTitle(contentId, newTitle);
       const updatedContent = Content.fromResponse(response.data.data);
       
-      setContents(prev => prev.map(c => 
-        c.id === contentId ? updatedContent : c
+      // 목록 다시 fetch
+      fetchContents({ query: searchTerm || undefined });
       ));
       
       if (selectedContent && selectedContent.id === contentId) {

@@ -41,4 +41,4 @@ export function IconButton({
       <Icon size={iconSizes[size]} />
     </button>
   );
-} 
+}

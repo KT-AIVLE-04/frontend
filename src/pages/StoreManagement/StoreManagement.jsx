@@ -1,43 +1,33 @@
-import {Plus} from 'lucide-react';
-import React, {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate} from 'react-router-dom';
-import {storeApi} from '../../api/store';
-import {Button, ErrorPage, LoadingSpinner} from '../../components';
-import {ROUTES} from '../../routes/routes';
-import {StoreTable} from './components';
-import {setSelectedStore} from "../../store/authSlice.js";
+import { Plus } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { storeApi } from '../../api/store';
+import { Button, ErrorPage, LoadingSpinner } from '../../components';
+import { useApi } from '../../hooks';
+import { ROUTES } from '../../routes/routes';
+import { setSelectedStore } from "../../store/authSlice.js";
+import { StoreTable } from './components';
 
 export function StoreManagement() {
-  const [stores, setStores] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const {selectedStoreId} = useSelector((state) => state.auth);
 
+  // useApi 훅 사용
+  const { data: storesData, loading, error, execute: fetchStores } = useApi(storeApi.getStores);
+  const { execute: deleteStore } = useApi(storeApi.deleteStore);
+
   useEffect(() => {
     fetchStores();
-  }, []);
+  }, [fetchStores]);
 
-  const fetchStores = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await storeApi.getStores();
-      setStores(response.data?.result || []);
-    } catch (error) {
-      console.error('매장 목록 로딩 실패:', error);
-      setError('매장 목록을 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const stores = storesData?.data?.result || [];
 
   const handleDelete = async (storeId) => {
     if (window.confirm('정말로 이 매장을 삭제하시겠습니까?')) {
       try {
-        await storeApi.deleteStore(storeId);
+        await deleteStore(storeId);
         fetchStores();
       } catch (error) {
         console.error('매장 삭제 실패:', error);

@@ -1,51 +1,48 @@
 import { ArrowLeft } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
-import { Button, Container, FormField } from '../../components';
+import { Alert, Button, Card, FormField } from '../../components';
+import { useApi, useForm } from '../../hooks';
 import { ageOptions } from './components';
 
 export function Register({ onRegister, onLoginClick }) {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  
+  // useForm 훅 사용
+  const {
+    values: formData,
+    errors,
+    handleChange,
+    resetForm
+  } = useForm({
     name: '',
     email: '',
     phone: '',
     age: '',
     password: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  // useApi 훅 사용
+  const { loading, error, execute: registerUser } = useApi(authApi.register);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    
     try {
-      await authApi.register(formData);
+      await registerUser(formData);
       
       if (onRegister) {
         onRegister();
       }
     } catch (error) {
       console.error('회원가입 실패:', error);
-      const errorMessage = error.response?.data?.message || '회원가입에 실패했습니다. 입력 정보를 확인해주세요.';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (error) {
-      setError('');
-    }
+    handleChange(name, value);
   };
 
   const handleCancel = () => {
@@ -64,11 +61,13 @@ export function Register({ onRegister, onLoginClick }) {
         <h1 className="text-2xl font-bold">회원가입</h1>
       </div>
 
-      <Container className="p-8">
+      <Card className="p-8">
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
+          <Alert
+            type="error"
+            title="회원가입 실패"
+            message={error.response?.data?.message || '회원가입에 실패했습니다. 입력 정보를 확인해주세요.'}
+          />
         )}
         <form onSubmit={handleSubmit}>
           <FormField
@@ -136,7 +135,7 @@ export function Register({ onRegister, onLoginClick }) {
             </button>
           </div>
         </div>
-      </Container>
+      </Card>
     </div>
   );
 } 

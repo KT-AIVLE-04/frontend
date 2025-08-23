@@ -2,7 +2,8 @@ import { ArrowLeft } from 'lucide-react';
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
-import { Container } from '../../components/Container';
+import { Card } from '../../components';
+import { useApi } from '../../hooks';
 import { Store } from '../../models/Store';
 import { StoreForm } from './components';
 
@@ -13,8 +14,10 @@ export function StoreUpdate() {
   const isEditMode = !!editStore;
   
   const [formData, setFormData] = useState(editStore ? new Store(editStore) : Store.createEmpty());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  
+  // useApi 훅 사용
+  const { loading, error, execute: createStore } = useApi(storeApi.createStore);
+  const { execute: updateStore } = useApi(storeApi.updateStore);
 
   // 연락처 포맷팅 함수
   const formatContactNumber = (value) => {
@@ -111,9 +114,6 @@ export function StoreUpdate() {
     e.preventDefault();
     
     try {
-      setLoading(true);
-      setError(null);
-
       const storeRequest = new Store(formData);
       if (!storeRequest.isValid()) {
         const errors = storeRequest.getValidationErrors();
@@ -122,10 +122,10 @@ export function StoreUpdate() {
       }
 
       if (isEditMode) {
-        await storeApi.updateStore(editStore.id, storeRequest.toCreateRequest());
+        await updateStore(editStore.id, storeRequest.toCreateRequest());
         alert('매장 정보가 수정되었습니다.');
       } else {
-        await storeApi.createStore(storeRequest.toCreateRequest());
+        await createStore(storeRequest.toCreateRequest());
         alert('새 매장이 추가되었습니다.');
       }
       
@@ -133,9 +133,6 @@ export function StoreUpdate() {
       navigate(-1);
     } catch (error) {
       console.error('매장 저장 실패:', error);
-      setError('매장 저장에 실패했습니다.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -155,7 +152,7 @@ export function StoreUpdate() {
         <h1 className="text-2xl font-bold" >{isEditMode ? '매장 정보 수정' : '새 매장 추가'}</h1>
       </div>
 
-      <Container className="p-8 ">
+      <Card className="p-8 ">
         <StoreForm
           formData={formData}
           setFormData={setFormData}
@@ -168,7 +165,7 @@ export function StoreUpdate() {
           onCancel={handleCancel}
           isEditMode={isEditMode}
         />
-      </Container>
+      </Card>
     </div>
   );
 } 

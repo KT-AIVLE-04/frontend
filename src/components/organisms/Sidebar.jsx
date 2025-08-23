@@ -42,34 +42,34 @@ export function Sidebar({ activePage, onNavigate }) {
 
   return (
     <div className="bg-white border-gray-800 flex flex-col shadow-[4px_0px_0px_0px_rgba(0,0,0,0.8)]" style={{ width: '200px', backgroundColor: '#fff67d' }}>
-      <nav className="flex-1 pt-4">
-        <ul>
+      <div className="flex-1 p-4">
+        <div className="space-y-2">
           {navItems.map((item) => (
-            <li key={item.id}>
-              <button 
-                onClick={() => onNavigate(item.id)}
-                className={`flex items-center w-full px-4 py-3 text-left font-bold transition-all duration-150 ${
-                  activePage === item.id 
-                    ? 'bg-blue-100 text-black' 
-                    : 'text-gray-700 hover:bg-blue-100'
-                }`}
-              >
-                <span className="mr-3">{item.icon}</span>
-                {item.label}
-              </button>
-            </li>
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition-all duration-150 ${
+                activePage === item.id
+                  ? 'bg-blue-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)]'
+                  : 'text-gray-700 hover:bg-gray-100 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)]'
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
           ))}
-        </ul>
-      </nav>
-      <div className="p-4 border-t-2" style={{backgroundColor: '#ffb8b8'}}>
-        <button 
-          className="flex items-center text-gray-700 hover:text-red-600 font-bold transition-colors duration-150" 
-          onClick={() => onNavigate('login')}
+        </div>
+      </div>
+      
+      <div className="p-4 border-t-2 border-gray-800">
+        <button
+          onClick={() => onNavigate('logout')}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-100 transition-all duration-150"
         >
-          <LogOut size={20} className="mr-2" />
-          로그아웃
+          <LogOut size={20} />
+          <span>로그아웃</span>
         </button>
       </div>
     </div>
   );
-} 
+}
