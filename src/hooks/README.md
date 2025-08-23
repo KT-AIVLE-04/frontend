@@ -1,231 +1,141 @@
-# Custom Hooks Library
+# Custom Hooks
 
-이 프로젝트에서 사용하는 커스텀 훅들의 모음입니다.
+이 디렉토리에는 프로젝트에서 재사용 가능한 커스텀 훅들이 정의되어 있습니다.
 
-## 기본 훅들
+## useApi
 
-### useAuth
-인증 상태 관리를 위한 훅입니다.
+API 호출을 위한 기본 훅입니다.
 
-### useApi
-API 호출 상태 관리를 위한 훅입니다.
-- `data`: API 응답 데이터
-- `loading`: 로딩 상태
-- `error`: 에러 상태
-- `execute`: API 실행 함수
-- `reset`: 상태 초기화
-
-### useMultipleApi
-여러 API를 동시에 호출하는 훅입니다 (Promise.all 사용).
-- `loading`: 로딩 상태
-- `error`: 에러 상태
-- `results`: 모든 API 결과 (key-value 형태)
-- `executeMultiple`: 병렬 실행 (Promise.all)
-- `executeSequential`: 순차 실행
-- `executeWithRetry`: 재시도 로직 포함
-- `clearResults`: 결과 초기화
-
-```jsx
-const { loading, error, results, executeMultiple } = useMultipleApi();
-
-// 여러 API 동시 호출
-useEffect(() => {
-  executeMultiple({
-    dashboard: () => analyticsApi.getDashboardStats(),
-    contents: () => contentApi.getContents(),
-    stores: () => storeApi.getStores()
-  });
-}, []);
-
-// 결과 사용
-const dashboardData = results.dashboard?.data;
-const contentsData = results.contents?.data;
-const storesData = results.stores?.data;
+```javascript
+const { data, loading, error, execute } = useApi(apiFunction);
 ```
 
-### useForm
+## useForm
+
 폼 상태 관리를 위한 훅입니다.
-- `values`: 폼 값들
-- `errors`: 에러 상태
-- `touched`: 터치된 필드들
-- `handleChange`: 값 변경 핸들러
-- `handleBlur`: 블러 핸들러
-- `resetForm`: 폼 초기화
 
-## 유틸리티 훅들
-
-### useLocalStorage
-로컬 스토리지 관리를 위한 훅입니다.
-
-```jsx
-const [value, setValue, removeValue] = useLocalStorage('key', initialValue);
+```javascript
+const { values, errors, handleChange, handleSubmit, setValues, setErrors } = useForm(initialValues, validationSchema);
 ```
 
-### useDebounce
-디바운스 기능을 위한 훅입니다.
+## useMultipleApi
 
-```jsx
+여러 API를 동시에 호출하고 관리하는 훅입니다.
+
+```javascript
+const { 
+  loading, 
+  error, 
+  errors,        // 개별 API 에러들
+  results, 
+  executeMultiple,    // 병렬 실행 (Promise.all) - 하나라도 실패하면 전체 실패
+  executeAllSettled,  // 병렬 실행 (Promise.allSettled) - 모든 결과를 받음
+  executeSequential,  // 순차 실행
+  executeWithRetry,   // 재시도 로직 포함
+  clearResults 
+} = useMultipleApi();
+```
+
+### executeMultiple
+- `Promise.all`을 사용하여 병렬 실행
+- 하나라도 실패하면 전체가 실패로 처리
+- 모든 API가 성공해야 결과를 받음
+
+### executeAllSettled ⭐ (추천)
+- `Promise.allSettled` 방식으로 모든 API 호출 결과를 받음
+- 성공/실패를 구분해서 처리 가능
+- 일부 API가 실패해도 다른 API의 결과는 받을 수 있음
+- `errors` 객체로 개별 API 에러들을 확인 가능
+
+```javascript
+const result = await executeAllSettled({
+  users: () => userApi.getUsers(),
+  posts: () => postApi.getPosts(),
+  comments: () => commentApi.getComments()
+});
+
+console.log('성공한 결과:', result.results);
+console.log('실패한 API들:', result.errors);
+```
+
+### executeSequential
+- API를 순차적으로 실행
+- 하나가 실패해도 다음 API는 계속 실행
+
+### executeWithRetry
+- 재시도 로직이 포함된 병렬 실행
+- 기본 3회 재시도, 지수 백오프 적용
+
+## useLocalStorage
+
+로컬 스토리지와 상태를 동기화하는 훅입니다.
+
+```javascript
+const [value, setValue] = useLocalStorage('key', defaultValue);
+```
+
+## useDebounce
+
+입력값의 디바운싱을 위한 훅입니다.
+
+```javascript
 const debouncedValue = useDebounce(value, 500);
 ```
 
-### useClickOutside
-외부 클릭 감지를 위한 훅입니다.
+## useClickOutside
 
-```jsx
+요소 외부 클릭을 감지하는 훅입니다.
+
+```javascript
 const ref = useClickOutside(() => {
   // 외부 클릭 시 실행할 로직
 });
 ```
 
-### useModal
-모달 상태 관리를 위한 훅입니다.
+## usePagination
 
-```jsx
-const { isOpen, open, close, toggle } = useModal();
+페이지네이션 상태를 관리하는 훅입니다.
+
+```javascript
+const { currentPage, totalPages, goToPage, nextPage, prevPage } = usePagination(totalItems, itemsPerPage);
 ```
 
-### usePagination
-페이지네이션 로직을 위한 훅입니다.
+## useSearch
 
-```jsx
-const {
-  currentPage,
-  paginatedData,
-  totalPages,
-  goToPage,
-  nextPage,
-  prevPage,
-  hasNextPage,
-  hasPrevPage
-} = usePagination(data, 10);
+검색 기능을 위한 훅입니다.
+
+```javascript
+const { searchTerm, setSearchTerm, filteredItems } = useSearch(items, searchKeys);
 ```
 
-### useSearch
-검색 및 필터링을 위한 훅입니다.
+## useFileUpload
 
-```jsx
-const {
-  searchTerm,
-  filteredData,
-  updateSearchTerm,
-  updateFilter,
-  clearAll
-} = useSearch(data, ['title', 'content'], {
-  debounceDelay: 300,
-  caseSensitive: false
-});
+파일 업로드를 위한 훅입니다.
+
+```javascript
+const { uploading, uploadFile, progress } = useFileUpload();
 ```
 
-### useFileUpload
-파일 업로드 관리를 위한 훅입니다.
+## useNotification
 
-```jsx
-const {
-  files,
-  uploading,
-  error,
-  addFiles,
-  removeFile,
-  uploadFiles,
-  formatFileSize
-} = useFileUpload({
-  maxFileSize: 10 * 1024 * 1024,
-  allowedTypes: ['image/*', 'video/*'],
-  multiple: true
-});
+알림을 표시하는 훅입니다.
+
+```javascript
+const { showNotification, hideNotification } = useNotification();
 ```
 
-### useNotification
-알림 관리를 위한 훅입니다.
+## useConfirm
 
-```jsx
-const { success, error, warning, info } = useNotification();
-
-// 사용 예시
-success('성공적으로 저장되었습니다!');
-error('오류가 발생했습니다.');
-```
-
-### useConfirm
 확인 다이얼로그를 위한 훅입니다.
 
-```jsx
-const { confirm } = useConfirm();
-
-const handleDelete = async () => {
-  const confirmed = await confirm({
-    title: '삭제 확인',
-    message: '정말로 삭제하시겠습니까?'
-  });
-  
-  if (confirmed) {
-    // 삭제 로직
-  }
-};
+```javascript
+const { showConfirm } = useConfirm();
 ```
 
-### useWindowSize
-윈도우 크기 감지를 위한 훅입니다.
+## useWindowSize
 
-```jsx
-const { width, height, isMobile, isTablet, isDesktop } = useWindowSize();
+윈도우 크기를 감지하는 훅입니다.
+
+```javascript
+const { width, height } = useWindowSize();
 ```
-
-## 사용 예시
-
-### ContentManagement에서의 활용
-
-```jsx
-import { 
-  useApi, 
-  useSearch, 
-  useFileUpload, 
-  useConfirm, 
-  useNotification 
-} from '../../hooks';
-
-export function ContentManagement() {
-  // API 호출
-  const { data, loading, execute: fetchContents } = useApi(contentApi.getContents);
-  
-  // 검색 및 필터링
-  const { filteredData, updateSearchTerm } = useSearch(contents, ['title']);
-  
-  // 파일 업로드
-  const { files, uploadFiles } = useFileUpload({
-    maxFileSize: 100 * 1024 * 1024,
-    allowedTypes: ['video/*', 'image/*']
-  });
-  
-  // 확인 다이얼로그
-  const { confirm } = useConfirm();
-  
-  // 알림
-  const { success, error } = useNotification();
-  
-  // 삭제 핸들러
-  const handleDelete = async (id) => {
-    const confirmed = await confirm({
-      title: '삭제 확인',
-      message: '정말로 삭제하시겠습니까?'
-    });
-    
-    if (confirmed) {
-      try {
-        await deleteContent(id);
-        success('삭제되었습니다.');
-      } catch (err) {
-        error('삭제에 실패했습니다.');
-      }
-    }
-  };
-}
-```
-
-## 장점
-
-1. **재사용성**: 공통 로직을 훅으로 분리하여 재사용 가능
-2. **일관성**: 모든 컴포넌트에서 동일한 패턴 사용
-3. **유지보수성**: 로직이 중앙화되어 관리 용이
-4. **테스트 용이성**: 각 훅을 독립적으로 테스트 가능
-5. **코드 간소화**: 컴포넌트 코드가 더 깔끔해짐
