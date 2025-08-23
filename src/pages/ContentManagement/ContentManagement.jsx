@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../../api/content';
-import { DataListLayout } from '../../components';
+import { ContentCard, DataListLayout } from '../../components';
 import { useApi, useConfirm, useFileUpload, useNotification, useSearch } from '../../hooks';
 import { Content } from '../../models';
-import { ContentGrid, ContentHeader, ContentUploadButton, SearchFilter, VideoDetail } from './components';
+import { ContentHeader, ContentUploadButton, SearchFilter, VideoDetail } from './components';
 
 export function ContentManagement() {
   const [sortBy, setSortBy] = useState('recent');
@@ -152,7 +152,7 @@ export function ContentManagement() {
           />
           <SearchFilter
             searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
+            setSearchTerm={updateSearchTerm}
             sortBy={sortBy}
             setSortBy={setSortBy}
             onSearch={handleSearch}
@@ -171,18 +171,28 @@ export function ContentManagement() {
           onFileUpload={handleFileUpload} 
         />
       }
-      renderList={() => (
-        <ContentGrid
-          contents={filteredContents}
-          onCardClick={handleCardClick}
-          onDownload={(content) => window.open(content.url, '_blank')}
-          onEdit={(content) => {
+      renderItem={(content) => (
+        <ContentCard
+          key={content.id}
+          content={{
+            id: content.id,
+            url: content.url,
+            title: content.title,
+            contentType: content.contentType,
+            createdAt: content.createdAt,
+            updatedAt: content.updatedAt,
+            objectKey: content.objectKey,
+            size: content.size
+          }}
+          onClick={() => handleCardClick(content)}
+          onDownload={() => window.open(content.url, '_blank')}
+          onEdit={() => {
             const newTitle = prompt('새 제목을 입력하세요:', content.title);
             if (newTitle && newTitle !== content.title) {
               handleEditTitle(content.id, newTitle);
             }
           }}
-          onDelete={handleDelete}
+          onDelete={() => handleDelete(content.id)}
         />
       )}
     />

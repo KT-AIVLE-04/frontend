@@ -39,10 +39,10 @@ export function ContentCard({
   return (
     <Card
       variant="hover"
-      className="overflow-hidden group cursor-pointer"
+      className="overflow-hidden group cursor-pointer h-full flex flex-col"
       onClick={handleCardClick}
     >
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <img
           src={content.url || content.thumbnailUrl || content.thumbnail}
           alt={content.title}
@@ -65,18 +65,27 @@ export function ContentCard({
         )}
       </div>
       
-      <div className="p-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
+      <div className="p-6 flex-1 flex flex-col">
+        <h3 className="text-lg font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-blue-700 transition-colors">
           {content.title}
         </h3>
         
         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <span>{formatDate(content.createdAt)}</span>
-          <span>{content.contentType || content.type}</span>
+          <span className="font-semibold">{formatDate(content.createdAt)}</span>
+          <span className="bg-gray-100 px-2 py-1 rounded-full text-xs font-medium">
+            {content.contentType || content.type}
+          </span>
         </div>
 
+        {/* 파일 크기 정보 추가 */}
+        {content.size && (
+          <div className="text-xs text-gray-500 mb-4">
+            파일 크기: {formatFileSize(content.size)}
+          </div>
+        )}
+
         {showActions && (
-          <div className="flex justify-between">
+          <div className="flex justify-between mt-auto">
             <IconButton
               icon={Download}
               variant="secondary"
@@ -122,4 +131,13 @@ export function ContentCard({
       </div>
     </Card>
   );
+}
+
+// 파일 크기 포맷팅 함수
+function formatFileSize(bytes) {
+  if (!bytes) return '';
+  
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
 }

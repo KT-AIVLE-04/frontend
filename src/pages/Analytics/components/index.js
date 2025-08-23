@@ -1,5 +1,6 @@
 export { AnalyticsCharts } from './AnalyticsCharts';
 export { AnalyticsOverview } from './AnalyticsOverview';
+export { ApiErrorDisplay } from './ApiErrorDisplay';
 export { CommentSentiment } from './CommentSentiment';
 export { ContentPerformanceTable } from './ContentPerformanceTable';
 export { DateRangeSelector } from './DateRangeSelector';

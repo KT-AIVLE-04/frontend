@@ -1,4 +1,3 @@
-export { ContentGrid } from './ContentGrid';
 export { ContentHeader } from './ContentHeader';
 export { ContentUploadButton } from './ContentUploadButton';
 export { SearchFilter } from './SearchFilter';
