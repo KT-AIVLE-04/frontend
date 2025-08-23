@@ -15,6 +15,34 @@ API 호출 상태 관리를 위한 훅입니다.
 - `execute`: API 실행 함수
 - `reset`: 상태 초기화
 
+### useMultipleApi
+여러 API를 동시에 호출하는 훅입니다 (Promise.all 사용).
+- `loading`: 로딩 상태
+- `error`: 에러 상태
+- `results`: 모든 API 결과 (key-value 형태)
+- `executeMultiple`: 병렬 실행 (Promise.all)
+- `executeSequential`: 순차 실행
+- `executeWithRetry`: 재시도 로직 포함
+- `clearResults`: 결과 초기화
+
+```jsx
+const { loading, error, results, executeMultiple } = useMultipleApi();
+
+// 여러 API 동시 호출
+useEffect(() => {
+  executeMultiple({
+    dashboard: () => analyticsApi.getDashboardStats(),
+    contents: () => contentApi.getContents(),
+    stores: () => storeApi.getStores()
+  });
+}, []);
+
+// 결과 사용
+const dashboardData = results.dashboard?.data;
+const contentsData = results.contents?.data;
+const storesData = results.stores?.data;
+```
+
 ### useForm
 폼 상태 관리를 위한 훅입니다.
 - `values`: 폼 값들

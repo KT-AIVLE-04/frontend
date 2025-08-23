@@ -2,6 +2,7 @@
 export { useApi } from './useApi';
 export { useAuth } from './useAuth';
 export { useForm } from './useForm';
+export { useMultipleApi } from './useMultipleApi';
 
 // 새로운 유틸리티 훅들
 export { useClickOutside } from './useClickOutside';

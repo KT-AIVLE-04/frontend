@@ -1,30 +1,42 @@
 import React from 'react';
 import { analyticsApi } from '../../api/analytics';
+import { contentApi } from '../../api/content';
+import { storeApi } from '../../api/store';
 import { ErrorPage, LoadingSpinner, StatCard } from '../../components';
-import { useApi } from '../../hooks';
+import { useMultipleApi } from '../../hooks';
 import { ActivityItem, createStatCard, TrendSection } from './components';
 
 export function Dashboard() {
-  // useApi 훅 사용
-  const { data: dashboardData, loading, error, execute: fetchDashboardData } = useApi(analyticsApi.getDashboardStats);
+  // useMultipleApi 훅 사용 - 여러 API를 동시에 호출
+  const { 
+    loading, 
+    error, 
+    results, 
+    executeMultiple 
+  } = useMultipleApi();
 
   React.useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+    // 여러 API를 동시에 호출
+    executeMultiple({
+      dashboard: () => analyticsApi.getDashboardStats(),
+      contents: () => contentApi.getContents(),
+      stores: () => storeApi.getStores()
+    });
+  }, [executeMultiple]);
 
   const stats = React.useMemo(() => {
-    if (!dashboardData?.data) return [];
+    if (!results.dashboard?.data) return [];
     
-    const data = dashboardData.data;
+    const data = results.dashboard.data;
     return [
       createStatCard('stores', data.stores, data.storesChange),
       createStatCard('contents', data.contents, data.contentsChange),
       createStatCard('posts', data.posts, data.postsChange),
       createStatCard('views', data.totalViews?.toLocaleString(), data.viewsChange)
     ];
-  }, [dashboardData]);
+  }, [results.dashboard]);
 
-  const activities = dashboardData?.data?.activities || [];
+  const activities = results.dashboard?.data?.activities || [];
 
   if (error) {
     return <ErrorPage title="대시보드 로딩 실패" message={error} />;
