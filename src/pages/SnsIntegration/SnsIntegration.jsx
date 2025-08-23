@@ -65,6 +65,9 @@ export function SnsIntegration() {
     facebook: { ...INITIAL_CONNECTION_STATE },
   });
 
+  // 에러 상태 추가
+  const [error, setError] = useState("");
+
   // 새로운 훅들 사용
   const { success, error: showError } = useNotification();
 
