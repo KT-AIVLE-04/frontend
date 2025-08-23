@@ -1,35 +1,70 @@
-import api from './axios'
-
-const BASE_URL = '/sns'
+import api from "./axios";
 
 export const snsApi = {
-  // 연동된 SNS 계정 목록
-  getConnectedAccounts: () => api.get(`${BASE_URL}/accounts`),
-  
-  // SNS 계정 연결
-  connectAccount: (platform, data) => api.post(`${BASE_URL}/accounts/${platform}`, data),
-  
-  // SNS 계정 연결 해제
-  disconnectAccount: (platform) => api.delete(`${BASE_URL}/accounts/${platform}`),
-  
-  // 예약 게시물 목록
-  getScheduledPosts: (params) => api.get(`${BASE_URL}/scheduled-posts`, { params }),
-  
-  // 예약 게시물 생성
-  createScheduledPost: (data) => api.post(`${BASE_URL}/scheduled-posts`, data),
-  
-  // 예약 게시물 수정
-  updateScheduledPost: (postId, data) => api.put(`${BASE_URL}/scheduled-posts/${postId}`, data),
-  
-  // 예약 게시물 삭제
-  deleteScheduledPost: (postId) => api.delete(`${BASE_URL}/scheduled-posts/${postId}`),
-  
-  // 즉시 게시
-  publishNow: (data) => api.post(`${BASE_URL}/publish`, data),
-  
-  // SNS 최적화 제안
-  getOptimizationSuggestions: () => api.get(`${BASE_URL}/suggestions`),
-  
-  // 해시태그 추천
-  getHashtagSuggestions: (keyword) => api.get(`${BASE_URL}/hashtags`, { params: { keyword } })
-} 
+  // === OAuth 인증 관련 (SnsOAuthController) ===
+  oauth: {
+    // OAuth 인증 URL 조회
+    getAuthUrl: (snsType) => {
+      return api.get(`/sns/oauth/${snsType}/login`, { storeId: true });
+    },
+
+    // OAuth 콜백 처리
+    callback: (snsType, code, state) => {
+      return api.get(`/sns/oauth/${snsType}/callback`, {
+        params: { code, state },
+      });
+    },
+  },
+
+  // === SNS 계정 관리 (SnsAccountController) ===
+  account: {
+    // SNS 계정 정보 조회
+    getAccountInfo: (snsType) => {
+      return api.get(`/sns/account/${snsType}`, { storeId: true });
+    },
+
+    // SNS 계정 정보 수정
+    updateAccount: (snsType, data) => {
+      return api.put(`/sns/account/${snsType}`, data);
+    },
+  },
+
+  // === SNS 포스트 관리 (SnsPostController) ===
+  post: {
+    // 게시물 업로드
+    uploadPost: (data) => {
+      return api.post("/sns/posts", data, { storeId: true });
+    },
+
+    // 게시물 목록 조회
+    getPosts: () => {
+      return api.get("/sns/posts", { storeId: true });
+    },
+
+    // 게시물 상세 조회
+    getPost: (postId) => {
+      return api.get(`/sns/posts/${postId}`, { storeId: true });
+    },
+
+    // 게시물 삭제
+    deletePost: (postId, data) => {
+      return api.delete(`/sns/posts/${postId}`, {
+        data,
+        storeId: true,
+      });
+    },
+  },
+
+  // === AI 포스트 생성 ===
+  ai: {
+    // AI 포스트 생성
+    uploadAiPost: (data) => {
+      return api.post("/sns/posts/ai", data);
+    },
+
+    // AI 태그 생성
+    uploadAiTag: (data) => {
+      return api.post("/sns/posts/ai/tag", data);
+    },
+  },
+};
