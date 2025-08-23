@@ -1,11 +1,9 @@
-import { Upload } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../../api/content';
-import { ContentCard, DataListLayout } from '../../components';
+import { DataListLayout } from '../../components';
 import { useApi, useConfirm, useFileUpload, useNotification, useSearch } from '../../hooks';
 import { Content } from '../../models';
-import { SearchFilter } from './components';
-import { VideoDetail } from './components/VideoDetail';
+import { ContentGrid, ContentHeader, ContentUploadButton, SearchFilter, VideoDetail } from './components';
 
 export function ContentManagement() {
   const [sortBy, setSortBy] = useState('recent');
@@ -148,20 +146,10 @@ export function ContentManagement() {
       error={error}
       topSection={
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">콘텐츠 관리</h1>
-            <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
-              <Upload size={16} />
-              {uploading ? '업로드 중...' : '파일 업로드'}
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*,video/*"
-                onChange={handleFileUpload}
-                disabled={uploading}
-              />
-            </label>
-          </div>
+          <ContentHeader 
+            uploading={uploading} 
+            onFileUpload={handleFileUpload} 
+          />
           <SearchFilter
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -178,44 +166,24 @@ export function ContentManagement() {
       emptyTitle="콘텐츠가 없습니다"
       emptyMessage="생성된 콘텐츠가 여기에 표시됩니다."
       emptyAction={
-        <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
-          <Upload size={16} />
-          파일 업로드하기
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*,video/*"
-            onChange={handleFileUpload}
-            disabled={uploading}
-          />
-        </label>
+        <ContentUploadButton 
+          uploading={uploading} 
+          onFileUpload={handleFileUpload} 
+        />
       }
       renderList={() => (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredContents.map((content) => (
-            <ContentCard
-              key={content.id}
-              content={{
-                id: content.id,
-                url: content.url,
-                title: content.title,
-                contentType: content.contentType,
-                createdAt: content.createdAt,
-                updatedAt: content.updatedAt,
-                objectKey: content.objectKey
-              }}
-              onClick={() => handleCardClick(content)}
-              onDownload={() => window.open(content.url, '_blank')}
-              onEdit={() => {
-                const newTitle = prompt('새 제목을 입력하세요:', content.title);
-                if (newTitle && newTitle !== content.title) {
-                  handleEditTitle(content.id, newTitle);
-                }
-              }}
-              onDelete={() => handleDelete(content.id)}
-            />
-          ))}
-        </div>
+        <ContentGrid
+          contents={filteredContents}
+          onCardClick={handleCardClick}
+          onDownload={(content) => window.open(content.url, '_blank')}
+          onEdit={(content) => {
+            const newTitle = prompt('새 제목을 입력하세요:', content.title);
+            if (newTitle && newTitle !== content.title) {
+              handleEditTitle(content.id, newTitle);
+            }
+          }}
+          onDelete={handleDelete}
+        />
       )}
     />
 
