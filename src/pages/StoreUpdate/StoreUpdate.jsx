@@ -5,6 +5,7 @@ import { FormPageLayout } from '../../components';
 import { INDUSTRY_OPTIONS } from '../../const/industries';
 import { useApi, useForm, useNotification } from '../../hooks';
 import { Store } from '../../models/Store';
+import { ROUTES } from '../../routes';
 import { formatPhoneNumber, STORE_VALIDATION_SCHEMA } from '../../utils/index.js';
 import { FieldsContainer } from './components';
 
@@ -33,7 +34,18 @@ export function StoreUpdate() {
   
   // useApi 훅 사용 - 하나의 API 함수로 통합
   const { loading, error, execute: saveStore } = useApi(
-    isEditMode ? storeApi.updateStore : storeApi.createStore
+    isEditMode ? storeApi.updateStore : storeApi.createStore,
+    {
+      onSuccess: (data, response) => {
+        console.log('매장 저장 성공:', data);
+        success('매장이 성공적으로 저장되었습니다.');
+        navigate(ROUTES.STORE_MANAGEMENT.route);
+      },
+      onError: (error, response) => {
+        console.error('매장 저장 실패:', error);
+        showError('매장 저장에 실패했습니다.');
+      }
+    }
   );
 
   // 새로운 훅들 사용

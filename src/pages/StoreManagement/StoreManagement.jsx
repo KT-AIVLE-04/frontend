@@ -15,16 +15,38 @@ export function StoreManagement() {
   const {selectedStoreId} = useSelector((state) => state.auth);
 
   // useApi 훅 사용
-  const { data: storesData, loading, error, execute: fetchStores } = useApi(storeApi.getStores);
-  const { execute: deleteStore } = useApi(storeApi.deleteStore);
+  const { data: storesData, loading, error, execute: fetchStores } = useApi(
+    storeApi.getStores,
+    {
+      autoExecute: true,
+      onSuccess: (data, response) => {
+        console.log('매장 목록 조회 성공:', data);
+      },
+      onError: (error, response) => {
+        console.error('매장 목록 조회 실패:', error);
+        showError('매장 목록을 불러오는데 실패했습니다.');
+      }
+    }
+  );
+  
+  const { execute: deleteStore } = useApi(
+    storeApi.deleteStore,
+    {
+      onSuccess: (data, response) => {
+        console.log('매장 삭제 성공:', data);
+        success('매장이 삭제되었습니다.');
+        fetchStores(); // 목록 새로고침
+      },
+      onError: (error, response) => {
+        console.error('매장 삭제 실패:', error);
+        showError('매장 삭제에 실패했습니다.');
+      }
+    }
+  );
 
   // 새로운 훅들 사용
   const { confirm } = useConfirm();
   const { success, error: showError } = useNotification();
-
-  useEffect(() => {
-    fetchStores();
-  }, [fetchStores]);
 
   const stores = storesData?.data?.result || [];
 
@@ -37,11 +59,10 @@ export function StoreManagement() {
     if (confirmed) {
       try {
         await deleteStore(storeId);
-        fetchStores();
-        success('매장이 삭제되었습니다.');
+        // onSuccess에서 자동으로 fetchStores() 호출됨
       } catch (error) {
         console.error('매장 삭제 실패:', error);
-        showError('매장 삭제에 실패했습니다.');
+        // onError에서 자동으로 에러 처리됨
       }
     }
   };

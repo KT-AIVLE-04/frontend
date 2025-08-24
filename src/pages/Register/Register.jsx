@@ -29,7 +29,30 @@ export function Register({ onRegister, onLoginClick }) {
   });
 
   // useApi 훅 사용
-  const { loading, error, execute: registerUser } = useApi(authApi.register);
+  const { loading, error, execute: registerUser } = useApi(
+    authApi.register,
+    {
+      onSuccess: (data, response) => {
+        console.log('회원가입 성공:', data);
+        if (onRegister) {
+          onRegister();
+        }
+      },
+      onError: (error, response) => {
+        console.error('회원가입 실패:', error);
+        // 서버 에러를 폼 에러로 변환
+        if (error.response?.data?.message) {
+          setAllErrors({
+            email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
+            password: error.response.data.message.includes('비밀번호') ? error.response.data.message : '',
+            name: error.response.data.message.includes('이름') ? error.response.data.message : '',
+            phone: error.response.data.message.includes('전화번호') ? error.response.data.message : '',
+            age: error.response.data.message.includes('연령대') ? error.response.data.message : ''
+          });
+        }
+      }
+    }
+  );
 
 
 
@@ -44,22 +67,10 @@ export function Register({ onRegister, onLoginClick }) {
     
     try {
       await registerUser(formData);
-      
-      if (onRegister) {
-        onRegister();
-      }
+      // onSuccess에서 자동으로 처리됨
     } catch (error) {
       console.error('회원가입 실패:', error);
-      // 서버 에러를 폼 에러로 변환
-      if (error.response?.data?.message) {
-        setAllErrors({
-          email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
-          password: error.response.data.message.includes('비밀번호') ? error.response.data.message : '',
-          name: error.response.data.message.includes('이름') ? error.response.data.message : '',
-          phone: error.response.data.message.includes('전화번호') ? error.response.data.message : '',
-          age: error.response.data.message.includes('연령대') ? error.response.data.message : ''
-        });
-      }
+      // onError에서 자동으로 처리됨
     }
   };
 

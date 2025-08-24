@@ -30,7 +30,28 @@ export function Login() {
   });
 
   // useApi 훅 사용
-  const { loading, error, execute: loginUser } = useApi(authApi.login);
+  const { loading, error, execute: loginUser } = useApi(
+    authApi.login,
+    {
+      onSuccess: (data, response) => {
+        console.log('로그인 성공:', data);
+        if (!data || !data.result) throw new Error('로그인 정보가 올바르지 않습니다.');
+        const {accessToken, refreshToken} = data.result;
+        dispatch(login({accessToken, refreshToken}));
+        navigate(ROUTES.STORE_SELECTION.route);
+      },
+      onError: (error, response) => {
+        console.error('로그인 실패:', error);
+        // 서버 에러를 폼 에러로 변환
+        if (error.response?.data?.message) {
+          setAllErrors({
+            email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
+            password: error.response.data.message.includes('비밀번호') ? error.response.data.message : ''
+          });
+        }
+      }
+    }
+  );
 
 
 
@@ -44,20 +65,11 @@ export function Login() {
     }
 
     try {
-      const {data} = await loginUser(formData);
-      if (!data || !data.result) throw new Error('로그인 정보가 올바르지 않습니다.');
-      const {accessToken, refreshToken} = data.result;
-      dispatch(login({accessToken, refreshToken}));
-      navigate(ROUTES.STORE_SELECTION.route);
+      await loginUser(formData);
+      // onSuccess에서 자동으로 처리됨
     } catch (error) {
       console.error('로그인 실패:', error);
-      // 서버 에러를 폼 에러로 변환
-      if (error.response?.data?.message) {
-        setAllErrors({
-          email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
-          password: error.response.data.message.includes('비밀번호') ? error.response.data.message : ''
-        });
-      }
+      // onError에서 자동으로 처리됨
     }
   };
 
