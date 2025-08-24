@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
-import { Button, DataListLayout } from '../../components';
+import { ApiPageLayout, Button } from '../../components';
 import { useApi, useConfirm, useNotification } from '../../hooks';
 import { ROUTES } from '../../routes/routes';
 import { setSelectedStore } from "../../store/authSlice.js";
@@ -56,9 +56,10 @@ export function StoreManagement() {
   };
 
   return (
-    <DataListLayout
+    <ApiPageLayout
       loading={loading}
       error={error}
+      isEmpty={stores.length === 0}
       topSection={
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">매장 관리</h1>
@@ -70,8 +71,6 @@ export function StoreManagement() {
           </Button>
         </div>
       }
-      data={stores}
-      isEmpty={stores.length === 0}
       emptyTitle="등록된 매장이 없습니다"
       emptyMessage="새로운 매장을 추가해보세요."
       emptyAction={
@@ -82,15 +81,14 @@ export function StoreManagement() {
           매장 추가하기
         </Button>
       }
-      renderList={() => (
-        <StoreTable
-          stores={stores}
-          handleDelete={handleDelete}
-          handleEdit={handleEdit}
-          handleSelect={handleSelect}
-          selectedStoreId={selectedStoreId}
-        />
-      )}
-    />
+    >
+      <StoreTable
+        stores={stores}
+        handleDelete={handleDelete}
+        handleEdit={handleEdit}
+        handleSelect={handleSelect}
+        selectedStoreId={selectedStoreId}
+      />
+    </ApiPageLayout>
   );
 } 

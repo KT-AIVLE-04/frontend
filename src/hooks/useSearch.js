@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-import { useDebounce } from './useDebounce';
+import { useEffect, useMemo, useState } from 'react';
 
 export const useSearch = (data, searchFields = [], options = {}) => {
   const {
@@ -10,8 +9,16 @@ export const useSearch = (data, searchFields = [], options = {}) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({});
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
-  const debouncedSearchTerm = useDebounce(searchTerm, debounceDelay);
+  // 디바운스 구현
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, debounceDelay);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, debounceDelay]);
 
   const filteredData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];

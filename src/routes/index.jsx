@@ -1,5 +1,5 @@
-import { useSelector } from "react-redux";
-import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import {useSelector} from "react-redux";
+import {Navigate, Outlet, Route, Routes} from "react-router-dom";
 import {
   Analytics,
   ContentCreation,
@@ -13,46 +13,46 @@ import {
   StoreSelection,
   StoreUpdate,
 } from "../pages";
-import { MainLayout } from "./MainLayout";
-import { ROUTES } from "./routes";
+import {MainLayout} from "../components/layouts/MainLayout.jsx";
+import {ROUTES} from "./routes";
 
 const ProtectedRoute = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const {isAuthenticated} = useSelector((state) => state.auth);
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN.route} replace />;
+    return <Navigate to={ROUTES.LOGIN.route} replace/>;
   }
 
-  return <Outlet />;
+  return <Outlet/>;
 };
 
 const StoreRequiredRoute = () => {
-  const { selectedStoreId } = useSelector((state) => state.auth);
+  const {selectedStoreId} = useSelector((state) => state.auth);
 
   // 매장이 선택되지 않았으면 매장 선택 화면으로
   if (!selectedStoreId) {
-    return <Navigate to={ROUTES.STORE_SELECTION.route} replace />;
+    return <Navigate to={ROUTES.STORE_SELECTION.route} replace/>;
   }
 
-  return <Outlet />;
+  return <Outlet/>;
 };
 
 const NotFoundRoute = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const {isAuthenticated} = useSelector((state) => state.auth);
   return isAuthenticated ? (
-    <Navigate to={ROUTES.ANALYTICS.route} replace />
+    <Navigate to={ROUTES.ANALYTICS.route} replace/>
   ) : (
-    <Navigate to={ROUTES.LOGIN.route} replace />
+    <Navigate to={ROUTES.LOGIN.route} replace/>
   );
 };
 
 // 이미 로그인돼엇으면 dashboard로 이동
 const AlreadyLoggedInRoute = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const {isAuthenticated} = useSelector((state) => state.auth);
   return isAuthenticated ? (
-    <Navigate to={ROUTES.ANALYTICS.route} replace />
+    <Navigate to={ROUTES.ANALYTICS.route} replace/>
   ) : (
-    <Outlet />
+    <Outlet/>
   );
 };
 
@@ -76,48 +76,48 @@ function AppRoutes() {
         </>
       )} */}
 
-      <Route element={<AlreadyLoggedInRoute />}>
-        <Route path={ROUTES.LOGIN.route} element={<Login />} />
-        <Route path={ROUTES.REGISTER.route} element={<Register />} />
+      <Route element={<AlreadyLoggedInRoute/>}>
+        <Route path={ROUTES.LOGIN.route} element={<Login/>}/>
+        <Route path={ROUTES.REGISTER.route} element={<Register/>}/>
       </Route>
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute/>}>
         <Route
           path={ROUTES.STORE_SELECTION.route}
-          element={<StoreSelection />}
+          element={<StoreSelection/>}
         />
-        <Route path={ROUTES.STORE_UPDATE.route} element={<StoreUpdate />} />
-        <Route element={<StoreRequiredRoute />}>
-          <Route element={<MainLayout />}>
-            <Route path={ROUTES.DASHBOARD.route} element={<Dashboard />} />
-            <Route path={ROUTES.ANALYTICS.route} element={<Analytics />} />
+        <Route path={ROUTES.STORE_UPDATE.route} element={<StoreUpdate/>}/>
+        <Route element={<StoreRequiredRoute/>}>
+          <Route element={<MainLayout/>}>
+            <Route path={ROUTES.DASHBOARD.route} element={<Dashboard/>}/>
+            <Route path={ROUTES.ANALYTICS.route} element={<Analytics/>}/>
             <Route
               path={ROUTES.CONTENT_CREATION.route}
-              element={<ContentCreation />}
+              element={<ContentCreation/>}
             />
             <Route
               path={ROUTES.CONTENT_MANAGEMENT.route}
-              element={<ContentManagement />}
+              element={<ContentManagement/>}
             />
             <Route
               path={ROUTES.POST_MANAGEMENT.route}
-              element={<PostManagement />}
+              element={<PostManagement/>}
             />
             <Route
               path={ROUTES.STORE_MANAGEMENT.route}
-              element={<StoreManagement />}
+              element={<StoreManagement/>}
             />
             <Route
               path={ROUTES.SNS_INTEGRATION.route}
-              element={<SnsIntegration />}
+              element={<SnsIntegration/>}
             />
             <Route
               path="/"
-              element={<Navigate to={ROUTES.STORE_SELECTION.route} replace />}
+              element={<Navigate to={ROUTES.STORE_SELECTION.route} replace/>}
             />
           </Route>
         </Route>
       </Route>
-      <Route path="*" element={<NotFoundRoute />} />
+      <Route path="*" element={<NotFoundRoute/>}/>
     </Routes>
   );
 }

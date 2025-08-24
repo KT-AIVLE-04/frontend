@@ -6,6 +6,7 @@ import { Alert, Button, FormField } from '../../components';
 import { useApi, useForm } from '../../hooks';
 import { ROUTES } from '../../routes/routes';
 import { login } from '../../store/authSlice';
+import { LOGIN_VALIDATION_SCHEMA } from '../../utils/validations';
 import { GoogleIcon, KakaoIcon, NaverIcon } from './components';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -17,7 +18,12 @@ export function Login() {
   // useForm 훅 사용
   const {
     values: formData,
-    handleChange
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    validateForm,
+    setAllErrors
   } = useForm({
     email: '',
     password: ''
@@ -26,8 +32,16 @@ export function Login() {
   // useApi 훅 사용
   const { loading, error, execute: loginUser } = useApi(authApi.login);
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 클라이언트 사이드 검증
+    const isValid = validateForm(LOGIN_VALIDATION_SCHEMA);
+    if (!isValid) {
+      return;
+    }
 
     try {
       const {data} = await loginUser(formData);
@@ -37,13 +51,17 @@ export function Login() {
       navigate(ROUTES.STORE_SELECTION.route);
     } catch (error) {
       console.error('로그인 실패:', error);
+      // 서버 에러를 폼 에러로 변환
+      if (error.response?.data?.message) {
+        setAllErrors({
+          email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
+          password: error.response.data.message.includes('비밀번호') ? error.response.data.message : ''
+        });
+      }
     }
   };
 
-  const handleInputChange = (e) => {
-    const {name, value} = e.target;
-    handleChange(name, value);
-  };
+
 
   const onRegisterClick = () => {
     navigate(ROUTES.REGISTER.route);
@@ -149,7 +167,9 @@ export function Login() {
                 name="email"
                 type="email"
                 value={formData.email}
-                onChange={handleInputChange}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.email && errors.email}
                 placeholder="이메일 주소를 입력하세요"
                 required
               />
@@ -158,7 +178,9 @@ export function Login() {
                 name="password"
                 type="password"
                 value={formData.password}
-                onChange={handleInputChange}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.password && errors.password}
                 placeholder="비밀번호를 입력하세요"
                 required
               />

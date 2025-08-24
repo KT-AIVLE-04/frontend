@@ -2,9 +2,9 @@ import React from 'react';
 import { analyticsApi } from '../../api/analytics';
 import { contentApi } from '../../api/content';
 import { storeApi } from '../../api/store';
-import { ErrorPage, LoadingSpinner, StatCard } from '../../components';
+import { ErrorPage, LoadingSpinner } from '../../components';
 import { useMultipleApi } from '../../hooks';
-import { ActivityItem, createStatCard, TrendSection } from './components';
+import { ActivityItem, createStatCard, StatCard, TrendSection } from './components';
 
 export function Dashboard() {
   // useMultipleApi 훅 사용 - 여러 API를 동시에 호출
@@ -26,9 +26,9 @@ export function Dashboard() {
   }, [executeMultiple]);
 
   const stats = React.useMemo(() => {
-    if (!results.dashboard?.data) return [];
+    if (!results.dashboard) return [];
     
-    const data = results.dashboard.data;
+    const data = results.dashboard;
     return [
       createStatCard('stores', data.stores, data.storesChange),
       createStatCard('contents', data.contents, data.contentsChange),
@@ -37,7 +37,7 @@ export function Dashboard() {
     ];
   }, [results.dashboard]);
 
-  const activities = results.dashboard?.data?.activities || [];
+  const activities = results.dashboard?.activities || [];
 
   // 전체 에러가 있는 경우 (모든 API가 실패한 경우)
   if (error && Object.keys(errors || {}).length > 0) {

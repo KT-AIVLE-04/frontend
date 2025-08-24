@@ -26,6 +26,8 @@ export const handlers = [
       "/api/stores",
       "/api/shorts",
       "/api/contents",
+      "/api/sns",
+      "/api/content",
       // '/api/analytics', // 주석 해제하여 analytics API 활성화
     ];
 
@@ -1013,7 +1015,7 @@ export const handlers = [
   // ===== Analytics API Mocks =====
 
   // ===== 실시간 API =====
-  
+
   // 실시간 계정 메트릭 조회
   http.get(
     `${API_BASE_URL}/api/analytics/realtime/accounts/metrics`,
@@ -1036,13 +1038,14 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
           accountId: 123,
           followers: 43400,
           views: 13739858,
           fetchedAt: new Date().toISOString(),
-          snsType: snsType.toUpperCase()
-        }
+          snsType: snsType.toUpperCase(),
+        },
       });
     }
   ),
@@ -1075,18 +1078,21 @@ export const handlers = [
         5: { views: 67890, likes: 2987, comments: 267, shares: 40 },
       };
 
-      const data = postId ? (metricsData[postId] || {
-        views: 15000,
-        likes: 800,
-        comments: 120,
-        shares: 20,
-      }) : metricsData[1]; // postId가 없으면 첫 번째 게시물 데이터
+      const data = postId
+        ? metricsData[postId] || {
+            views: 15000,
+            likes: 800,
+            comments: 120,
+            shares: 20,
+          }
+        : metricsData[1]; // postId가 없으면 첫 번째 게시물 데이터
 
       return HttpResponse.json({
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
           postId: postId ? parseInt(postId) : 1,
           accountId: 123,
           likes: data.likes,
@@ -1095,8 +1101,8 @@ export const handlers = [
           shares: data.shares,
           views: data.views,
           fetchedAt: new Date().toISOString(),
-          snsType: snsType.toUpperCase()
-        }
+          snsType: snsType.toUpperCase(),
+        },
       });
     }
   ),
@@ -1124,40 +1130,45 @@ export const handlers = [
 
       const comments = [
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_1`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_1`,
           authorId: "user123456789",
           text: "정말 맛있어 보여요! 다음에 꼭 가보고 싶습니다 😋",
           likeCount: 15,
           publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_2`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_2`,
           authorId: "user987654321",
           text: "인테리어가 너무 예쁘네요. 분위기 좋아 보여요!",
           likeCount: 8,
           publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_3`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_3`,
           authorId: "user456789123",
           text: "가격대비 퀄리티가 정말 좋은 것 같아요 👍",
           likeCount: 12,
           publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_4`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_4`,
           authorId: "user789123456",
           text: "주차는 어떻게 되나요?",
           likeCount: 3,
           publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_5`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_5`,
           authorId: "user321654987",
           text: "사진이 너무 잘 나와요! 카메라 앵글 대박 👏",
           likeCount: 20,
@@ -1174,7 +1185,7 @@ export const handlers = [
   ),
 
   // ===== 히스토리 API =====
-  
+
   // 히스토리 계정 메트릭 조회
   http.get(
     `${API_BASE_URL}/api/analytics/history/accounts/metrics`,
@@ -1198,13 +1209,14 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
           accountId: 123,
           followers: 43300, // 어제 팔로워 수 (실시간보다 적음)
           views: 13726084, // 어제 총 조회 수
           fetchedAt: `${date}T12:00:00`,
-          snsType: snsType.toUpperCase()
-        }
+          snsType: snsType.toUpperCase(),
+        },
       });
     }
   ),
@@ -1238,18 +1250,21 @@ export const handlers = [
         5: { views: 62000, likes: 2700, comments: 240, shares: 35 },
       };
 
-      const data = postId ? (yesterdayData[postId] || {
-        views: 13500,
-        likes: 720,
-        comments: 105,
-        shares: 18,
-      }) : yesterdayData[1]; // postId가 없으면 첫 번째 게시물 데이터
+      const data = postId
+        ? yesterdayData[postId] || {
+            views: 13500,
+            likes: 720,
+            comments: 105,
+            shares: 18,
+          }
+        : yesterdayData[1]; // postId가 없으면 첫 번째 게시물 데이터
 
       return HttpResponse.json({
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
           postId: postId ? parseInt(postId) : 1,
           accountId: 123,
           likes: data.likes,
@@ -1258,8 +1273,8 @@ export const handlers = [
           shares: data.shares,
           views: data.views,
           fetchedAt: `${date}T12:00:00`,
-          snsType: snsType.toUpperCase()
-        }
+          snsType: snsType.toUpperCase(),
+        },
       });
     }
   ),
@@ -1287,40 +1302,45 @@ export const handlers = [
 
       const comments = [
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_1`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_1`,
           authorId: "user123456789",
           text: "어제 갔는데 정말 맛있었어요! 추천합니다 😊",
           likeCount: 12,
           publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_2`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_2`,
           authorId: "user987654321",
           text: "분위기가 너무 좋아서 오래 앉아있었어요",
           likeCount: 6,
           publishedAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_3`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_3`,
           authorId: "user456789123",
           text: "가격이 조금 비싸지만 퀄리티가 좋아요",
           likeCount: 9,
           publishedAt: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_4`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_4`,
           authorId: "user789123456",
           text: "직원분들이 친절하시네요 👍",
           likeCount: 4,
           publishedAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
         },
         {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
-          commentId: `UgzDE8pqJ_c_${postId || '1'}_${page}_5`,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_5`,
           authorId: "user321654987",
           text: "다음에 친구들이랑 같이 가려고 해요!",
           likeCount: 7,
@@ -1360,51 +1380,50 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
-          "@class": "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse",
           postId: postId ? parseInt(postId) : 1,
           emotionSummary: {
-            "@class": "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse$EmotionSummary",
+            "@class":
+              "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse$EmotionSummary",
             positiveCount: 150,
             neutralCount: 30,
             negativeCount: 20,
-            totalCount: 200
+            totalCount: 200,
           },
           keywords: {
             positive: ["좋아요", "최고", "대박", "맛있어요", "추천"],
-            negative: ["별로", "실망", "아쉽다", "비싸다", "불친절"]
-          }
-        }
+            negative: ["별로", "실망", "아쉽다", "비싸다", "불친절"],
+          },
+        },
       });
     }
   ),
 
   // ===== 배치 API =====
-  
+
   // 계정 메트릭 수집
-  http.post(
-    `${API_BASE_URL}/api/analytics/batch/accounts/metrics`,
-    () => {
-      return HttpResponse.json({
-        isSuccess: true,
-        message: "요청이 성공적으로 처리되었습니다.",
-        result: {
-          operationName: "account metrics collection",
-          status: "SUCCESS",
-          executedAt: new Date().toISOString(),
-          message: "account metrics collection completed successfully",
-          processedCount: 3,
-          failedCount: 0
-        }
-      });
-    }
-  ),
+  http.post(`${API_BASE_URL}/api/analytics/batch/accounts/metrics`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "요청이 성공적으로 처리되었습니다.",
+      result: {
+        operationName: "account metrics collection",
+        status: "SUCCESS",
+        executedAt: new Date().toISOString(),
+        message: "account metrics collection completed successfully",
+        processedCount: 3,
+        failedCount: 0,
+      },
+    });
+  }),
 
   // 특정 계정 메트릭 수집
   http.post(
     `${API_BASE_URL}/api/analytics/batch/accounts/:accountId/metrics`,
     ({ params }) => {
       const accountId = params.accountId;
-      
+
       return HttpResponse.json({
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
@@ -1414,37 +1433,34 @@ export const handlers = [
           executedAt: new Date().toISOString(),
           message: `account ${accountId} metrics collection completed successfully`,
           processedCount: 1,
-          failedCount: 0
-        }
+          failedCount: 0,
+        },
       });
     }
   ),
 
   // 게시물 메트릭 수집
-  http.post(
-    `${API_BASE_URL}/api/analytics/batch/posts/metrics`,
-    () => {
-      return HttpResponse.json({
-        isSuccess: true,
-        message: "요청이 성공적으로 처리되었습니다.",
-        result: {
-          operationName: "post metrics collection",
-          status: "SUCCESS",
-          executedAt: new Date().toISOString(),
-          message: "post metrics collection completed successfully",
-          processedCount: 15,
-          failedCount: 0
-        }
-      });
-    }
-  ),
+  http.post(`${API_BASE_URL}/api/analytics/batch/posts/metrics`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "요청이 성공적으로 처리되었습니다.",
+      result: {
+        operationName: "post metrics collection",
+        status: "SUCCESS",
+        executedAt: new Date().toISOString(),
+        message: "post metrics collection completed successfully",
+        processedCount: 15,
+        failedCount: 0,
+      },
+    });
+  }),
 
   // 특정 게시물 메트릭 수집
   http.post(
     `${API_BASE_URL}/api/analytics/batch/posts/:postId/metrics`,
     ({ params }) => {
       const postId = params.postId;
-      
+
       return HttpResponse.json({
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
@@ -1454,8 +1470,8 @@ export const handlers = [
           executedAt: new Date().toISOString(),
           message: `post ${postId} metrics collection completed successfully`,
           processedCount: 1,
-          failedCount: 0
-        }
+          failedCount: 0,
+        },
       });
     }
   ),
@@ -1465,7 +1481,7 @@ export const handlers = [
     `${API_BASE_URL}/api/analytics/batch/status/:jobName`,
     ({ params }) => {
       const jobName = params.jobName;
-      
+
       return HttpResponse.json({
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
@@ -1476,8 +1492,8 @@ export const handlers = [
           endTime: new Date().toISOString(),
           progress: 100,
           totalItems: 15,
-          errorMessage: null
-        }
+          errorMessage: null,
+        },
       });
     }
   ),

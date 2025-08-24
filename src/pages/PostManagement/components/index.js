@@ -1,3 +1,3 @@
 export { SearchFilter } from "./SearchFilter";
-export { PostManagementCard } from "./PostManagementCard";
+export { PostCard } from "./PostCard";
 export { PostDetail } from "./PostDetail";

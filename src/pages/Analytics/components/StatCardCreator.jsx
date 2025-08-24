@@ -1,49 +1,27 @@
-import { BarChart3, MessageSquare, Share2, ThumbsUp } from 'lucide-react';
+import {BarChart3, Heart, MessageSquare} from 'lucide-react';
 
-export const createStatCard = (type, currentValue, yesterdayValue) => {
+export const StatCardCreator = (type, value, change) => {
   const config = {
     views: {
-      title: '총 조회수',
-      icon: <BarChart3 size={20} className="text-blue-600" />
+      title: '조회수',
+      icon: BarChart3
     },
     likes: {
       title: '좋아요',
-      icon: <ThumbsUp size={20} className="text-green-600" />
+      icon: Heart
     },
     comments: {
       title: '댓글',
-      icon: <MessageSquare size={20} className="text-purple-600" />
-    },
-    shares: {
-      title: '공유',
-      icon: <Share2 size={20} className="text-orange-600" />
+      icon: MessageSquare
     }
   };
 
-  // 어제 대비 증감 계산
-  const calculateChange = (current, yesterday) => {
-    if (!yesterday || yesterday === 0) return { change: '+0%', trend: 'neutral' };
-    
-    const difference = current - yesterday;
-    const percentage = ((difference / yesterday) * 100).toFixed(1);
-    
-    if (difference > 0) {
-      return { change: `+${percentage}%`, trend: 'up' };
-    } else if (difference < 0) {
-      return { change: `${percentage}%`, trend: 'down' };
-    } else {
-      return { change: '+0%', trend: 'neutral' };
-    }
-  };
+  const {title, icon} = config[type] || config.views;
 
-  const { change, trend } = calculateChange(currentValue, yesterdayValue);
-  
   return {
-    title: config[type]?.title || type,
-    value: currentValue?.toLocaleString() || '0',
-    change: change,
-    trend: trend,
-    icon: config[type]?.icon || <BarChart3 size={20} className="text-gray-600" />,
-    yesterdayValue: yesterdayValue?.toLocaleString() || '0'
+    title,
+    value: value?.toString() || '0',
+    icon,
+    change: change || '+0 (전일 대비)'
   };
 }; 

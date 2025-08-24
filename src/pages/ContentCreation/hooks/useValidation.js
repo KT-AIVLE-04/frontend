@@ -6,14 +6,17 @@ export const useValidation = () => {
   const validateForm = (formData) => {
     const errors = {};
     
+    // 브랜드 컨셉 검증
     if (formData.storeInfo.brandConcepts.length === 0) {
       errors.brandConcepts = true;
     }
     
+    // 참고 파일 검증
     if (formData.storeInfo.referenceFiles.length === 0) {
       errors.referenceFiles = true;
     }
     
+    // 광고 정보 검증
     if (!formData.adInfo.adType) {
       errors.adType = true;
     }
