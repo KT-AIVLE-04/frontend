@@ -26,9 +26,9 @@ export function Dashboard() {
   }, [executeMultiple]);
 
   const stats = React.useMemo(() => {
-    if (!results.dashboard?.data) return [];
+    if (!results.dashboard) return [];
     
-    const data = results.dashboard.data;
+    const data = results.dashboard;
     return [
       createStatCard('stores', data.stores, data.storesChange),
       createStatCard('contents', data.contents, data.contentsChange),
@@ -37,7 +37,7 @@ export function Dashboard() {
     ];
   }, [results.dashboard]);
 
-  const activities = results.dashboard?.data?.activities || [];
+  const activities = results.dashboard?.activities || [];
 
   // 전체 에러가 있는 경우 (모든 API가 실패한 경우)
   if (error && Object.keys(errors || {}).length > 0) {

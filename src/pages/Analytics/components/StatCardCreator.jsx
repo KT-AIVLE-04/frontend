@@ -4,15 +4,15 @@ export const StatCardCreator = (type, value, change) => {
   const config = {
     views: {
       title: '조회수',
-      icon: <BarChart3 size={24} className="text-blue-600"/>
+      icon: BarChart3
     },
     likes: {
       title: '좋아요',
-      icon: <Heart size={24} className="text-red-600"/>
+      icon: Heart
     },
     comments: {
       title: '댓글',
-      icon: <MessageSquare size={24} className="text-green-600"/>
+      icon: MessageSquare
     }
   };
 

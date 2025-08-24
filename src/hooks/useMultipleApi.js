@@ -15,11 +15,24 @@ export const useMultipleApi = () => {
       // apiCalls는 { key: apiFunction, ... } 형태
       const apiEntries = Object.entries(apiCalls);
       const promises = apiEntries.map(([key, apiFunction]) => 
-        apiFunction().then(result => ({ key, result, status: 'fulfilled' }))
-          .catch(err => ({ key, error: err, status: 'rejected' }))
+        apiFunction().then(response => {
+          // 백엔드 응답 형식 파싱
+          let result = response;
+          if (response && typeof response === 'object') {
+            if (response.isSuccess === true && response.result !== undefined) {
+              result = response.result;
+            } else if (response.isSuccess === false) {
+              const errorMessage = response.message || '요청이 실패했습니다.';
+              const apiError = new Error(errorMessage);
+              apiError.response = response;
+              throw apiError;
+            }
+          }
+          return { key, result, status: 'fulfilled' };
+        }).catch(err => ({ key, error: err, status: 'rejected' }))
       );
 
-      const responses = await Promise.all(promises);
+      const responses = await Promise.allSettled(promises);
       
       // 결과와 에러를 분리해서 처리
       const resultsMap = {};
@@ -59,7 +72,21 @@ export const useMultipleApi = () => {
       
       for (const [key, apiFunction] of Object.entries(apiCalls)) {
         try {
-          const result = await apiFunction();
+          const response = await apiFunction();
+          
+          // 백엔드 응답 형식 파싱
+          let result = response;
+          if (response && typeof response === 'object') {
+            if (response.isSuccess === true && response.result !== undefined) {
+              result = response.result;
+            } else if (response.isSuccess === false) {
+              const errorMessage = response.message || '요청이 실패했습니다.';
+              const apiError = new Error(errorMessage);
+              apiError.response = response;
+              throw apiError;
+            }
+          }
+          
           resultsMap[key] = result;
         } catch (err) {
           // 개별 API 실패 시에도 다른 API는 계속 실행
@@ -106,11 +133,24 @@ export const useMultipleApi = () => {
     try {
       const apiEntries = Object.entries(apiCalls);
       const promises = apiEntries.map(([key, apiFunction]) => 
-        executeWithRetryForApi(apiFunction).then(result => ({ key, result, status: 'fulfilled' }))
-          .catch(err => ({ key, error: err, status: 'rejected' }))
+        executeWithRetryForApi(apiFunction).then(response => {
+          // 백엔드 응답 형식 파싱
+          let result = response;
+          if (response && typeof response === 'object') {
+            if (response.isSuccess === true && response.result !== undefined) {
+              result = response.result;
+            } else if (response.isSuccess === false) {
+              const errorMessage = response.message || '요청이 실패했습니다.';
+              const apiError = new Error(errorMessage);
+              apiError.response = response;
+              throw apiError;
+            }
+          }
+          return { key, result, status: 'fulfilled' };
+        }).catch(err => ({ key, error: err, status: 'rejected' }))
       );
 
-      const responses = await Promise.all(promises);
+      const responses = await Promise.allSettled(promises);
       
       // 결과와 에러를 분리해서 처리
       const resultsMap = {};

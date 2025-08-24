@@ -82,18 +82,22 @@ export const useForm = (initialValues = {}) => {
   const validateForm = useCallback((validationSchema) => {
     if (!validationSchema) return true;
     
-    try {
-      validationSchema.validateSync(values, { abortEarly: false });
-      setErrors({});
-      return true;
-    } catch (validationErrors) {
-      const newErrors = {};
-      validationErrors.inner.forEach(error => {
-        newErrors[error.path] = error.message;
-      });
-      setErrors(newErrors);
-      return false;
-    }
+    const newErrors = {};
+    let isValid = true;
+    
+    Object.keys(validationSchema).forEach(fieldName => {
+      const validator = validationSchema[fieldName];
+      if (typeof validator === 'function') {
+        const error = validator(values[fieldName]);
+        if (error) {
+          newErrors[fieldName] = error;
+          isValid = false;
+        }
+      }
+    });
+    
+    setErrors(newErrors);
+    return isValid;
   }, [values]);
 
   return {

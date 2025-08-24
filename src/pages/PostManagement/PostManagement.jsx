@@ -17,7 +17,7 @@ import { storeApi } from "../../api/store";
 import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
 import { INDUSTRY_OPTIONS } from "../../const/industries";
 import { SNS_TYPES } from "../../const/snsTypes";
-import { useApi, useConfirm, useNotification } from "../../hooks";
+import { useApi, useConfirm, useForm, useNotification, useSearch } from "../../hooks";
 import { Store } from "../../models/Store";
 import { ROUTES } from "../../routes/routes";
 import { PostDetail, PostManagementCard, SearchFilter } from "./components";
@@ -31,14 +31,22 @@ const PostManagement = () => {
   const [activeTab, setActiveTab] = useState("list");
   const [posts, setPosts] = useState([]);
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [selectedPost, setSelectedPost] = useState(null);
-  const [post, setPost] = useState({
+  
+  // useForm 훅 사용
+  const {
+    values: post,
+    errors: postErrors,
+    handleChange: handlePostChange,
+    setFieldValue: setPostField,
+    resetForm: resetPostForm
+  } = useForm({
     title: "",
     description: "",
-    tags: [],
+    tags: []
   });
+
   const [generatedPost, setGeneratedPost] = useState({
     title: false,
     description: false,
@@ -47,31 +55,54 @@ const PostManagement = () => {
 
   const [uploadedContents, setUploadedContents] = useState([]);
   const [selectedThumbnail, setSelectedThumbnail] = useState(null);
-  const [selectedSnsType, setSelectedSnsType] = useState([]); // 배열로 변경 (목록 필터용)
+  const [selectedSnsType, setSelectedSnsType] = useState([]);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
 
   const [showContents, setShowContents] = useState(false);
-  const [contentsSearch, setContentsSearch] = useState("");
   const [contentsFilter, setContentsFilter] = useState("all");
 
   const [selectedStore, setSelectedStore] = useState(null);
   const [contents, setContents] = useState([]);
   const [contentsLoading, setContentsLoading] = useState(false);
 
-  const [aiOptions, setAiOptions] = useState({
+  // AI 옵션 폼
+  const {
+    values: aiOptions,
+    handleChange: handleAiOptionsChange,
+    setFieldValue: setAiOptionsField
+  } = useForm({
     keywords: [],
     snsType: "",
     industry: "",
-    location: "",
+    location: ""
   });
 
-  const [publishOptions, setPublishOptions] = useState({
+  // 게시 옵션 폼
+  const {
+    values: publishOptions,
+    handleChange: handlePublishOptionsChange,
+    setFieldValue: setPublishOptionsField
+  } = useForm({
     snsType: "",
     isNow: true,
-    publishAt: "",
+    publishAt: ""
   });
+
+  // useSearch 훅 사용
+  const {
+    searchTerm,
+    filteredData: filteredPosts,
+    updateSearchTerm,
+    updateFilter
+  } = useSearch(posts, ['title'], { debounceDelay: 300 });
+
+  const {
+    searchTerm: contentsSearch,
+    filteredData: filteredContents,
+    updateSearchTerm: updateContentsSearch
+  } = useSearch(contents, ['title'], { debounceDelay: 300 });
 
   // 계정 연동 상태 확인을 위한 state 추가
   const [snsAccountStatus, setSnsAccountStatus] = useState({});
@@ -199,20 +230,7 @@ const PostManagement = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    let filtered = posts;
-
-    if (searchTerm) {
-      filtered = filtered.filter((content) =>
-        content.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    if (selectedSnsType.length > 0) {
-      filtered = filtered.filter(
-        (content) => selectedSnsType.includes(content.snsType) // 배열에 포함되는지 체크
-      );
-    }
-
-    setPosts(filtered);
+    // useSearch 훅이 자동으로 필터링을 처리하므로 추가 로직 불필요
   };
 
   /** ----------------------
@@ -257,11 +275,9 @@ const PostManagement = () => {
         const AiPostResponse = await snsApi.ai.uploadAiPost(AiPostRequestData);
         const AiPostResponseData = AiPostResponse.data.result;
 
-        setPost({
-          title: AiPostResponseData.title || "AI가 생성한 제목",
-          description: AiPostResponseData.description || "AI가 생성한 본문",
-          tags: AiPostResponseData.tags || [],
-        });
+        setPostField('title', AiPostResponseData.title || "AI가 생성한 제목");
+        setPostField('description', AiPostResponseData.description || "AI가 생성한 본문");
+        setPostField('tags', AiPostResponseData.tags || []);
         setGeneratedPost({ title: true, description: true, tags: true });
       } else if (type === "hashtags") {
         if (!post.title.trim() && !post.description.trim()) {
@@ -287,14 +303,10 @@ const PostManagement = () => {
         const AiTagResponse = await snsApi.ai.uploadAiTag(AiTagRequestData);
         const AiTagResponseData = AiTagResponse.data.result;
 
-        setPost((prev) => ({
-          ...prev,
-          tags:
-            AiTagResponseData.tags?.map((tag) => {
-              // AI에서 온 태그는 #을 제거하고 저장 (일관성 위해)
-              return tag.replace("#", "").trim();
-            }) || [],
-        }));
+        setPostField('tags', AiTagResponseData.tags?.map((tag) => {
+          // AI에서 온 태그는 #을 제거하고 저장 (일관성 위해)
+          return tag.replace("#", "").trim();
+        }) || []);
         setGeneratedPost((prev) => ({ ...prev, tags: true }));
       }
     } catch (error) {
@@ -310,18 +322,12 @@ const PostManagement = () => {
    ----------------------- */
   const addTag = (tag) => {
     if (tag && !post.tags.includes(tag)) {
-      setPost((prev) => ({
-        ...prev,
-        tags: [...prev.tags, tag],
-      }));
+      setPostField('tags', [...post.tags, tag]);
     }
   };
 
   const removeTag = (index) => {
-    setPost((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((_, i) => i !== index),
-    }));
+    setPostField('tags', post.tags.filter((_, i) => i !== index));
   };
 
   /** ----------------------
@@ -329,43 +335,28 @@ const PostManagement = () => {
    ----------------------- */
   const addKeyword = (keyword) => {
     if (keyword && !aiOptions.keywords.includes(keyword)) {
-      setAiOptions((prev) => ({
-        ...prev,
-        keywords: [...prev.keywords, keyword],
-      }));
+      setAiOptionsField('keywords', [...aiOptions.keywords, keyword]);
     }
   };
 
   const removeKeyword = (index) => {
-    setAiOptions((prev) => ({
-      ...prev,
-      keywords: prev.keywords.filter((_, i) => i !== index),
-    }));
+    setAiOptionsField('keywords', aiOptions.keywords.filter((_, i) => i !== index));
   };
 
   // AI 플랫폼 선택 시 게시 옵션에도 반영
   const handleAiSnsTypeChange = (snsType) => {
-    setAiOptions((prev) => ({
-      ...prev,
-      snsType: snsType,
-    }));
+    setAiOptionsField('snsType', snsType);
 
     // 게시 옵션에 해당 플랫폼 선택
-    setPublishOptions((prev) => ({
-      ...prev,
-      snsType: prev.snsType === snsType ? prev.snsType : snsType,
-    }));
+    setPublishOptionsField('snsType', publishOptions.snsType === snsType ? publishOptions.snsType : snsType);
   };
 
   // 컴포넌트 마운트 시 AI 플랫폼을 게시 옵션에 초기 설정
   useEffect(() => {
     if (aiOptions.snsType && !publishOptions.snsType) {
-      setPublishOptions((prev) => ({
-        ...prev,
-        snsType: aiOptions.snsType,
-      }));
+      setPublishOptionsField('snsType', aiOptions.snsType);
     }
-  }, [aiOptions.snsType]);
+  }, [aiOptions.snsType, publishOptions.snsType]);
 
   /** ----------------------
    * 콘텐츠 라이브러리
@@ -428,14 +419,9 @@ const PostManagement = () => {
   };
 
   const getFilteredContents = () => {
-    let filtered = contents;
+    let filtered = filteredContents;
     if (contentsFilter !== "all") {
       filtered = filtered.filter((item) => item.contentType === contentsFilter);
-    }
-    if (contentsSearch) {
-      filtered = filtered.filter((item) =>
-        item.title.toLowerCase().includes(contentsSearch.toLowerCase())
-      );
     }
     return filtered;
   };
@@ -539,14 +525,14 @@ const PostManagement = () => {
         {/* 검색 필터 */}
         <SearchFilter
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          setSearchTerm={updateSearchTerm}
           sortBy={sortBy}
           setSortBy={setSortBy}
           onSearch={handleSearch}
         />
 
         {/* 게시물 목록 */}
-        {posts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <EmptyState
             icon={Video}
             title="게시물이 없습니다"
@@ -556,7 +542,7 @@ const PostManagement = () => {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <PostManagementCard
                 key={post.id}
                 content={post}
@@ -649,8 +635,10 @@ const PostManagement = () => {
       // 초기화
       setUploadedContents([]);
       setSelectedThumbnail(null);
-      setPost({ title: "", description: "", tags: [] });
-      setPublishOptions({ snsType: "", isNow: true, publishAt: "" });
+      resetPostForm();
+      setPublishOptionsField('snsType', '');
+      setPublishOptionsField('isNow', true);
+      setPublishOptionsField('publishAt', '');
       setGeneratedPost({ title: false, description: false, tags: false });
 
       fetchPosts();
@@ -1081,9 +1069,10 @@ const PostManagement = () => {
           </div>
           <input
             type="text"
+            name="title"
             value={post.title}
             onChange={(e) => {
-              setPost((prev) => ({ ...prev, title: e.target.value }));
+              handlePostChange(e);
               setGeneratedPost((prev) => ({ ...prev, title: false }));
             }}
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-sm"
@@ -1105,9 +1094,10 @@ const PostManagement = () => {
             )}
           </div>
           <textarea
+            name="description"
             value={post.description}
             onChange={(e) => {
-              setPost((prev) => ({ ...prev, description: e.target.value }));
+              handlePostChange(e);
               setGeneratedPost((prev) => ({ ...prev, description: false }));
             }}
             rows={5}
@@ -1714,7 +1704,7 @@ const PostManagement = () => {
                     type="text"
                     placeholder="콘텐츠 검색..."
                     value={contentsSearch}
-                    onChange={(e) => setContentsSearch(e.target.value)}
+                    onChange={(e) => updateContentsSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>

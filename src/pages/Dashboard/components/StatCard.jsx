@@ -21,6 +21,19 @@ export function StatCard({
     neutral: "→"
   };
 
+  // 아이콘별 색상 매핑
+  const iconColorClasses = {
+    stores: "text-blue-600",
+    contents: "text-purple-600", 
+    posts: "text-green-600",
+    views: "text-orange-600"
+  };
+
+  // title에서 아이콘 타입 추출
+  const iconType = title.includes('매장') ? 'stores' : 
+                   title.includes('콘텐츠') ? 'contents' :
+                   title.includes('게시물') ? 'posts' : 'views';
+
   return (
     <Card className={`p-6 ${className}`}>
       <div className="flex items-center justify-between">
@@ -35,7 +48,7 @@ export function StatCard({
         </div>
         {Icon && (
           <div className="p-3 bg-blue-100 rounded-full">
-            <Icon size={24} className="text-blue-600" />
+            <Icon size={24} className={iconColorClasses[iconType]} />
           </div>
         )}
       </div>
