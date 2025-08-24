@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Search,
   Eye,
+  AlertTriangle, // 추가
 } from "lucide-react";
 import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
 import { SearchFilter, PostCard, PostDetail } from "./components";
@@ -33,8 +34,8 @@ const PostManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [posts, setPosts] = useState([]);
+  const [selectedPost, setSelectedPost] = useState(null); // 게시물 상세보기 컴포넌트에서 사용 - null or post 객체
+  const [postList, setPostList] = useState([]);
   const [post, setPost] = useState({
     title: "",
     description: "",
@@ -78,6 +79,10 @@ const PostManagement = () => {
   const [snsAccountStatus, setSnsAccountStatus] = useState({});
   const [checkingAccountStatus, setCheckingAccountStatus] = useState(false);
 
+  // 삭제 확인 모달 상태 추가
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+
   const navigate = useNavigate();
 
   // 계정 연동 상태 확인 함수
@@ -85,7 +90,8 @@ const PostManagement = () => {
     try {
       setCheckingAccountStatus(true);
       const response = await snsApi.account.getAccountInfo(snsType);
-      return response.data.result !== null; // 계정 정보가 있으면 연동됨
+      console.log("@@ getAccountInfo response", response);
+      return true; // 계정 정보가 있으면 연동됨
     } catch (error) {
       console.error(`${snsType} 계정 연동 상태 확인 실패:`, error);
       return false; // 에러 발생 시 연동 안됨으로 처리
@@ -103,14 +109,14 @@ const PostManagement = () => {
    * 데이터 로딩
    ----------------------- */
   useEffect(() => {
-    if (activeTab === "list") fetchPosts();
-  }, [sortBy, selectedSnsType, activeTab]); // selectedSnsType 배열 변경 시에도 다시 로드
+    if (activeTab === "list") fetchPostList();
+  }, [activeTab]); // selectedSnsType 배열 변경 시에도 다시 로드
 
   useEffect(() => {
     if (selectedStoreId && !selectedStore) {
       fetchSelectedStore();
     }
-  }, [selectedStoreId]);
+  }, [selectedStoreId, selectedStore]);
 
   // 매장 상세 조회
   const fetchSelectedStore = async () => {
@@ -134,14 +140,14 @@ const PostManagement = () => {
     }
   };
 
-  const fetchPosts = async () => {
+  const fetchPostList = async () => {
     try {
       setLoading(true);
       setError(null);
 
       if (!selectedStoreId) {
         setError("매장을 선택해주세요.");
-        setPosts([]);
+        setPostList([]);
         return;
       }
 
@@ -166,17 +172,17 @@ const PostManagement = () => {
       //   }
       // ],
 
-      let filteredPosts = getPostsResponseData;
+      let filteredPostList = getPostsResponseData;
       if (selectedSnsType.length > 0) {
-        filteredPosts = getPostsResponseData.filter(
+        filteredPostList = getPostsResponseData.filter(
           (post) => selectedSnsType.includes(post.snsType) // 배열에 포함되는지 체크
         );
       }
-      setPosts(filteredPosts);
+      setPostList(filteredPostList);
     } catch (error) {
       console.error("게시물 목록 로딩 실패:", error);
       setError("게시물 목록을 불러오는데 실패했습니다.");
-      setPosts([]);
+      setPostList([]);
     } finally {
       setLoading(false);
     }
@@ -185,32 +191,50 @@ const PostManagement = () => {
   /** ----------------------
    * 게시물 관련 함수
    ----------------------- */
-  const handleCardClick = (post) => setSelectedPost(post);
+  const handleCardClick = (post) => {
+    setSelectedPost(post);
+  };
   const handleCloseDetail = () => setSelectedPost(null);
 
   const handleDeletePost = async (postId) => {
-    if (window.confirm("정말로 이 게시물을 삭제하시겠습니까?")) {
-      try {
-        // posts 배열에서 해당 post의 snsType 찾기
-        const postToDelete = posts.find((p) => p.id === postId);
-        await snsApi.post.deletePost(postId, {
-          snsType: postToDelete?.snsType,
-        });
+    // window.confirm 대신 커스텀 모달 사용
+    const postToDelete = postList.find((p) => p.id === postId);
+    setPostToDelete(postToDelete);
+    setShowDeleteConfirm(true);
+  };
 
-        setPosts((prev) => prev.filter((p) => p.id !== postId));
-        if (selectedPost?.id === postId) handleCloseDetail();
+  // 실제 삭제 실행 함수
+  const confirmDelete = async () => {
+    if (!postToDelete) return;
 
-        alert("게시물이 삭제되었습니다.");
-      } catch (error) {
-        console.error("게시물 삭제 실패:", error);
-        alert("게시물 삭제에 실패했습니다. 다시 시도해주세요.");
-      }
+    try {
+      await snsApi.post.deletePost(postToDelete.id, {
+        snsType: postToDelete.snsType,
+      });
+
+      setPostList((prev) => prev.filter((p) => p.id !== postToDelete.id));
+      if (selectedPost?.id === postToDelete.id) handleCloseDetail();
+
+      // alert도 더 예쁜 알림으로 교체 가능
+      alert("게시물이 삭제되었습니다.");
+    } catch (error) {
+      console.error("게시물 삭제 실패:", error);
+      alert("게시물 삭제에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setShowDeleteConfirm(false);
+      setPostToDelete(null);
     }
+  };
+
+  // 삭제 취소
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setPostToDelete(null);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    let filtered = posts;
+    let filtered = postList;
 
     if (searchTerm) {
       filtered = filtered.filter((content) =>
@@ -223,7 +247,7 @@ const PostManagement = () => {
       );
     }
 
-    setPosts(filtered);
+    setPostList(filtered);
   };
 
   /** ----------------------
@@ -271,8 +295,11 @@ const PostManagement = () => {
         setPost({
           title: AiPostResponseData.title || "AI가 생성한 제목",
           description: AiPostResponseData.description || "AI가 생성한 본문",
-          tags: AiPostResponseData.tags || [],
+          tags: AiPostResponseData.tags?.map((tag) =>
+            tag.replace("#", "").trim()
+          ),
         });
+
         setGeneratedPost({ title: true, description: true, tags: true });
       } else if (type === "hashtags") {
         if (!post.title.trim() && !post.description.trim()) {
@@ -300,11 +327,9 @@ const PostManagement = () => {
 
         setPost((prev) => ({
           ...prev,
-          tags:
-            AiTagResponseData.tags?.map((tag) => {
-              // AI에서 온 태그는 #을 제거하고 저장 (일관성 위해)
-              return tag.replace("#", "").trim();
-            }) || [],
+          tags: AiTagResponseData.tags?.map((tag) =>
+            tag.replace("#", "").trim()
+          ),
         }));
         setGeneratedPost((prev) => ({ ...prev, tags: true }));
       }
@@ -323,7 +348,7 @@ const PostManagement = () => {
     if (tag && !post.tags.includes(tag)) {
       setPost((prev) => ({
         ...prev,
-        tags: [...prev.tags, tag],
+        tags: [...prev.tags, tag.replace("#", "").trim()],
       }));
     }
   };
@@ -376,7 +401,7 @@ const PostManagement = () => {
         snsType: aiOptions.snsType,
       }));
     }
-  }, [aiOptions.snsType]);
+  }, [aiOptions.snsType, publishOptions.snsType]);
 
   /** ----------------------
    * 콘텐츠 라이브러리
@@ -557,7 +582,7 @@ const PostManagement = () => {
         />
 
         {/* 게시물 목록 */}
-        {posts.length === 0 ? (
+        {postList.length === 0 ? (
           <EmptyStateBox
             icon={Video}
             title="게시물이 없습니다"
@@ -567,10 +592,9 @@ const PostManagement = () => {
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {posts.map((post) => (
+            {postList.map((post) => (
               <PostCard
-                key={post.id}
-                content={post}
+                post={post}
                 onClick={() => handleCardClick(post)}
                 onDelete={() => handleDeletePost(post.id)}
               />
@@ -583,7 +607,7 @@ const PostManagement = () => {
           <PostDetail
             post={selectedPost}
             onClose={handleCloseDetail}
-            handleDelete={handleDeletePost}
+            onDelete={handleDeletePost}
           />
         )}
       </div>
@@ -594,9 +618,6 @@ const PostManagement = () => {
    ----------------------- */
   const handleUpload = async () => {
     try {
-      // console.log("@@ post.title", post.title);
-      // console.log("@@ post.description", post.description);
-      // console.log("@@ post.tags", post.tags);
       if (!post.title || !post.description || publishOptions.snsType === "") {
         alert("필수 정보를 모두 입력해주세요.");
         return;
@@ -621,10 +642,6 @@ const PostManagement = () => {
 
       // 현재는 YouTube만 지원
       if (publishOptions.snsType === "youtube") {
-        // 해시태그를 #과 함께 문자열로 변환
-        // const hashtagsText =
-        //   post.tags.length > 0 ? "\n\n" + post.tags.join(" ") : "";
-
         // 예약 발행 시간 처리
         const getPublishAt = () => {
           if (publishOptions.isNow === false) {
@@ -639,7 +656,6 @@ const PostManagement = () => {
           // 즉시 발행인 경우 현재 시각
           return new Date().toISOString();
         };
-        console.log("@@ uploadData 전", post.tags);
         const uploadData = {
           snsType: publishOptions.snsType,
           originalName: selectedContent.originalName,
@@ -650,7 +666,6 @@ const PostManagement = () => {
           isNow: publishOptions.isNow,
           publishAt: getPublishAt(),
         };
-        console.log("@@ uploadData 후", uploadData);
         await snsApi.post.uploadPost(uploadData);
         alert("게시물이 업로드되었습니다!");
       }
@@ -664,7 +679,7 @@ const PostManagement = () => {
       setPublishOptions({ snsType: "", isNow: true, publishAt: "" });
       setGeneratedPost({ title: false, description: false, tags: false });
 
-      fetchPosts();
+      fetchPostList();
     } catch (error) {
       console.error("게시물 업로드 실패:", error);
       console.error("에러 상세:", error.response?.data);
@@ -1149,7 +1164,7 @@ const PostManagement = () => {
                   key={index}
                   className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center space-x-2 text-sm"
                 >
-                  <span>#{tag}</span> {/* 항상 #를 붙여서 표시 */}
+                  <span>#{tag}</span>
                   <button
                     onClick={() => {
                       removeTag(index);
@@ -1699,6 +1714,51 @@ const PostManagement = () => {
       <div className="max-w-7xl mx-auto p-6">
         {activeTab === "list" ? renderPostList() : renderUploadForm()}
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    게시물 삭제
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    이 작업은 되돌릴 수 없습니다
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-700">
+                  <span className="font-medium">"{postToDelete?.title}"</span>{" "}
+                  게시물을 정말로 삭제하시겠습니까?
+                </p>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={cancelDelete}
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  삭제하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 콘텐츠 라이브러리 모달 */}
       {showContents && (

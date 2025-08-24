@@ -26,6 +26,8 @@ export const handlers = [
       "/api/stores",
       "/api/shorts",
       "/api/contents",
+      "/api/sns",
+      "/api/content",
       // '/api/analytics',
     ];
 
