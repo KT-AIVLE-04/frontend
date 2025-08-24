@@ -1,6 +1,5 @@
 export { Button } from "./Button";
 export { Container } from "./Container";
-export { ContentCard } from "./ContentCard";
 export { DataTable } from "./DataTable";
 export { EmptyStateBox } from "./EmptyStateBox";
 export { ErrorPage } from "./ErrorPage";

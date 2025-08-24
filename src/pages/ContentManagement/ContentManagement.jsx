@@ -1,22 +1,22 @@
-import { Upload, Video } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { contentApi } from '../../api/content';
-import { ContentCard, EmptyStateBox, ErrorPage, LoadingSpinner } from '../../components';
-import { Content } from '../../models';
-import { SearchFilter } from './components';
-import { VideoDetail } from './components/VideoDetail';
+import { Upload, Video } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { contentApi } from "../../api/content";
+import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
+import { Content } from "../../models";
+import { SearchFilter, ContentCard } from "./components";
+import { VideoDetail } from "./components/VideoDetail";
 
 export function ContentManagement() {
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('recent');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("recent");
   const [selectedContent, setSelectedContent] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [contentTypeFilter, setContentTypeFilter] = useState({
     videos: true,
-    images: true
+    images: true,
   });
 
   useEffect(() => {
@@ -28,21 +28,25 @@ export function ContentManagement() {
       setLoading(true);
       setError(null);
 
-      const params = {
-        query: searchTerm || undefined
-      };
-
-      const {data} = await contentApi.getContents(params);
-      if(data){
-        const {message, result} = data;
-        const contentModels = Content.fromResponseArray(result || []);
-        setContents(contentModels);
-      }else{
-        throw new Error("콘텐츠 목록 형식이 올바르지 않습니다.");
-      }
+      const getContentsResponse = await contentApi.getContents();
+      const getContentsResponseData = getContentsResponse.data?.result || [];
+      //   "result": [
+      //   {
+      //     "id": 0,
+      //     "url": "string",
+      //     "title": "string",
+      //     "originalName": "string",
+      //     "objectKey": "string",
+      //     "contentType": "string",
+      //     "createdAt": "2025-08-21T18:16:41.442Z",
+      //     "updatedAt": "2025-08-21T18:16:41.442Z"
+      //   }
+      // ];
+      const contentModels = Content.fromResponseArray(getContentsResponseData);
+      setContents(contentModels);
     } catch (error) {
-      console.error('콘텐츠 목록 로딩 실패:', error);
-      setError('콘텐츠 목록을 불러오는데 실패했습니다.');
+      console.error("콘텐츠 목록 로딩 실패:", error);
+      setError("콘텐츠 목록을 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -54,23 +58,49 @@ export function ContentManagement() {
 
     try {
       setUploading(true);
-      const response = await contentApi.uploadContent(file);
-      const newContent = Content.fromResponse(response.data.data);
-      
-      setContents(prev => [newContent, ...prev]);
-      alert('파일이 성공적으로 업로드되었습니다.');
+      const uploadContentResponse = await contentApi.uploadContent(file);
+      console.log("uploadContent-response", uploadContentResponse);
+      const newContent = Content.fromResponse(
+        uploadContentResponse.data.result
+      );
+
+      setContents((prev) => [newContent, ...prev]);
+      alert("파일이 성공적으로 업로드되었습니다.");
     } catch (error) {
-      console.error('파일 업로드 실패:', error);
-      alert('파일 업로드에 실패했습니다.');
+      console.error("파일 업로드 실패:", error);
+      alert("파일 업로드에 실패했습니다.");
     } finally {
       setUploading(false);
-      event.target.value = ''; // 파일 input 초기화
+      event.target.value = ""; // 파일 input 초기화
     }
   };
 
-  const handleCardClick = (content) => {
-    console.log('카드 클릭됨:', content);
-    setSelectedContent(content);
+  const handleCardClick = async (contentId) => {
+    try {
+      const getContentResponse = await contentApi.getContent(contentId);
+      const getContentResponseData = getContentResponse.data?.result || [];
+      // "result": {
+      //   "id": 0,
+      //   "url": "string",
+      //   "title": "string",
+      //   "originalName": "string",
+      //   "objectKey": "string",
+      //   "contentType": "string",
+      //   "width": 0,
+      //   "height": 0,
+      //   "durationSeconds": 0,
+      //   "bytes": 0,
+      //   "createdAt": "2025-08-22T07:04:57.455Z",
+      //   "updatedAt": "2025-08-22T07:04:57.455Z"
+      // },
+
+      const contentModel = Content.fromResponse(getContentResponseData);
+      setSelectedContent(contentModel);
+    } catch (error) {
+      console.error("콘텐츠 상세 조회 실패:", error);
+      alert("콘텐츠 상세 조회에 실패했습니다.");
+      setSelectedContent(null);
+    }
   };
 
   const handleCloseDetail = () => {
@@ -78,36 +108,41 @@ export function ContentManagement() {
   };
 
   const handleDelete = async (contentId) => {
-    if (window.confirm('정말로 이 콘텐츠를 삭제하시겠습니까?')) {
+    if (window.confirm("정말로 이 콘텐츠를 삭제하시겠습니까?")) {
       try {
         await contentApi.deleteContent(contentId);
-        setContents(prev => prev.filter(c => c.id !== contentId));
+        setContents((prev) => prev.filter((c) => c.id !== contentId));
         setSelectedContent(null);
-        alert('콘텐츠가 삭제되었습니다.');
+        alert("콘텐츠가 삭제되었습니다.");
       } catch (error) {
-        console.error('콘텐츠 삭제 실패:', error);
-        alert('콘텐츠 삭제에 실패했습니다.');
+        console.error("콘텐츠 삭제 실패:", error);
+        alert("콘텐츠 삭제에 실패했습니다.");
       }
     }
   };
 
   const handleEditTitle = async (contentId, newTitle) => {
     try {
-      const response = await contentApi.updateContentTitle(contentId, newTitle);
-      const updatedContent = Content.fromResponse(response.data.data);
-      
-      setContents(prev => prev.map(c => 
-        c.id === contentId ? updatedContent : c
-      ));
-      
+      const updateContentTitleResponse = await contentApi.updateContentTitle(
+        contentId,
+        newTitle
+      );
+      const updatedContent = Content.fromResponse(
+        updateContentTitleResponse.data.result
+      );
+
+      setContents((prev) =>
+        prev.map((c) => (c.id === contentId ? updatedContent : c))
+      );
+
       if (selectedContent && selectedContent.id === contentId) {
         setSelectedContent(updatedContent);
       }
-      
-      alert('제목이 수정되었습니다.');
+
+      alert("제목이 수정되었습니다.");
     } catch (error) {
-      console.error('제목 수정 실패:', error);
-      alert('제목 수정에 실패했습니다.');
+      console.error("제목 수정 실패:", error);
+      alert("제목 수정에 실패했습니다.");
     }
   };
 
@@ -116,39 +151,39 @@ export function ContentManagement() {
     fetchContents();
   };
 
-  const filteredContents = contents.filter(content => {
+  const filteredContents = contents.filter((content) => {
     const isVideo = content.isVideo();
     const isImage = content.isImage();
-    
+
     if (isVideo && contentTypeFilter.videos) return true;
     if (isImage && contentTypeFilter.images) return true;
-    
+
     return false;
   });
 
   // 탭별 카운트 계산
-  const videoCount = contents.filter(content => content.isVideo()).length;
-  const imageCount = contents.filter(content => content.isImage()).length;
-  const postCount = contents.length; // 전체 콘텐츠 수
+  // const videoCount = contents.filter((content) => content.isVideo()).length;
+  // const imageCount = contents.filter((content) => content.isImage()).length;
+  // const postCount = contents.length; // 전체 콘텐츠 수
 
   if (error) {
-    return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error}/>;
+    return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error} />;
   }
 
   if (loading) {
-    return <LoadingSpinner/>;
+    return <LoadingSpinner />;
   }
 
   return (
     <div className="flex-1 w-full">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">콘텐츠 관리</h1>
-        
+
         {/* 파일 업로드 버튼 */}
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
             <Upload size={16} />
-            {uploading ? '업로드 중...' : '파일 업로드'}
+            {uploading ? "업로드 중..." : "파일 업로드"}
             <input
               type="file"
               className="hidden"
@@ -187,15 +222,16 @@ export function ContentManagement() {
                 id: content.id,
                 url: content.url,
                 title: content.title,
+                originalName: content.originalName,
+                objectKey: content.objectKey,
                 contentType: content.contentType,
                 createdAt: content.createdAt,
                 updatedAt: content.updatedAt,
-                objectKey: content.objectKey
               }}
-              onClick={() => handleCardClick(content)}
-              onDownload={() => window.open(content.url, '_blank')}
+              onClick={() => handleCardClick(content.id)}
+              onDownload={() => window.open(content.url, "_blank")}
               onEdit={() => {
-                const newTitle = prompt('새 제목을 입력하세요:', content.title);
+                const newTitle = prompt("새 제목을 입력하세요:", content.title);
                 if (newTitle && newTitle !== content.title) {
                   handleEditTitle(content.id, newTitle);
                 }
@@ -211,19 +247,22 @@ export function ContentManagement() {
         <VideoDetail
           video={{
             ...selectedContent,
-            type: selectedContent.isVideo() ? 'video' : 'image',
+            type: selectedContent.isVideo() ? "video" : "image",
             thumbnailUrl: selectedContent.url,
-            author: '나',
+            author: "나",
             views: 0,
             createdAt: selectedContent.getFormattedCreatedAt(),
             description: `${selectedContent.getFormattedSize()} • ${selectedContent.getResolution()}`,
             likes: 0,
-            comments: 0
+            comments: 0,
           }}
           onClose={handleCloseDetail}
-          handleDownload={() => window.open(selectedContent.url, '_blank')}
+          handleDownload={() => window.open(selectedContent.url, "_blank")}
           handleEdit={() => {
-            const newTitle = prompt('새 제목을 입력하세요:', selectedContent.title);
+            const newTitle = prompt(
+              "새 제목을 입력하세요:",
+              selectedContent.title
+            );
             if (newTitle && newTitle !== selectedContent.title) {
               handleEditTitle(selectedContent.id, newTitle);
             }
