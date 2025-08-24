@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import { Alert, Button, Card, FormField } from '../../components';
 import { useApi, useForm } from '../../hooks';
+import { REGISTER_VALIDATION_SCHEMA } from '../../utils/validations';
 import { ageOptions } from './components';
 
 export function Register({ onRegister, onLoginClick }) {
@@ -13,7 +14,11 @@ export function Register({ onRegister, onLoginClick }) {
   const {
     values: formData,
     errors,
+    touched,
     handleChange,
+    handleBlur,
+    validateForm,
+    setAllErrors,
     resetForm
   } = useForm({
     name: '',
@@ -26,8 +31,16 @@ export function Register({ onRegister, onLoginClick }) {
   // useApi 훅 사용
   const { loading, error, execute: registerUser } = useApi(authApi.register);
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 클라이언트 사이드 검증
+    const isValid = validateForm(REGISTER_VALIDATION_SCHEMA);
+    if (!isValid) {
+      return;
+    }
     
     try {
       await registerUser(formData);
@@ -37,13 +50,20 @@ export function Register({ onRegister, onLoginClick }) {
       }
     } catch (error) {
       console.error('회원가입 실패:', error);
+      // 서버 에러를 폼 에러로 변환
+      if (error.response?.data?.message) {
+        setAllErrors({
+          email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
+          password: error.response.data.message.includes('비밀번호') ? error.response.data.message : '',
+          name: error.response.data.message.includes('이름') ? error.response.data.message : '',
+          phone: error.response.data.message.includes('전화번호') ? error.response.data.message : '',
+          age: error.response.data.message.includes('연령대') ? error.response.data.message : ''
+        });
+      }
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    handleChange(name, value);
-  };
+
 
   const handleCancel = () => {
     navigate(-1);
@@ -75,7 +95,9 @@ export function Register({ onRegister, onLoginClick }) {
             name="name"
             type="text"
             value={formData.name}
-            onChange={handleInputChange}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.name && errors.name}
             placeholder="이름을 입력하세요"
             required
           />
@@ -84,7 +106,9 @@ export function Register({ onRegister, onLoginClick }) {
             name="email"
             type="email"
             value={formData.email}
-            onChange={handleInputChange}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.email && errors.email}
             placeholder="이메일 주소를 입력하세요"
             required
           />
@@ -93,7 +117,9 @@ export function Register({ onRegister, onLoginClick }) {
             name="phone"
             type="tel"
             value={formData.phone}
-            onChange={handleInputChange}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.phone && errors.phone}
             placeholder="전화번호를 입력하세요"
             required
           />
@@ -102,7 +128,9 @@ export function Register({ onRegister, onLoginClick }) {
             name="age"
             type="select"
             value={formData.age}
-            onChange={handleInputChange}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.age && errors.age}
             placeholder="연령대를 선택하세요"
             required
             options={ageOptions}
@@ -112,7 +140,9 @@ export function Register({ onRegister, onLoginClick }) {
             name="password"
             type="password"
             value={formData.password}
-            onChange={handleInputChange}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.password && errors.password}
             placeholder="비밀번호를 입력하세요"
             required
           />

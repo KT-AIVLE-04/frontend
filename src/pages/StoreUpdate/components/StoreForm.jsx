@@ -5,13 +5,15 @@ import { INDUSTRY_OPTIONS } from '../../../const/industries';
 
 export function StoreForm({
   formData,
-  setFormData,
   handleSubmit,
-  handleInputChange,
+  handleChange,
+  handleBlur,
   handleContactChange,
   handleAddressSearch,
   loading,
   error,
+  errors,
+  touched,
   onCancel,
   isEditMode = false
 }) {
@@ -22,7 +24,9 @@ export function StoreForm({
         name="name"
         type="text"
         value={formData.name}
-        onChange={handleInputChange}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        error={touched.name && errors.name}
         placeholder="매장명을 입력하세요"
         required
       />
@@ -36,11 +40,14 @@ export function StoreForm({
             type="text"
             name="address"
             value={formData.address}
-            onChange={handleInputChange}
+            onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="주소 찾기를 클릭하여 주소를 입력하세요"
             required
             readOnly
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+            className={`flex-1 px-3 py-2 border rounded-md bg-gray-100 cursor-not-allowed ${
+              touched.address && errors.address ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
           <Button
             type="button"
@@ -62,10 +69,13 @@ export function StoreForm({
           name="phoneNumber"
           value={formData.phoneNumber}
           onChange={handleContactChange}
+          onBlur={handleBlur}
           placeholder="02-1234-5678 또는 010-1234-5678"
           maxLength="13"
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            touched.phoneNumber && errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+          }`}
         />
       </div>
 
@@ -74,7 +84,9 @@ export function StoreForm({
         name="businessNumber"
         type="text"
         value={formData.businessNumber}
-        onChange={handleInputChange}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        error={touched.businessNumber && errors.businessNumber}
         placeholder="사업자등록번호 (선택사항)"
       />
 
@@ -83,7 +95,9 @@ export function StoreForm({
         name="industry"
         type="select"
         value={formData.industry}
-        onChange={handleInputChange}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        error={touched.industry && errors.industry}
         placeholder="업종을 선택하세요"
         required
         options={INDUSTRY_OPTIONS}
