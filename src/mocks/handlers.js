@@ -1726,4 +1726,173 @@ export const handlers = [
       result: analysis,
     });
   }),
+
+  // ===== 새로운 Analytics API =====
+
+  // 실시간 계정 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/accounts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+
+    const accountMetrics = {
+      accountId: 123,
+      followers: 10000 + Math.floor(Math.random() * 1000),
+      views: 500000 + Math.floor(Math.random() * 50000),
+      fetchedAt: new Date().toISOString(),
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "실시간 계정 메트릭 조회 성공",
+      result: accountMetrics,
+    });
+  }),
+
+  // 실시간 게시물 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+
+    const postMetrics = {
+      postId: postId ? parseInt(postId) : 456,
+      accountId: 123,
+      likes: 1500 + Math.floor(Math.random() * 200),
+      dislikes: 10 + Math.floor(Math.random() * 5),
+      comments: 200 + Math.floor(Math.random() * 50),
+      shares: 50 + Math.floor(Math.random() * 20),
+      views: 25000 + Math.floor(Math.random() * 5000),
+      fetchedAt: new Date().toISOString(),
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "실시간 게시물 메트릭 조회 성공",
+      result: postMetrics,
+    });
+  }),
+
+  // 실시간 게시물 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/comments`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+    const page = parseInt(url.searchParams.get("page")) || 0;
+    const size = parseInt(url.searchParams.get("size")) || 20;
+
+    const comments = Array.from({ length: size }, (_, i) => ({
+      commentId: `comment_${page * size + i + 1}`,
+      authorId: `user_${Math.floor(Math.random() * 1000)}`,
+      text: `정말 좋은 영상이네요! ${i + 1}`,
+      likeCount: Math.floor(Math.random() * 50),
+      publishedAt: new Date(Date.now() - Math.random() * 86400000).toISOString()
+    }));
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "실시간 게시물 댓글 조회 성공",
+      result: comments,
+    });
+  }),
+
+  // 히스토리 계정 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/accounts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+
+    const accountMetrics = {
+      accountId: 123,
+      followers: 9500 + Math.floor(Math.random() * 1000),
+      views: 480000 + Math.floor(Math.random() * 50000),
+      fetchedAt: `${date}T10:30:00`,
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 계정 메트릭 조회 성공",
+      result: accountMetrics,
+    });
+  }),
+
+  // 히스토리 게시물 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+
+    const postMetrics = {
+      postId: postId ? parseInt(postId) : 456,
+      accountId: 123,
+      likes: 1400 + Math.floor(Math.random() * 200),
+      dislikes: 8 + Math.floor(Math.random() * 5),
+      comments: 180 + Math.floor(Math.random() * 50),
+      shares: 45 + Math.floor(Math.random() * 20),
+      views: 23000 + Math.floor(Math.random() * 5000),
+      fetchedAt: `${date}T10:30:00`,
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 메트릭 조회 성공",
+      result: postMetrics,
+    });
+  }),
+
+  // 히스토리 게시물 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/comments`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+    const page = parseInt(url.searchParams.get("page")) || 0;
+    const size = parseInt(url.searchParams.get("size")) || 20;
+
+    const comments = Array.from({ length: size }, (_, i) => ({
+      commentId: `comment_${page * size + i + 1}`,
+      authorId: `user_${Math.floor(Math.random() * 1000)}`,
+      text: `히스토리 댓글 ${i + 1}`,
+      likeCount: Math.floor(Math.random() * 50),
+      publishedAt: `${date}T${10 + Math.floor(Math.random() * 12)}:${Math.floor(Math.random() * 60)}:00`
+    }));
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 댓글 조회 성공",
+      result: comments,
+    });
+  }),
+
+  // 히스토리 게시물 감정분석 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/emotion-analysis`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+
+    const emotionAnalysis = {
+      postId: postId ? parseInt(postId) : 456,
+      emotionSummary: {
+        positiveCount: 150 + Math.floor(Math.random() * 50),
+        neutralCount: 30 + Math.floor(Math.random() * 20),
+        negativeCount: 20 + Math.floor(Math.random() * 15),
+        totalCount: 200 + Math.floor(Math.random() * 50)
+      },
+      keywords: {
+        positive: ["좋아요", "최고", "대박", "훌륭", "추천"],
+        negative: ["별로", "실망", "아쉽다", "부족", "개선"]
+      }
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 감정분석 조회 성공",
+      result: emotionAnalysis,
+    });
+  }),
 ];

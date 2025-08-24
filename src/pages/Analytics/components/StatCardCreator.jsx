@@ -1,4 +1,4 @@
-import {BarChart3, Heart, MessageSquare} from 'lucide-react';
+import { BarChart3, Heart, MessageSquare, Share2 } from 'lucide-react';
 
 export const StatCardCreator = (type, value, change) => {
   const config = {
@@ -13,6 +13,10 @@ export const StatCardCreator = (type, value, change) => {
     comments: {
       title: '댓글',
       icon: MessageSquare
+    },
+    shares: {
+      title: '공유',
+      icon: Share2
     }
   };
 

@@ -5,8 +5,6 @@ import { snsApi } from "../../../api/sns";
 import { useMultipleApi } from "../../../hooks";
 import { StatCardCreator } from "../components";
 
-// 테스트용 임시 데이터
-
 export const useAnalyticsData = () => {
   const [dateRange, setDateRange] = useState("last7");
   const [overviewStats, setOverviewStats] = useState([]);
@@ -32,9 +30,9 @@ export const useAnalyticsData = () => {
       const yesterdayStr = getYesterdayString();
       console.log("📅 어제 날짜:", yesterdayStr);
 
-      // 사용자 데이터 가져오기 - 올바른 API 함수 사용
+      // 사용자 데이터 가져오기
       await executeMultiple({
-        accounts: () => snsApi.post.getPosts(), // SNS 포스트 목록으로 계정 정보 대체
+        accounts: () => snsApi.post.getPosts(),
         contents: () => contentApi.getContents(),
       });
 
@@ -45,7 +43,6 @@ export const useAnalyticsData = () => {
       // 사용자 데이터 에러 체크
       if (errors.accounts || errors.contents) {
         console.error("❌ 사용자 데이터 로드 실패:", errors);
-        // 에러가 있어도 기본값으로 계속 진행
         setDefaultStats();
         await loadOtherData();
         return;
@@ -68,7 +65,7 @@ export const useAnalyticsData = () => {
 
       // SNS 타입 추출 (실제 데이터에서 추출하거나 기본값 사용)
       const snsTypes = posts
-        .map((post) => post.snsType || "YOUTUBE")
+        .map((post) => post.snsType || "youtube")
         .filter(Boolean);
       const uniqueSnsTypes = [...new Set(snsTypes)];
 
@@ -97,7 +94,7 @@ export const useAnalyticsData = () => {
     return yesterday.toISOString().split("T")[0];
   };
 
-  const fetchMetricsData = async (postIds, contentIds, yesterdayStr) => {
+  const fetchMetricsData = async (postIds, contentIds, snsTypes, yesterdayStr) => {
     console.log(
       "🚀 메트릭 데이터 가져오기 시작",
       postIds,
@@ -108,25 +105,29 @@ export const useAnalyticsData = () => {
     // 실시간 메트릭과 히스토리 메트릭을 동시에 가져오기
     const metricsCalls = {};
 
-    // 실시간 메트릭 - 포스트와 콘텐츠 모두 사용
-    postIds.forEach((id) => {
-      metricsCalls[`realtime_post_${id}`] = () =>
-        analyticsApi.getRealtimePostMetrics(id);
-    });
-    contentIds.forEach((id, index) => {
-      const snsType = snsTypes[index] || snsTypes[0] || "YOUTUBE";
-      metricsCalls[`realtime_content_${id}`] = () =>
-        analyticsApi.getRealtimePostMetrics(snsType, id); // 콘텐츠도 포스트 메트릭 사용
+    // 실시간 계정 메트릭 (SNS 타입별로 하나씩)
+    snsTypes.forEach((snsType) => {
+      metricsCalls[`realtime_account_${snsType}`] = () =>
+        analyticsApi.getRealtimeAccountMetrics(snsType);
     });
 
-    // 히스토리 메트릭
-    postIds.forEach((id) => {
-      metricsCalls[`history_post_${id}`] = () =>
-        analyticsApi.getHistoryPostMetrics(id, yesterdayStr);
+    // 실시간 게시물 메트릭
+    postIds.forEach((id, index) => {
+      const snsType = snsTypes[index] || snsTypes[0] || "youtube";
+      metricsCalls[`realtime_post_${id}`] = () =>
+        analyticsApi.getRealtimePostMetrics(snsType, id);
     });
-    contentIds.forEach((id, index) => {
-      const snsType = snsTypes[index] || snsTypes[0] || "YOUTUBE";
-      metricsCalls[`history_content_${id}`] = () =>
+
+    // 히스토리 계정 메트릭
+    snsTypes.forEach((snsType) => {
+      metricsCalls[`history_account_${snsType}`] = () =>
+        analyticsApi.getHistoryAccountMetrics(yesterdayStr, snsType);
+    });
+
+    // 히스토리 게시물 메트릭
+    postIds.forEach((id, index) => {
+      const snsType = snsTypes[index] || snsTypes[0] || "youtube";
+      metricsCalls[`history_post_${id}`] = () =>
         analyticsApi.getHistoryPostMetrics(yesterdayStr, snsType, id);
     });
 
@@ -135,17 +136,17 @@ export const useAnalyticsData = () => {
     console.log("📊 메트릭 결과:", results);
     console.log("❌ 메트릭 에러들:", errors);
 
-    // 실시간 데이터와 히스토리 데이터 분리
+    // 실시간 데이터와 히스토리 데이터 분리 및 처리
     const realtimeData = aggregateMetrics(
       Object.entries(results)
         .filter(([key]) => key.startsWith("realtime_"))
-        .map(([, response]) => response)
+        .map(([, response]) => response?.result)
     );
 
     const yesterdayData = aggregateMetrics(
       Object.entries(results)
         .filter(([key]) => key.startsWith("history_"))
-        .map(([, response]) => response)
+        .map(([, response]) => response?.result)
     );
 
     console.log("📊 실시간 데이터:", realtimeData);
@@ -159,45 +160,42 @@ export const useAnalyticsData = () => {
   };
 
   const aggregateMetrics = (responses) => {
-    // 마지막 유효한 응답만 사용
-    const lastValidResponse = responses
-      .filter((response) => response && typeof response === "object")
-      .pop();
+    // 유효한 응답들만 필터링
+    const validResponses = responses.filter(
+      (response) => response && typeof response === "object"
+    );
 
-    if (!lastValidResponse) {
+    if (validResponses.length === 0) {
       console.log("⚠️ 유효한 메트릭 응답이 없습니다. 기본값 사용");
-      return { views: 0, likes: 0, comments: 0 };
+      return { views: 0, likes: 0, comments: 0, shares: 0, followers: 0 };
     }
 
-    console.log("📊 메트릭 응답 처리:", lastValidResponse);
+    console.log("📊 메트릭 응답 처리:", validResponses);
 
-    // result가 배열인 경우 마지막 항목만 사용
-    if (Array.isArray(lastValidResponse)) {
-      const lastItem = lastValidResponse[0] || {};
-      return {
-        views: parseInt(lastItem.views) || 0,
-        likes: parseInt(lastItem.likes) || 0,
-        comments: parseInt(lastItem.comments) || 0,
-      };
-    } else {
-      // 단일 객체 응답 (기존 구조)
-      return {
-        views: parseInt(lastValidResponse.views) || 0,
-        likes: parseInt(lastValidResponse.likes) || 0,
-        comments: parseInt(lastValidResponse.comments) || 0,
-      };
-    }
+    // 모든 응답의 메트릭을 합산
+    const aggregated = validResponses.reduce(
+      (acc, response) => {
+        // AccountMetricsResponse 또는 PostMetricsResponse 구조에 맞게 처리
+        return {
+          views: acc.views + (parseInt(response.views) || 0),
+          likes: acc.likes + (parseInt(response.likes) || 0),
+          comments: acc.comments + (parseInt(response.comments) || 0),
+          shares: acc.shares + (parseInt(response.shares) || 0),
+          followers: acc.followers + (parseInt(response.followers) || 0),
+        };
+      },
+      { views: 0, likes: 0, comments: 0, shares: 0, followers: 0 }
+    );
+
+    return aggregated;
   };
 
   const createOverviewStats = (realtimeData, yesterdayData) => {
     return [
       StatCardCreator("views", realtimeData.views, yesterdayData.views),
       StatCardCreator("likes", realtimeData.likes, yesterdayData.likes),
-      StatCardCreator(
-        "comments",
-        realtimeData.comments,
-        yesterdayData.comments
-      ),
+      StatCardCreator("comments", realtimeData.comments, yesterdayData.comments),
+      StatCardCreator("shares", realtimeData.shares, yesterdayData.shares),
     ];
   };
 
@@ -206,6 +204,7 @@ export const useAnalyticsData = () => {
       StatCardCreator("views", 0, 0),
       StatCardCreator("likes", 0, 0),
       StatCardCreator("comments", 0, 0),
+      StatCardCreator("shares", 0, 0),
     ]);
   };
 
@@ -220,7 +219,7 @@ export const useAnalyticsData = () => {
         emotionAnalysis: () =>
           analyticsApi.getHistoryEmotionAnalysis(
             yesterdayStr,
-            snsTypes[0] || "YOUTUBE"
+            snsTypes[0] || "youtube"
           ),
       });
 
@@ -228,10 +227,11 @@ export const useAnalyticsData = () => {
       console.log("❌ 추가 데이터 에러들:", errors);
 
       // 에러가 있는 경우에도 기본값 설정
-      setContentPerformance(results.performance || []);
-      setCommentSentiment(results.sentiment || []);
-      setFollowerTrend(results.trend || {});
-      setOptimalPostingTime(results.postingTime || {});
+      setContentPerformance(results.performance?.result || []);
+      setCommentSentiment(results.sentiment?.result || []);
+      setFollowerTrend(results.trend?.result || {});
+      setOptimalPostingTime(results.postingTime?.result || {});
+      setEmotionAnalysis(results.emotionAnalysis?.result || null);
 
       // 개별 API 에러 로깅
       if (errors) {
@@ -246,6 +246,7 @@ export const useAnalyticsData = () => {
       setCommentSentiment([]);
       setFollowerTrend({});
       setOptimalPostingTime({});
+      setEmotionAnalysis(null);
     }
   };
 
@@ -260,6 +261,6 @@ export const useAnalyticsData = () => {
     optimalPostingTime,
     loading,
     error,
-    errors, // 개별 API 에러들도 노출
+    errors,
   };
 };

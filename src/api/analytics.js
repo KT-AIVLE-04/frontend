@@ -1,4 +1,4 @@
-import api, { testApi } from './axios'
+import api, { testApi } from './axios';
 
 const BASE_URL = '/analytics'
 
@@ -41,8 +41,8 @@ export const analyticsApi = {
   },
   
   // 히스토리 게시물 댓글 조회
-  getHistoryComments: (snsType, postId = null, page = 0, size = 20) => {
-    const params = { snsType, page, size };
+  getHistoryComments: (date, snsType, postId = null, page = 0, size = 20) => {
+    const params = { date, snsType, page, size };
     if (postId) params.postId = postId;
     return testApi.get(`${BASE_URL}/history/posts/comments`, { params });
   },
@@ -53,28 +53,6 @@ export const analyticsApi = {
     if (postId) params.postId = postId;
     return testApi.get(`${BASE_URL}/history/posts/emotion-analysis`, { params });
   },
-  
-  // ===== 배치 API =====
-  
-  // 계정 메트릭 수집
-  collectAccountMetrics: () => 
-    testApi.post(`${BASE_URL}/batch/accounts/metrics`),
-  
-  // 특정 계정 메트릭 수집
-  collectSpecificAccountMetrics: (accountId) => 
-    testApi.post(`${BASE_URL}/batch/accounts/${accountId}/metrics`),
-  
-  // 게시물 메트릭 수집
-  collectPostMetrics: () => 
-    testApi.post(`${BASE_URL}/batch/posts/metrics`),
-  
-  // 특정 게시물 메트릭 수집
-  collectSpecificPostMetrics: (postId) => 
-    testApi.post(`${BASE_URL}/batch/posts/${postId}/metrics`),
-  
-  // 배치 작업 상태 조회
-  getBatchJobStatus: (jobName) => 
-    testApi.get(`${BASE_URL}/batch/status/${jobName}`),
   
   // ===== 기존 호환성 API (점진적 마이그레이션용) =====
   

@@ -25,12 +25,14 @@ export function StatCard({
   const iconColorClasses = {
     views: "text-blue-600",
     likes: "text-red-600", 
-    comments: "text-green-600"
+    comments: "text-green-600",
+    shares: "text-purple-600"
   };
 
   // title에서 아이콘 타입 추출
   const iconType = title.includes('조회수') ? 'views' : 
-                   title.includes('좋아요') ? 'likes' : 'comments';
+                   title.includes('좋아요') ? 'likes' : 
+                   title.includes('공유') ? 'shares' : 'comments';
 
   return (
     <Card className={`p-6 ${className}`}>
