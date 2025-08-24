@@ -1,6 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-export const useApi = (apiFunction) => {
+export const useApi = (apiFunction, options = {}) => {
+  const { onSuccess, onError, autoExecute = false, autoExecuteArgs = [] } = options;
+  
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -17,6 +19,12 @@ export const useApi = (apiFunction) => {
         if (response.isSuccess === true && response.result !== undefined) {
           const parsedData = response.result;
           setData(parsedData);
+          
+          // onSuccess 콜백 실행
+          if (onSuccess) {
+            onSuccess(parsedData, response);
+          }
+          
           return parsedData;
         }
         
@@ -26,26 +34,51 @@ export const useApi = (apiFunction) => {
           const apiError = new Error(errorMessage);
           apiError.response = response;
           setError(apiError);
+          
+          // onError 콜백 실행
+          if (onError) {
+            onError(apiError, response);
+          }
+          
           throw apiError;
         }
       }
       
       // 기존 형식 그대로 반환 (하위 호환성)
       setData(response);
+      
+      // onSuccess 콜백 실행
+      if (onSuccess) {
+        onSuccess(response, response);
+      }
+      
       return response;
     } catch (err) {
       setError(err);
+      
+      // onError 콜백 실행
+      if (onError) {
+        onError(err);
+      }
+      
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [apiFunction]);
+  }, [apiFunction, onSuccess, onError]);
 
   const reset = useCallback(() => {
     setData(null);
     setLoading(false);
     setError(null);
   }, []);
+
+  // autoExecute가 true인 경우 컴포넌트 마운트 시 자동 실행
+  useEffect(() => {
+    if (autoExecute) {
+      execute(...autoExecuteArgs);
+    }
+  }, [autoExecute, autoExecuteArgs, execute]);
 
   return {
     data,
