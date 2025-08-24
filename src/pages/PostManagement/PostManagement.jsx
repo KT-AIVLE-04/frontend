@@ -14,13 +14,13 @@ import { useNavigate } from "react-router-dom";
 import { contentApi } from "../../api/content";
 import { snsApi } from "../../api/sns";
 import { storeApi } from "../../api/store";
-import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
+import { ErrorPage, LoadingSpinner } from "../../components";
 import { INDUSTRY_OPTIONS } from "../../const/industries";
 import { SNS_TYPES } from "../../const/snsTypes";
 import { useApi, useConfirm, useNotification } from "../../hooks";
 import { Store } from "../../models/Store";
 import { ROUTES } from "../../routes/routes";
-import { PostDetail, PostManagementCard, SearchFilter } from "./components";
+import { EmptyStateBox, PostDetail, PostManagementCard, SearchFilter } from "./components";
 
 const PostManagement = () => {
   /** ----------------------

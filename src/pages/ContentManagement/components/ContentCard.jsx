@@ -1,7 +1,7 @@
 import { Download, Edit, Share2, Trash2 } from "lucide-react";
 import React from "react";
-import { IconButton } from "../atoms";
-import { Card } from "../molecules";
+import { IconButton } from "../../../components/atoms";
+import { Card } from "../../../components/molecules";
 
 export function ContentCard({
   content,

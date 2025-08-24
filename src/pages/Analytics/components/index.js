@@ -6,5 +6,6 @@ export { ContentPerformanceTable } from './ContentPerformanceTable';
 export { DateRangeSelector } from './DateRangeSelector';
 export { FollowerTrendChart } from './FollowerTrendChart';
 export { OptimalPostingTime } from './OptimalPostingTime';
-export { createStatCard } from './StatCardCreator';
+export { StatCard } from './StatCard';
+export { StatCardCreator } from './StatCardCreator';
 

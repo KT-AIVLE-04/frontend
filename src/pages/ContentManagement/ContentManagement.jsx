@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { contentApi } from '../../api/content';
-import { ContentCard, DataListLayout } from '../../components';
+import { DataListLayout } from '../../components';
 import { useApi, useConfirm, useFileUpload, useNotification, useSearch } from '../../hooks';
 import { Content } from '../../models';
-import { ContentHeader, ContentUploadButton, SearchFilter, VideoDetail } from './components';
+import { ContentCard, ContentHeader, ContentUploadButton, SearchFilter, VideoDetail } from './components';
 
 export function ContentManagement() {
   const [sortBy, setSortBy] = useState('recent');

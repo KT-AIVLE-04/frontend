@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '../molecules';
+import { Card } from '../../../components/molecules';
 
 export function StatCard({ 
   title, 

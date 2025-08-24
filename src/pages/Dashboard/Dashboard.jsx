@@ -2,9 +2,9 @@ import React from 'react';
 import { analyticsApi } from '../../api/analytics';
 import { contentApi } from '../../api/content';
 import { storeApi } from '../../api/store';
-import { ErrorPage, LoadingSpinner, StatCard } from '../../components';
+import { ErrorPage, LoadingSpinner } from '../../components';
 import { useMultipleApi } from '../../hooks';
-import { ActivityItem, createStatCard, TrendSection } from './components';
+import { ActivityItem, createStatCard, StatCard, TrendSection } from './components';
 
 export function Dashboard() {
   // useMultipleApi 훅 사용 - 여러 API를 동시에 호출
