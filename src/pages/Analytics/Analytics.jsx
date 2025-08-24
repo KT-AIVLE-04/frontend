@@ -5,7 +5,8 @@ import {
   AnalyticsOverview,
   ApiErrorDisplay,
   ContentPerformanceTable,
-  DateRangeSelector
+  DateRangeSelector,
+  EmotionAnalysis
 } from './components';
 import { useAnalyticsData } from './hooks/useAnalyticsData';
 
@@ -16,6 +17,7 @@ export function Analytics() {
     overviewStats,
     contentPerformance,
     commentSentiment,
+    emotionAnalysis,
     followerTrend,
     optimalPostingTime,
     loading,
@@ -44,11 +46,14 @@ export function Analytics() {
 
       <AnalyticsOverview stats={overviewStats} />
       
-      <AnalyticsCharts 
-        commentSentiment={commentSentiment}
-        followerTrend={followerTrend}
-        optimalPostingTime={optimalPostingTime}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <EmotionAnalysis emotionAnalysis={emotionAnalysis} />
+        <AnalyticsCharts 
+          commentSentiment={commentSentiment}
+          followerTrend={followerTrend}
+          optimalPostingTime={optimalPostingTime}
+        />
+      </div>
 
       <ContentPerformanceTable contentPerformance={contentPerformance} />
     </div>
