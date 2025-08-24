@@ -1,13 +1,11 @@
-import { useEffect, useState } from 'react';
-import { analyticsApi } from '../../../api/analytics';
-import { contentApi } from '../../../api/content';
-import { snsApi } from '../../../api/sns';
-import { useMultipleApi } from '../../../hooks';
-import { StatCardCreator } from '../components';
+import {useEffect, useState} from 'react';
+import {analyticsApi} from '../../../api/analytics';
+import {contentApi} from '../../../api/content';
+import {snsApi} from '../../../api/sns';
+import {useMultipleApi} from '../../../hooks';
+import {StatCardCreator} from '../components';
 
 // 테스트용 임시 데이터
-const TEST_ACCOUNT_IDS = [1];
-const TEST_POST_IDS = [1];
 
 export const useAnalyticsData = () => {
   const [dateRange, setDateRange] = useState('last7');

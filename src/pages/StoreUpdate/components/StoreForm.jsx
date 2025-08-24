@@ -1,6 +1,6 @@
 import { MapPin } from 'lucide-react';
 import React from 'react';
-import { Alert, Button, FormField } from '../../../components';
+import { Button, FormField } from '../../../components';
 import { INDUSTRY_OPTIONS } from '../../../const/industries';
 
 export function StoreForm({
@@ -18,7 +18,7 @@ export function StoreForm({
   isEditMode = false
 }) {
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <div className="space-y-10">
       <FormField
         label="매장명"
         name="name"
@@ -102,32 +102,9 @@ export function StoreForm({
         required
         options={INDUSTRY_OPTIONS}
       />
+      {/* 디버깅용 로그 */}
+      {console.log('INDUSTRY_OPTIONS:', INDUSTRY_OPTIONS)}
 
-      {error && (
-        <Alert
-          type="error"
-          title="오류"
-          message={error}
-        />
-      )}
-
-      <div className="flex justify-end pt-4">
-        <Button 
-          type="button" 
-          variant="outline"
-          onClick={onCancel}
-          className="mr-2!"
-        >
-          취소
-        </Button>
-        <Button 
-          type="submit" 
-          variant="primary"
-          disabled={loading}
-        >
-          {loading ? '저장 중...' : (isEditMode ? '매장 수정' : '매장 추가')}
-        </Button>
-      </div>
-    </form>
+    </div>
   );
 } 

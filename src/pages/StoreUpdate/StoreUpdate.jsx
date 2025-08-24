@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
@@ -97,17 +96,19 @@ export function StoreUpdate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('폼 제출됨!', formData);
     
     // 클라이언트 사이드 검증
     const isValid = validateForm(STORE_VALIDATION_SCHEMA);
     if (!isValid) {
+      console.log('검증 실패:', errors);
       return;
     }
     
     try {
       const storeRequest = new Store(formData);
       if (isEditMode) {
-        await updateStore(editStore.id, storeRequest.toCreateRequest());
+        await updateStore(editStore.id, storeRequest.toUpdateRequest());
         success('매장 정보가 수정되었습니다.');
       } else {
         await createStore(storeRequest.toCreateRequest());
@@ -139,34 +140,18 @@ export function StoreUpdate() {
     <FormPageLayout
       loading={loading}
       error={error}
-      topSection={
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">{isEditMode ? '매장 정보 수정' : '새 매장 추가'}</h1>
-          <Button
-            onClick={handleCancel}
-            variant="ghost"
-            icon={ArrowLeft}
-          >
-            돌아가기
-          </Button>
-        </div>
-      }
+      errorTitle="매장 저장 실패"
+      errorMessage={error?.response?.data?.message || '매장 저장에 실패했습니다. 입력 정보를 확인해주세요.'}
+      title={isEditMode ? '매장 정보 수정' : '새 매장 추가'}
+      onBack={handleCancel}
       onSubmit={handleSubmit}
       submitButton={
-        <Button
-          type="submit"
+        <Button 
+          type="submit" 
           loading={loading}
+          className="w-full"
         >
-          {isEditMode ? '수정하기' : '추가하기'}
-        </Button>
-      }
-      cancelButton={
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleCancel}
-        >
-          취소
+          {loading ? '저장 중...' : (isEditMode ? '수정하기' : '추가하기')}
         </Button>
       }
     >
