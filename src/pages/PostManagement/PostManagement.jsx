@@ -10,7 +10,7 @@ import {
   Eye,
 } from "lucide-react";
 import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
-import { SearchFilter, PostManagementCard, PostDetail } from "./components";
+import { SearchFilter, PostCard, PostDetail } from "./components";
 import { useSelector } from "react-redux";
 import { storeApi } from "../../api/store";
 import { snsApi } from "../../api/sns";
@@ -568,7 +568,7 @@ const PostManagement = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {posts.map((post) => (
-              <PostManagementCard
+              <PostCard
                 key={post.id}
                 content={post}
                 onClick={() => handleCardClick(post)}

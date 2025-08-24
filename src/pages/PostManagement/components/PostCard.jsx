@@ -2,7 +2,7 @@ import { Trash2, Eye, Clock, CheckCircle, XCircle } from "lucide-react";
 import React from "react";
 import { Container } from "../../../components/Container";
 
-export function PostManagementCard({ content, onClick, onDelete }) {
+export function PostCard({ content, onClick, onDelete }) {
   const handleCardClick = () => {
     if (onClick) {
       onClick(content);
@@ -55,7 +55,7 @@ export function PostManagementCard({ content, onClick, onDelete }) {
     >
       <div className="relative">
         <img
-          src={content.thumbnailUrl || content.thumbnail}
+          src={content.url}
           alt={content.title}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-150"
         />
@@ -100,9 +100,9 @@ export function PostManagementCard({ content, onClick, onDelete }) {
         </h3>
 
         <div className="flex items-center text-sm text-gray-600 mb-3 font-bold">
-          <span className="font-black">{content.author || content.store}</span>
+          <span className="font-black">{content.author}</span>
           <span className="mx-2">•</span>
-          <span>{content.createdAt}</span>
+          <span>{content.publishAt}</span>
         </div>
 
         {/* 상태 표시 */}
