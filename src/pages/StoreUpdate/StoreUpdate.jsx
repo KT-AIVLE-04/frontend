@@ -1,10 +1,12 @@
-import { ArrowLeft } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
-import { Container } from '../../components/Container';
+import { FormPageLayout } from '../../components';
+import { INDUSTRY_OPTIONS } from '../../const/industries';
+import { useApi, useForm, useNotification } from '../../hooks';
 import { Store } from '../../models/Store';
-import { StoreForm } from './components';
+import { formatPhoneNumber, STORE_VALIDATION_SCHEMA } from '../../utils/index.js';
+import { FieldsContainer } from './components';
 
 export function StoreUpdate() {
   const location = useLocation();
@@ -12,37 +14,32 @@ export function StoreUpdate() {
   const editStore = location.state?.store;
   const isEditMode = !!editStore;
   
-  const [formData, setFormData] = useState(editStore ? new Store(editStore) : Store.createEmpty());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // 연락처 포맷팅 함수
-  const formatContactNumber = (value) => {
-    const numbers = value.replace(/[^\d]/g, '');
-    
-    if (numbers.length <= 2) {
-      return numbers;
-    } else if (numbers.length <= 6) {
-      return `${numbers.slice(0, 2)}-${numbers.slice(2)}`;
-    } else if (numbers.length <= 10) {
-      return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}-${numbers.slice(6)}`;
-    } else if (numbers.length <= 11) {
-      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
-    } else {
-      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
-    }
+  // 포맷터 설정
+  const formatters = {
+    phoneNumber: formatPhoneNumber
   };
 
-  // 연락처 입력 핸들러
-  const handleContactChange = (e) => {
-    const { value } = e.target;
-    const formatted = formatContactNumber(value);
-    
-    setFormData(prev => ({
-      ...prev,
-      phoneNumber: formatted
-    }));
-  };
+  // useForm 훅 사용
+  const {
+    values: formData,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    validateForm,
+    setAllErrors,
+    setFieldValue
+  } = useForm(editStore ? new Store(editStore) : Store.createEmpty(), formatters);
+  
+  // useApi 훅 사용 - 하나의 API 함수로 통합
+  const { loading, error, execute: saveStore } = useApi(
+    isEditMode ? storeApi.updateStore : storeApi.createStore
+  );
+
+  // 새로운 훅들 사용
+  const { success, error: showError } = useNotification();
+
+  
 
   const handleAddressSearch = () => {
     new window.daum.Postcode({
@@ -68,20 +65,14 @@ export function StoreUpdate() {
                   longitude: coords.getLng()
                 });
                 
-                setFormData(prev => ({
-                  ...prev,
-                  address: address,
-                  latitude: coords.getLat(),
-                  longitude: coords.getLng()
-                }));
+                setFieldValue('address', address);
+                setFieldValue('latitude', coords.getLat());
+                setFieldValue('longitude', coords.getLng());
               } else {
                 console.error('주소를 좌표로 변환하는데 실패했습니다.');
-                setFormData(prev => ({
-                  ...prev,
-                  address: address,
-                  latitude: null,
-                  longitude: null
-                }));
+                setFieldValue('address', address);
+                setFieldValue('latitude', null);
+                setFieldValue('longitude', null);
               }
             });
           } else {
@@ -99,43 +90,43 @@ export function StoreUpdate() {
     }).open();
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('폼 제출됨!', formData);
+    
+    // 클라이언트 사이드 검증
+    const isValid = validateForm(STORE_VALIDATION_SCHEMA);
+    if (!isValid) {
+      console.log('검증 실패:', errors);
+      console.log('현재 폼 데이터:', formData);
+      console.log('검증 스키마:', STORE_VALIDATION_SCHEMA);
+      return;
+    }
     
     try {
-      setLoading(true);
-      setError(null);
-
       const storeRequest = new Store(formData);
-      if (!storeRequest.isValid()) {
-        const errors = storeRequest.getValidationErrors();
-        alert(errors.join('\n'));
-        return;
-      }
-
       if (isEditMode) {
-        await storeApi.updateStore(editStore.id, storeRequest.toCreateRequest());
-        alert('매장 정보가 수정되었습니다.');
+        await saveStore(editStore.id, storeRequest.toUpdateRequest());
+        success('매장 정보가 수정되었습니다.');
       } else {
-        await storeApi.createStore(storeRequest.toCreateRequest());
-        alert('새 매장이 추가되었습니다.');
+        await saveStore(storeRequest.toCreateRequest());
+        success('새 매장이 추가되었습니다.');
       }
       
       // 이전 페이지로 돌아가기
       navigate(-1);
     } catch (error) {
       console.error('매장 저장 실패:', error);
-      setError('매장 저장에 실패했습니다.');
-    } finally {
-      setLoading(false);
+      showError('매장 저장에 실패했습니다.');
+      // 서버 에러를 폼 에러로 변환
+      if (error.response?.data?.message) {
+        setAllErrors({
+          name: error.response.data.message.includes('매장명') ? error.response.data.message : '',
+          address: error.response.data.message.includes('주소') ? error.response.data.message : '',
+          phoneNumber: error.response.data.message.includes('연락처') ? error.response.data.message : '',
+          industry: error.response.data.message.includes('업종') ? error.response.data.message : ''
+        });
+      }
     }
   };
 
@@ -144,31 +135,34 @@ export function StoreUpdate() {
   };
 
   return (
-    <div className="flex-1 max-w-2xl mx-auto">
-      <div className="flex items-center mt-4">
-        <button
-          onClick={handleCancel}
-          className="mr-2! p-3 text-gray-600  rounded-xl"
-        >
-          <ArrowLeft size={20} strokeWidth={4} />
-        </button>
-        <h1 className="text-2xl font-bold" >{isEditMode ? '매장 정보 수정' : '새 매장 추가'}</h1>
-      </div>
-
-      <Container className="p-8 ">
-        <StoreForm
-          formData={formData}
-          setFormData={setFormData}
-          handleSubmit={handleSubmit}
-          handleInputChange={handleInputChange}
-          handleContactChange={handleContactChange}
-          handleAddressSearch={handleAddressSearch}
+    <FormPageLayout
+      loading={loading}
+      error={error}
+      errorTitle="매장 저장 실패"
+      errorMessage={error?.response?.data?.message || '매장 저장에 실패했습니다. 입력 정보를 확인해주세요.'}
+      title={isEditMode ? '매장 정보 수정' : '새 매장 추가'}
+      onBack={handleCancel}
+      onSubmit={handleSubmit}
+      submitButton={
+        <Button 
+          type="submit" 
           loading={loading}
-          error={error}
-          onCancel={handleCancel}
-          isEditMode={isEditMode}
-        />
-      </Container>
-    </div>
+          className="w-full"
+        >
+          {loading ? '저장 중...' : (isEditMode ? '수정하기' : '추가하기')}
+        </Button>
+      }
+    >
+      <FieldsContainer
+        formData={formData}
+        handleChange={handleChange}
+        handleBlur={handleBlur}
+        touched={touched}
+        errors={errors}
+        handleAddressSearch={handleAddressSearch}
+        validationSchema={STORE_VALIDATION_SCHEMA}
+        industryOptions={INDUSTRY_OPTIONS}
+      />
+    </FormPageLayout>
   );
 } 

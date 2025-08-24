@@ -9,7 +9,8 @@ export function Button({
   icon: Icon,
   onClick,
   type = "button",
-  className = ""
+  className = "",
+  fullWidth = false
 }) {
   const baseClasses = "inline-flex items-center justify-center font-black rounded-2xl focus:outline-none focus:ring-4 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] transform hover:translate-x-0.5 hover:translate-y-0.5";
   
@@ -18,7 +19,8 @@ export function Button({
     secondary: "bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-700 focus:ring-gray-200",
     outline: "border-2 border-gray-400 text-gray-700 bg-white hover:bg-gray-100 focus:ring-gray-200",
     danger: "bg-red-500 hover:bg-red-600 text-white border-2 border-red-700 focus:ring-red-200",
-    success: "bg-green-500 hover:bg-green-600 text-white border-2 border-green-700 focus:ring-green-200"
+    success: "bg-green-500 hover:bg-green-600 text-white border-2 border-green-700 focus:ring-green-200",
+    ghost: "bg-transparent hover:bg-gray-100 text-gray-700 border-2 border-transparent hover:border-gray-300 focus:ring-gray-200"
   };
 
   const sizeClasses = {
@@ -27,12 +29,14 @@ export function Button({
     large: "px-8 py-4 text-lg"
   };
 
+  const widthClass = fullWidth ? "w-full" : "";
+
   return (
     <button
       type={type}
       disabled={disabled || loading}
       onClick={onClick}
-      className={`${className} ${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} }`}
+      className={`${className} ${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass}`}
     >
       {loading && (
         <svg className="animate-spin -ml-1 mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -44,4 +48,4 @@ export function Button({
       {children}
     </button>
   );
-} 
+}

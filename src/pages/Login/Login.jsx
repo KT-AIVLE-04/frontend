@@ -1,54 +1,67 @@
-import React, {useState} from 'react';
-import {useDispatch} from 'react-redux';
-import {Link, useNavigate} from 'react-router-dom';
-import {authApi} from '../../api/auth';
-import {Button, FormField} from '../../components';
-import {ROUTES} from '../../routes/routes';
-import {login} from '../../store/authSlice';
-import {GoogleIcon, KakaoIcon, NaverIcon} from './components';
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { authApi } from '../../api/auth';
+import { Alert, Button, FormField } from '../../components';
+import { useApi, useForm } from '../../hooks';
+import { ROUTES } from '../../routes/routes';
+import { login } from '../../store/authSlice';
+import { LOGIN_VALIDATION_SCHEMA } from '../../utils/validations';
+import { GoogleIcon, KakaoIcon, NaverIcon } from './components';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export function Login() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // useForm 훅 사용
+  const {
+    values: formData,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    validateForm,
+    setAllErrors
+  } = useForm({
+    email: '',
+    password: ''
+  });
+
+  // useApi 훅 사용
+  const { loading, error, execute: loginUser } = useApi(authApi.login);
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
+
+    // 클라이언트 사이드 검증
+    const isValid = validateForm(LOGIN_VALIDATION_SCHEMA);
+    if (!isValid) {
+      return;
+    }
 
     try {
-      const {data} = await authApi.login(formData);
+      const {data} = await loginUser(formData);
       if (!data || !data.result) throw new Error('로그인 정보가 올바르지 않습니다.');
       const {accessToken, refreshToken} = data.result;
       dispatch(login({accessToken, refreshToken}));
       navigate(ROUTES.STORE_SELECTION.route);
     } catch (error) {
       console.error('로그인 실패:', error);
-      const errorMessage = error.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+      // 서버 에러를 폼 에러로 변환
+      if (error.response?.data?.message) {
+        setAllErrors({
+          email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
+          password: error.response.data.message.includes('비밀번호') ? error.response.data.message : ''
+        });
+      }
     }
   };
 
-  const handleInputChange = (e) => {
-    const {name, value} = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (error) {
-      setError('');
-    }
-  };
+
 
   const onRegisterClick = () => {
     navigate(ROUTES.REGISTER.route);
@@ -141,10 +154,11 @@ export function Login() {
             </div>
 
             {error && (
-              <div
-                className="mb-6 p-4 bg-red-100 border-2 border-red-400 text-red-800 rounded-2xl text-center font-bold shadow-lg">
-                ⚠️ {error}
-              </div>
+              <Alert
+                type="error"
+                title="로그인 실패"
+                message={error.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'}
+              />
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -153,7 +167,9 @@ export function Login() {
                 name="email"
                 type="email"
                 value={formData.email}
-                onChange={handleInputChange}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.email && errors.email}
                 placeholder="이메일 주소를 입력하세요"
                 required
               />
@@ -162,7 +178,9 @@ export function Login() {
                 name="password"
                 type="password"
                 value={formData.password}
-                onChange={handleInputChange}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.password && errors.password}
                 placeholder="비밀번호를 입력하세요"
                 required
               />

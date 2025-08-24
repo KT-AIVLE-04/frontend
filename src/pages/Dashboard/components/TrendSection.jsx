@@ -1,9 +1,9 @@
 import { TrendingUp } from 'lucide-react';
-import { Container } from '../../../components/Container';
+import { Card } from '../../../components';
 
 export const TrendSection = () => {
   return (
-    <Container className="p-6">
+    <Card className="p-6">
       <h2 className="text-xl font-black text-gray-800 mb-6 flex items-center">
         <TrendingUp size={20} className="mr-3 text-red-500" />
         현재 트렌드
@@ -41,6 +41,6 @@ export const TrendSection = () => {
           </p>
         </div>
       </div>
-    </Container>
+    </Card>
   );
 }; 

@@ -1,47 +1,47 @@
-import {Plus} from 'lucide-react';
-import React, {useEffect, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate} from 'react-router-dom';
-import {storeApi} from '../../api/store';
-import {Button, ErrorPage, LoadingSpinner} from '../../components';
-import {ROUTES} from '../../routes/routes';
-import {StoreTable} from './components';
-import {setSelectedStore} from "../../store/authSlice.js";
+import { Plus } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { storeApi } from '../../api/store';
+import { ApiPageLayout, Button } from '../../components';
+import { useApi, useConfirm, useNotification } from '../../hooks';
+import { ROUTES } from '../../routes/routes';
+import { setSelectedStore } from "../../store/authSlice.js";
+import { StoreTable } from './components';
 
 export function StoreManagement() {
-  const [stores, setStores] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const {selectedStoreId} = useSelector((state) => state.auth);
 
+  // useApi 훅 사용
+  const { data: storesData, loading, error, execute: fetchStores } = useApi(storeApi.getStores);
+  const { execute: deleteStore } = useApi(storeApi.deleteStore);
+
+  // 새로운 훅들 사용
+  const { confirm } = useConfirm();
+  const { success, error: showError } = useNotification();
+
   useEffect(() => {
     fetchStores();
-  }, []);
+  }, [fetchStores]);
 
-  const fetchStores = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await storeApi.getStores();
-      setStores(response.data?.result || []);
-    } catch (error) {
-      console.error('매장 목록 로딩 실패:', error);
-      setError('매장 목록을 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const stores = storesData?.data?.result || [];
 
   const handleDelete = async (storeId) => {
-    if (window.confirm('정말로 이 매장을 삭제하시겠습니까?')) {
+    const confirmed = await confirm({
+      title: '매장 삭제',
+      message: '정말로 이 매장을 삭제하시겠습니까?'
+    });
+
+    if (confirmed) {
       try {
-        await storeApi.deleteStore(storeId);
+        await deleteStore(storeId);
         fetchStores();
+        success('매장이 삭제되었습니다.');
       } catch (error) {
         console.error('매장 삭제 실패:', error);
-        alert('매장 삭제에 실패했습니다.');
+        showError('매장 삭제에 실패했습니다.');
       }
     }
   };
@@ -55,26 +55,33 @@ export function StoreManagement() {
     dispatch(setSelectedStore(store));
   };
 
-  if (error) {
-    return <ErrorPage title="매장 목록 로딩 실패" message={error}/>;
-  }
-
-  if (loading) {
-    return <LoadingSpinner/>;
-  }
-
   return (
-    <div className="flex-1 w-full">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">매장 관리</h1>
+    <ApiPageLayout
+      loading={loading}
+      error={error}
+      isEmpty={stores.length === 0}
+      topSection={
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">매장 관리</h1>
+          <Button
+            onClick={() => navigate(ROUTES.STORE_UPDATE.route)}
+            icon={Plus}
+          >
+            매장 추가
+          </Button>
+        </div>
+      }
+      emptyTitle="등록된 매장이 없습니다"
+      emptyMessage="새로운 매장을 추가해보세요."
+      emptyAction={
         <Button
           onClick={() => navigate(ROUTES.STORE_UPDATE.route)}
           icon={Plus}
         >
-          매장 추가
+          매장 추가하기
         </Button>
-      </div>
-
+      }
+    >
       <StoreTable
         stores={stores}
         handleDelete={handleDelete}
@@ -82,6 +89,6 @@ export function StoreManagement() {
         handleSelect={handleSelect}
         selectedStoreId={selectedStoreId}
       />
-    </div>
+    </ApiPageLayout>
   );
 } 

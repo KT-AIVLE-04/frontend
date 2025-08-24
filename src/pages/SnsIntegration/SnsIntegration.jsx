@@ -1,17 +1,18 @@
+import {
+    AlertCircle,
+    CheckCircle,
+    ExternalLink,
+    Facebook,
+    Instagram,
+    RefreshCw,
+    Unlink,
+    X,
+    Youtube,
+} from "lucide-react";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import {
-  Youtube,
-  Instagram,
-  Facebook,
-  CheckCircle,
-  AlertCircle,
-  ExternalLink,
-  RefreshCw,
-  Unlink,
-  X,
-} from "lucide-react";
 import { snsApi } from "../../api/sns";
+import { useNotification } from "../../hooks";
 import { SnsIntegrationGuide } from "./components";
 
 // 상수 정의
@@ -63,7 +64,12 @@ export function SnsIntegration() {
     instagram: { ...INITIAL_CONNECTION_STATE },
     facebook: { ...INITIAL_CONNECTION_STATE },
   });
+
+  // 에러 상태 추가
   const [error, setError] = useState("");
+
+  // 새로운 훅들 사용
+  const { success, error: showError } = useNotification();
 
   // Helper 함수: 연결 상태 업데이트
   const updateConnectionState = (platform, updates) => {

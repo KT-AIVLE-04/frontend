@@ -66,15 +66,6 @@ api.interceptors.response.use(
       }`
     );
     console.log("Response:", response.data);
-
-    //set cookie
-    console.log("response", response.headers);
-    const cookie = response.headers["set-cookie"];
-    console.log("cookie", cookie);
-    if (cookie) {
-      document.cookie = cookie;
-    }
-
     return response;
   },
   async (error) => {

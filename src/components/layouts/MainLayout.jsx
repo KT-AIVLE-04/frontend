@@ -1,19 +1,19 @@
-import { LogOut, Settings } from 'lucide-react'
-import { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Store } from '../models/Store'
-import { logout, setSelectedStore } from '../store/authSlice'
-import { clearSelectedStore, fetchStoreById } from '../store/storeSlice'
-import { getMenuItems, ROUTES } from './routes'
+import {LogOut, Settings} from 'lucide-react'
+import {useEffect} from 'react'
+import {useDispatch, useSelector} from 'react-redux'
+import {Outlet, useLocation, useNavigate} from 'react-router-dom'
+import {Store} from '../../models/Store.js'
+import {logout, setSelectedStore} from '../../store/authSlice.js'
+import {clearSelectedStore, fetchStoreById} from '../../store/storeSlice.js'
+import {getMenuItems, ROUTES} from '../../routes/routes.js'
 
 export const MainLayout = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { selectedStoreId, user } = useSelector((state) => state.auth)
-  const { selectedStore, loading } = useSelector((state) => state.store)
-  
+  const {selectedStoreId, user} = useSelector((state) => state.auth)
+  const {selectedStore, loading} = useSelector((state) => state.store)
+
   // 선택된 매장 정보 가져오기
   useEffect(() => {
     if (selectedStoreId) {
@@ -51,14 +51,14 @@ export const MainLayout = () => {
             {/* 왼쪽: 플랫폼명과 메뉴들 */}
             <div className="flex items-center space-x-8">
               <h1 className="text-2xl font-black text-gray-800 pr-8">marketing</h1>
-              
+
               {/* 메뉴들 */}
               <div className="flex">
                 {getMenuItems().map((item) => (
                   <button
                     key={item.route}
                     onClick={() => handleNavigate(item.route)}
-                    className={`mx-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
+                    className={`mx-1 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
                       isActive(item.route)
                         ? 'text-white bg-[#984fff] shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)]'
                         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
@@ -69,14 +69,16 @@ export const MainLayout = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* 오른쪽: 사용자 정보, 매장 정보, 액션 버튼들 */}
             {!loading && selectedStore && (
               <div className="flex items-center space-x-6">
                 {/* 사용자 정보 */}
                 {user && (
-                  <div className="flex items-center space-x-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-gray-200/50 shadow-sm">
-                    <div className="w-9 h-9 bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                  <div
+                    className="flex items-center space-x-3 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-2 border border-gray-200/50 shadow-sm">
+                    <div
+                      className="w-9 h-9 bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
                       <span className="text-sm font-bold text-white">
                         {user.name?.charAt(0).toUpperCase() || 'U'}
                       </span>
@@ -89,15 +91,18 @@ export const MainLayout = () => {
                 )}
 
                 {/* 매장 정보 */}
-                <div className="flex items-center space-x-3 bg-gradient-to-r from-purple-50 to-purple-100/50 rounded-xl px-4 py-2 border border-purple-200/50 shadow-sm">
-                  <div className="w-9 h-9 bg-gradient-to-br from-[#984fff] to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                <div
+                  className="flex items-center space-x-3 bg-gradient-to-r from-purple-50 to-purple-100/50 rounded-xl px-4 py-2 border border-purple-200/50 shadow-sm">
+                  <div
+                    className="w-9 h-9 bg-gradient-to-br from-[#984fff] to-purple-600 rounded-full flex items-center justify-center shadow-md">
                     <span className="text-sm font-bold text-white">
                       {selectedStore.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex flex-col">
                     <p className="text-sm font-semibold text-gray-800">{selectedStore.name}</p>
-                    <p className="text-xs text-purple-600 font-medium">{Store.getIndustryLabel(selectedStore.industry)}</p>
+                    <p
+                      className="text-xs text-purple-600 font-medium">{Store.getIndustryLabel(selectedStore.industry)}</p>
                   </div>
                 </div>
 
@@ -111,14 +116,14 @@ export const MainLayout = () => {
                     className="p-2.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-200"
                     title="매장 변경"
                   >
-                    <Settings size={18} />
+                    <Settings size={18}/>
                   </button>
                   <button
                     onClick={handleLogout}
                     className="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 border border-transparent hover:border-red-200"
                     title="로그아웃"
                   >
-                    <LogOut size={18} />
+                    <LogOut size={18}/>
                   </button>
                 </div>
               </div>
@@ -126,12 +131,12 @@ export const MainLayout = () => {
           </div>
         </div>
       </div>
-      
-      
+
+
       {/* 메인 콘텐츠 영역 */}
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
-          <Outlet />
+          <Outlet/>
         </div>
       </div>
     </div>

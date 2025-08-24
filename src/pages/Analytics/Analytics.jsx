@@ -1,9 +1,12 @@
 import React from 'react';
 import { ErrorPage, LoadingSpinner } from '../../components';
-import { DateRangeSelector } from './components';
-import { AnalyticsCharts } from './components/AnalyticsCharts';
-import { AnalyticsOverview } from './components/AnalyticsOverview';
-import { ContentPerformanceTable } from './components/ContentPerformanceTable';
+import {
+  AnalyticsCharts,
+  AnalyticsOverview,
+  ApiErrorDisplay,
+  ContentPerformanceTable,
+  DateRangeSelector
+} from './components';
 import { useAnalyticsData } from './hooks/useAnalyticsData';
 
 export function Analytics() {
@@ -16,10 +19,12 @@ export function Analytics() {
     followerTrend,
     optimalPostingTime,
     loading,
-    error
+    error,
+    errors
   } = useAnalyticsData();
 
-  if (error) {
+  // 전체 에러가 있는 경우 (모든 API가 실패한 경우)
+  if (error && Object.keys(errors || {}).length > 0) {
     return <ErrorPage title="분석 데이터 로딩 실패" message={error} />;
   }
 
@@ -33,6 +38,9 @@ export function Analytics() {
         <h1 className="text-2xl font-bold">성과 분석</h1>
         <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
       </div>
+
+      {/* 개별 API 에러 표시 */}
+      <ApiErrorDisplay errors={errors} />
 
       <AnalyticsOverview stats={overviewStats} />
       

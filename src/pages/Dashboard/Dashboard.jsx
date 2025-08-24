@@ -1,44 +1,46 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { analyticsApi } from '../../api/analytics';
-import { ErrorPage, LoadingSpinner, StatCard } from '../../components';
-import { ActivityItem, createStatCard, TrendSection } from './components';
+import { contentApi } from '../../api/content';
+import { storeApi } from '../../api/store';
+import { ErrorPage, LoadingSpinner } from '../../components';
+import { useMultipleApi } from '../../hooks';
+import { ActivityItem, createStatCard, StatCard, TrendSection } from './components';
 
 export function Dashboard() {
-  const [stats, setStats] = useState([]);
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // useMultipleApi 훅 사용 - 여러 API를 동시에 호출
+  const { 
+    loading, 
+    error, 
+    errors,
+    results, 
+    executeMultiple 
+  } = useMultipleApi();
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await analyticsApi.getDashboardStats();
-        const data = response.data;
-        
-        const newStats = [
-          createStatCard('stores', data.stores, data.storesChange),
-          createStatCard('contents', data.contents, data.contentsChange),
-          createStatCard('posts', data.posts, data.postsChange),
-          createStatCard('views', data.totalViews?.toLocaleString(), data.viewsChange)
-        ];
+  React.useEffect(() => {
+    // 여러 API를 동시에 호출
+    executeMultiple({
+      dashboard: () => analyticsApi.getDashboardStats(),
+      contents: () => contentApi.getContents(),
+      stores: () => storeApi.getStores()
+    });
+  }, [executeMultiple]);
 
-        setStats(newStats);
-        setActivities(data.activities || []);
-      } catch (error) {
-        console.error('대시보드 데이터 로딩 실패:', error);
-        setError('대시보드 데이터를 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const stats = React.useMemo(() => {
+    if (!results.dashboard) return [];
+    
+    const data = results.dashboard;
+    return [
+      createStatCard('stores', data.stores, data.storesChange),
+      createStatCard('contents', data.contents, data.contentsChange),
+      createStatCard('posts', data.posts, data.postsChange),
+      createStatCard('views', data.totalViews?.toLocaleString(), data.viewsChange)
+    ];
+  }, [results.dashboard]);
 
-    fetchDashboardData();
-  }, []);
+  const activities = results.dashboard?.activities || [];
 
-  if (error) {
+  // 전체 에러가 있는 경우 (모든 API가 실패한 경우)
+  if (error && Object.keys(errors || {}).length > 0) {
     return <ErrorPage title="대시보드 로딩 실패" message={error} />;
   }
 
@@ -49,6 +51,27 @@ export function Dashboard() {
   return (
     <div className="flex-1 w-full">
       <h1 className="text-2xl font-bold mb-6">대시보드</h1>
+      
+      {/* 개별 API 에러 표시 */}
+      {errors && Object.keys(errors).length > 0 && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h3 className="text-red-800 font-semibold mb-2">일부 데이터를 불러오는데 실패했습니다</h3>
+          <ul className="list-disc list-inside space-y-1">
+            {Object.entries(errors).map(([key, error]) => {
+              const apiName = {
+                dashboard: '대시보드 통계',
+                contents: '콘텐츠 정보',
+                stores: '매장 정보'
+              }[key] || key;
+              return (
+                <li key={key} className="text-sm text-red-700">
+                  {apiName}: {error.message || '알 수 없는 오류'}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
