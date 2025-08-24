@@ -1,7 +1,7 @@
 import { Upload, Video } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { contentApi } from "../../api/content";
-import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
+import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
 import { Content } from "../../models";
 import { SearchFilter, ContentCard } from "./components";
 import { VideoDetail } from "./components/VideoDetail";
@@ -206,7 +206,7 @@ export function ContentManagement() {
       />
 
       {filteredContents.length === 0 ? (
-        <EmptyStateBox
+        <EmptyState
           icon={Video}
           title="콘텐츠가 없습니다"
           description="생성된 콘텐츠가 여기에 표시됩니다."

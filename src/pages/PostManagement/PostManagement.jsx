@@ -10,7 +10,7 @@ import {
   Eye,
   AlertTriangle, // 추가
 } from "lucide-react";
-import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
+import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
 import { SearchFilter, PostCard, PostDetail } from "./components";
 import { useSelector } from "react-redux";
 import { storeApi } from "../../api/store";
@@ -583,7 +583,7 @@ const PostManagement = () => {
 
         {/* 게시물 목록 */}
         {postList.length === 0 ? (
-          <EmptyStateBox
+          <EmptyState
             icon={Video}
             title="게시물이 없습니다"
             description="업로드된 게시물이 여기에 표시됩니다."
@@ -1680,16 +1680,6 @@ const PostManagement = () => {
                 </div>
               </div>
             </div>
-
-            {/* 미리보기 없을 때 */}
-            {publishOptions.snsType === "" && (
-              <div className="text-center py-8 text-gray-500">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Eye size={24} className="text-gray-400" />
-                </div>
-                <p>플랫폼을 선택하면 게시 예정 플랫폼이 강조됩니다</p>
-              </div>
-            )}
           </div>
         )}
         {/* 업로드 버튼 */}

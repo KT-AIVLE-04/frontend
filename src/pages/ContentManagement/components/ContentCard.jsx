@@ -1,6 +1,6 @@
 import { Download, Edit, Trash2 } from "lucide-react";
 import React from "react";
-import { Container } from "../../../components/Container";
+import { Card } from "../../../components/molecules";
 
 export function ContentCard({
   content,
@@ -33,7 +33,7 @@ export function ContentCard({
   };
 
   return (
-    <Container
+    <Card
       variant="hover"
       className="overflow-hidden group cursor-pointer"
       onClick={handleCardClick}
@@ -120,6 +120,6 @@ export function ContentCard({
           </div>
         )}
       </div>
-    </Container>
+    </Card>
   );
 }
