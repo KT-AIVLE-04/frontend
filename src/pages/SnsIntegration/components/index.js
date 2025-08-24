@@ -1,2 +1,1 @@
-export { ConnectedAccounts } from './ConnectedAccounts';
-export { ScheduledPosts } from './ScheduledPosts';
+export { SnsIntegrationGuide } from "./SnsIntegrationGuide";

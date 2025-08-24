@@ -1,3 +1,3 @@
-export { SearchFilter } from './SearchFilter';
-export { VideoDetail } from './VideoDetail';
-
+export { SearchFilter } from "./SearchFilter";
+export { PostCard } from "./PostCard";
+export { PostDetail } from "./PostDetail";
