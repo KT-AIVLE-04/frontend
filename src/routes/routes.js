@@ -4,11 +4,6 @@ export const ROUTES = {
     krName: "성과 분석",
     inMenu: true,
   },
-  DASHBOARD: {
-    route: "/dashboard",
-    krName: "대시보드",
-    inMenu: true,
-  },
   CONTENT_CREATION: {
     route: "/content-creation",
     krName: "콘텐츠 제작",
