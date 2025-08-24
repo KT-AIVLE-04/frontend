@@ -1,5 +1,6 @@
 import React from 'react';
-import { Alert, Card, LoadingSpinner } from '../molecules';
+import { Alert, Card } from '../molecules';
+import { LoadingSpinner } from '../organisms';
 
 export const FormPageLayout = ({
   // 기본 상태
@@ -66,7 +67,7 @@ export const FormPageLayout = ({
 
   return (
     <div className={`flex-1 max-w-2xl mx-auto ${className}`}>
-      {/* 헤더 영역 - Register.jsx와 동일한 스타일 */}
+      {/* 헤더 영역 */}
       <div className="flex items-center mt-4">
         {onBack && (
           <button

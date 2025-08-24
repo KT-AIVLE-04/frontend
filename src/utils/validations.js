@@ -30,8 +30,14 @@ export const validateName = (value) => {
 // 전화번호 검증 함수
 export const validatePhone = (value) => {
   if (!value) return '전화번호를 입력해주세요.';
-  if (!/^[0-9-+\s()]+$/.test(value)) return '올바른 전화번호 형식을 입력해주세요.';
-  if (value.replace(/[^0-9]/g, '').length < 10) return '전화번호는 10자리 이상이어야 합니다.';
+  
+  // 정규식 패턴: ^(0\d{1,2})-\d{3,4}-\d{4}$
+  const phonePattern = /^(0\d{1,2})-\d{3,4}-\d{4}$/;
+  
+  if (!phonePattern.test(value)) {
+    return '올바른 전화번호 형식을 입력해주세요. (예: 02-1234-5678, 010-1234-5678)';
+  }
+  
   return '';
 };
 
@@ -102,12 +108,7 @@ export const STORE_VALIDATION_SCHEMA = {
   },
   industry: (value) => validateRequired(value, '업종'),
   address: (value) => validateRequired(value, '주소'),
-  phone: validatePhone,
-  description: (value) => {
-    if (!value) return '';
-    if (value.length > 500) return '매장 설명은 500자 이하여야 합니다.';
-    return '';
-  }
+  phoneNumber: validatePhone,
 };
 
 // 콘텐츠 폼 검증 스키마

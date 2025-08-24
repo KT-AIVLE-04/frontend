@@ -1,12 +1,12 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
-import { Button, FormPageLayout } from '../../components';
+import { FormPageLayout } from '../../components';
+import { INDUSTRY_OPTIONS } from '../../const/industries';
 import { useApi, useForm, useNotification } from '../../hooks';
 import { Store } from '../../models/Store';
-import { formatPhoneNumber } from '../../utils/formatters';
-import { STORE_VALIDATION_SCHEMA } from '../../utils/validations';
-import { StoreForm } from './components';
+import { formatPhoneNumber, STORE_VALIDATION_SCHEMA } from '../../utils/index.js';
+import { FieldsContainer } from './components';
 
 export function StoreUpdate() {
   const location = useLocation();
@@ -14,6 +14,11 @@ export function StoreUpdate() {
   const editStore = location.state?.store;
   const isEditMode = !!editStore;
   
+  // 포맷터 설정
+  const formatters = {
+    phoneNumber: formatPhoneNumber
+  };
+
   // useForm 훅 사용
   const {
     values: formData,
@@ -24,24 +29,17 @@ export function StoreUpdate() {
     validateForm,
     setAllErrors,
     setFieldValue
-  } = useForm(editStore ? new Store(editStore) : Store.createEmpty());
+  } = useForm(editStore ? new Store(editStore) : Store.createEmpty(), formatters);
   
-  // useApi 훅 사용
-  const { loading, error, execute: createStore } = useApi(storeApi.createStore);
-  const { execute: updateStore } = useApi(storeApi.updateStore);
+  // useApi 훅 사용 - 하나의 API 함수로 통합
+  const { loading, error, execute: saveStore } = useApi(
+    isEditMode ? storeApi.updateStore : storeApi.createStore
+  );
 
   // 새로운 훅들 사용
   const { success, error: showError } = useNotification();
 
-
-
-  // 연락처 입력 핸들러
-  const handleContactChange = (e) => {
-    const { value } = e.target;
-    const formatted = formatPhoneNumber(value);
-    
-    setFieldValue('phoneNumber', formatted);
-  };
+  
 
   const handleAddressSearch = () => {
     new window.daum.Postcode({
@@ -67,9 +65,9 @@ export function StoreUpdate() {
                   longitude: coords.getLng()
                 });
                 
-                        setFieldValue('address', address);
-        setFieldValue('latitude', coords.getLat());
-        setFieldValue('longitude', coords.getLng());
+                setFieldValue('address', address);
+                setFieldValue('latitude', coords.getLat());
+                setFieldValue('longitude', coords.getLng());
               } else {
                 console.error('주소를 좌표로 변환하는데 실패했습니다.');
                 setFieldValue('address', address);
@@ -92,8 +90,6 @@ export function StoreUpdate() {
     }).open();
   };
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('폼 제출됨!', formData);
@@ -102,16 +98,18 @@ export function StoreUpdate() {
     const isValid = validateForm(STORE_VALIDATION_SCHEMA);
     if (!isValid) {
       console.log('검증 실패:', errors);
+      console.log('현재 폼 데이터:', formData);
+      console.log('검증 스키마:', STORE_VALIDATION_SCHEMA);
       return;
     }
     
     try {
       const storeRequest = new Store(formData);
       if (isEditMode) {
-        await updateStore(editStore.id, storeRequest.toUpdateRequest());
+        await saveStore(editStore.id, storeRequest.toUpdateRequest());
         success('매장 정보가 수정되었습니다.');
       } else {
-        await createStore(storeRequest.toCreateRequest());
+        await saveStore(storeRequest.toCreateRequest());
         success('새 매장이 추가되었습니다.');
       }
       
@@ -155,19 +153,15 @@ export function StoreUpdate() {
         </Button>
       }
     >
-      <StoreForm
+      <FieldsContainer
         formData={formData}
-        handleSubmit={handleSubmit}
         handleChange={handleChange}
         handleBlur={handleBlur}
-        handleContactChange={handleContactChange}
-        handleAddressSearch={handleAddressSearch}
-        loading={loading}
-        error={error}
-        errors={errors}
         touched={touched}
-        onCancel={handleCancel}
-        isEditMode={isEditMode}
+        errors={errors}
+        handleAddressSearch={handleAddressSearch}
+        validationSchema={STORE_VALIDATION_SCHEMA}
+        industryOptions={INDUSTRY_OPTIONS}
       />
     </FormPageLayout>
   );
