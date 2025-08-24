@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from '../../../components/atoms';
-import { Card } from '../../../components/molecules';
+import { Button } from '../atoms';
+import { Card } from '../molecules';
 
 export function EmptyState({
   icon: Icon,

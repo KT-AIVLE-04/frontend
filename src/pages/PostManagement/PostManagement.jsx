@@ -1,12 +1,12 @@
 import {
-    Eye,
-    FolderOpen,
-    Hash,
-    Plus,
-    Search,
-    Sparkles,
-    Video,
-    X,
+  Eye,
+  FolderOpen,
+  Hash,
+  Plus,
+  Search,
+  Sparkles,
+  Video,
+  X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -20,7 +20,7 @@ import { SNS_TYPES } from "../../const/snsTypes";
 import { useApi, useConfirm, useNotification } from "../../hooks";
 import { Store } from "../../models/Store";
 import { ROUTES } from "../../routes/routes";
-import { EmptyStateBox, PostDetail, PostManagementCard, SearchFilter } from "./components";
+import { PostDetail, PostManagementCard, SearchFilter } from "./components";
 
 const PostManagement = () => {
   /** ----------------------
@@ -547,7 +547,7 @@ const PostManagement = () => {
 
         {/* 게시물 목록 */}
         {posts.length === 0 ? (
-          <EmptyStateBox
+          <EmptyState
             icon={Video}
             title="게시물이 없습니다"
             description="업로드된 게시물이 여기에 표시됩니다."

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatCard } from '../../../components';
+import { StatCard } from './StatCard';
 
 export function AnalyticsOverview({ stats }) {
   return (

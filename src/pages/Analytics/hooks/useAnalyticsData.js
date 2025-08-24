@@ -3,7 +3,7 @@ import { analyticsApi } from '../../../api/analytics';
 import { contentApi } from '../../../api/content';
 import { snsApi } from '../../../api/sns';
 import { useMultipleApi } from '../../../hooks';
-import { createStatCard } from '../components';
+import { StatCardCreator } from '../components';
 
 // 테스트용 임시 데이터
 const TEST_ACCOUNT_IDS = [1];
@@ -177,17 +177,17 @@ export const useAnalyticsData = () => {
 
   const createOverviewStats = (realtimeData, yesterdayData) => {
     return [
-      createStatCard('views', realtimeData.views, yesterdayData.views),
-      createStatCard('likes', realtimeData.likes, yesterdayData.likes),
-      createStatCard('comments', realtimeData.comments, yesterdayData.comments),
+      StatCardCreator('views', realtimeData.views, yesterdayData.views),
+      StatCardCreator('likes', realtimeData.likes, yesterdayData.likes),
+      StatCardCreator('comments', realtimeData.comments, yesterdayData.comments),
     ];
   };
 
   const setDefaultStats = () => {
     setOverviewStats([
-      createStatCard('views', 0, 0),
-      createStatCard('likes', 0, 0),
-      createStatCard('comments', 0, 0),
+      StatCardCreator('views', 0, 0),
+      StatCardCreator('likes', 0, 0),
+      StatCardCreator('comments', 0, 0),
     ]);
   };
 
