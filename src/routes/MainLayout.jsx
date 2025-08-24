@@ -58,7 +58,7 @@ export const MainLayout = () => {
                   <button
                     key={item.route}
                     onClick={() => handleNavigate(item.route)}
-                    className={`mx-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
+                    className={`mx-1 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
                       isActive(item.route)
                         ? 'text-white bg-[#984fff] shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)]'
                         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'

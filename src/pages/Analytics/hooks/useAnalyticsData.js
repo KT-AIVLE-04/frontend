@@ -23,7 +23,7 @@ export const useAnalyticsData = () => {
     error, 
     errors, 
     results, 
-    executeAllSettled 
+    executeMultiple 
   } = useMultipleApi();
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export const useAnalyticsData = () => {
       console.log('📅 어제 날짜:', yesterdayStr);
 
       // 사용자 데이터 가져오기 - 올바른 API 함수 사용
-      const userDataResult = await executeAllSettled({
+      const userDataResult = await executeMultiple({
         accounts: () => snsApi.post.getPosts(), // SNS 포스트 목록으로 계정 정보 대체
         contents: () => contentApi.getContents()
       });

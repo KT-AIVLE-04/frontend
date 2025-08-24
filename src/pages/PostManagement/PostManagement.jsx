@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { contentApi } from "../../api/content";
 import { snsApi } from "../../api/sns";
 import { storeApi } from "../../api/store";
-import { ErrorPage, LoadingSpinner } from "../../components";
+import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
 import { INDUSTRY_OPTIONS } from "../../const/industries";
 import { SNS_TYPES } from "../../const/snsTypes";
 import { useApi, useConfirm, useNotification } from "../../hooks";
