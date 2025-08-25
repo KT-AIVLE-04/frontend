@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Trash2,
 } from "lucide-react";
+import { Card } from "../../../components/molecules";
 
 export function PostCard({ post, onClick, onDelete }) {
   const handleCardClick = () => {
@@ -106,10 +107,7 @@ export function PostCard({ post, onClick, onDelete }) {
   const commentCount = post.commentCount ?? dummyStats.commentCount;
 
   return (
-    <div
-      onClick={handleCardClick}
-      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden group relative"
-    >
+    <Card variant="interactive" onClick={handleCardClick}>
       {/* 상단 액션 버튼들 - 호버시에만 표시 */}
       <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
         {getOriginalPostUrl(post.snsType, post.snsPostId) && (
@@ -155,11 +153,25 @@ export function PostCard({ post, onClick, onDelete }) {
         <h3 className="text-sm font-semibold text-gray-900 mb-3 line-clamp-2">
           {post.title}
         </h3>
-
-        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-          <Calendar size={12} />
-          {formatDate(post.publishAt)}
-        </div>
+        {post.tags && post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {post.tags.slice(0, 3).map((tag, index) => (
+              <span
+                key={index}
+                className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded"
+              >
+                #{tag}
+              </span>
+            ))}
+            {post.tags.length > 2 && (
+              <span className="text-xs text-gray-500">
+                +{post.tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+        {/* 선 추가 */}
+        <div className="h-px bg-gray-200 my-3" />
 
         {/* 통계 정보 */}
         <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
@@ -178,25 +190,11 @@ export function PostCard({ post, onClick, onDelete }) {
             {formatNumber(commentCount)}
           </div>
         </div>
-
-        {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {post.tags.slice(0, 3).map((tag, index) => (
-              <span
-                key={index}
-                className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded"
-              >
-                #{tag}
-              </span>
-            ))}
-            {post.tags.length > 2 && (
-              <span className="text-xs text-gray-500">
-                +{post.tags.length - 3}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+          <Calendar size={12} />
+          게시일 : {formatDate(post.publishAt)}
+        </div>
       </div>
-    </div>
+    </Card>
   );
 }

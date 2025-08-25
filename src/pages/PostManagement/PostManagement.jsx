@@ -1,26 +1,27 @@
+import React, { useState, useEffect } from "react";
 import {
-  AlertTriangle,
-  Eye,
-  FolderOpen,
-  Hash,
-  Plus,
-  Search,
-  Sparkles,
   Video,
+  Plus,
+  Hash,
+  Sparkles,
   X,
+  FolderOpen,
+  Search,
+  Eye,
+  AlertTriangle, // 추가
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { contentApi } from "../../api/content";
-import { snsApi } from "../../api/sns";
-import { storeApi } from "../../api/store";
 import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
-import { INDUSTRY_OPTIONS } from "../../const/industries";
-import { SNS_TYPES } from "../../const/snsTypes";
+import { SearchFilter, PostCard, PostDetail } from "./components";
+import { useSelector } from "react-redux";
+import { storeApi } from "../../api/store";
+import { snsApi } from "../../api/sns";
+import { contentApi } from "../../api/content";
 import { Store } from "../../models/Store";
-import { ROUTES } from "../../routes/routes.js";
-import { PostCard, PostDetail, SearchFilter } from "./components";
+import { SNS_TYPES } from "../../const/snsTypes";
+import { INDUSTRY_OPTIONS } from "../../const/industries";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../routes/routes";
+import { detectMediaType } from "../../utils/media";
 
 const PostManagement = () => {
   /** ----------------------
@@ -237,13 +238,13 @@ const PostManagement = () => {
     let filtered = postList;
 
     if (searchTerm) {
-      filtered = filtered.filter((content) =>
-        content.title.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter((p) =>
+        p.title.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     if (selectedSnsType.length > 0) {
       filtered = filtered.filter(
-        (content) => selectedSnsType.includes(content.snsType) // 배열에 포함되는지 체크
+        (p) => selectedSnsType.includes(p.snsType) // 배열에 포함되는지 체크
       );
     }
 
@@ -438,29 +439,7 @@ const PostManagement = () => {
    ----------------------- */
   // 콘텐츠 타입 판별 함수
   const getContentType = (content) => {
-    const title = content.title?.toLowerCase() || "";
-    const isVideoByExtension =
-      title.includes(".mp4") ||
-      title.includes(".mov") ||
-      title.includes(".avi") ||
-      title.includes(".webm");
-    const isImageByExtension =
-      title.includes(".jpg") ||
-      title.includes(".jpeg") ||
-      title.includes(".png") ||
-      title.includes(".gif") ||
-      title.includes(".webp");
-
-    if (content.contentType.startsWith("image/") || isImageByExtension) {
-      return "image";
-    } else if (
-      content.contentType.startsWith("video/") ||
-      content.contentType === "binary/octet-stream" ||
-      isVideoByExtension
-    ) {
-      return "video";
-    }
-    return "unknown";
+    return detectMediaType(content);
   };
 
   const getFilteredContents = () => {
