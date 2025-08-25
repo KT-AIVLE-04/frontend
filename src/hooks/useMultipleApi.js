@@ -1,12 +1,20 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-export const useMultipleApi = () => {
+export const useMultipleApi = (apiFunctions = {}, options = {}) => {
+  const { onSuccess, onError, autoExecute = false, initialApiFunctions = null } = options;
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({}); // 개별 API 에러들을 관리
   const [results, setResults] = useState({});
 
-  const executeMultiple = useCallback(async (apiCalls) => {
+  const executeMultiple = useCallback(async (customApiCalls = null) => {
+    const apiCalls = customApiCalls || apiFunctions;
+    if (!apiCalls || Object.keys(apiCalls).length === 0) {
+      console.warn('useMultipleApi: 실행할 API 함수가 없습니다.');
+      return { results: {}, errors: {} };
+    }
+
     setLoading(true);
     setError(null);
     setErrors({});
@@ -49,19 +57,38 @@ export const useMultipleApi = () => {
       setResults(resultsMap);
       setErrors(errorsMap);
       
-      // Promise.allSettled는 항상 성공하므로 전체 에러는 설정하지 않음
-      // 대신 개별 에러들을 errors로 관리
+      // onSuccess 콜백 실행
+      if (onSuccess && Object.keys(errorsMap).length === 0) {
+        onSuccess(resultsMap);
+      }
+      
+      // onError 콜백 실행 (에러가 하나라도 있으면)
+      if (onError && Object.keys(errorsMap).length > 0) {
+        onError(errorsMap, resultsMap);
+      }
 
       return { results: resultsMap, errors: errorsMap };
     } catch (err) {
       setError(err);
+      
+      // onError 콜백 실행
+      if (onError) {
+        onError(err);
+      }
+      
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiFunctions, onSuccess, onError]);
 
-  const executeSequential = useCallback(async (apiCalls) => {
+  const executeSequential = useCallback(async (customApiCalls = null) => {
+    const apiCalls = customApiCalls || apiFunctions;
+    if (!apiCalls || Object.keys(apiCalls).length === 0) {
+      console.warn('useMultipleApi: 실행할 API 함수가 없습니다.');
+      return { results: {}, errors: {} };
+    }
+
     setLoading(true);
     setError(null);
     setErrors({});
@@ -97,21 +124,38 @@ export const useMultipleApi = () => {
       setResults(resultsMap);
       setErrors(errorsMap);
       
-      // 에러가 하나라도 있으면 전체 에러로 설정
-      if (Object.keys(errorsMap).length > 0) {
-        setError('일부 API 호출이 실패했습니다.');
+      // onSuccess 콜백 실행
+      if (onSuccess && Object.keys(errorsMap).length === 0) {
+        onSuccess(resultsMap);
+      }
+      
+      // onError 콜백 실행 (에러가 하나라도 있으면)
+      if (onError && Object.keys(errorsMap).length > 0) {
+        onError(errorsMap, resultsMap);
       }
 
       return { results: resultsMap, errors: errorsMap };
     } catch (err) {
       setError(err);
+      
+      // onError 콜백 실행
+      if (onError) {
+        onError(err);
+      }
+      
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiFunctions, onSuccess, onError]);
 
-  const executeWithRetry = useCallback(async (apiCalls, maxRetries = 3) => {
+  const executeWithRetry = useCallback(async (customApiCalls = null, maxRetries = 3) => {
+    const apiCalls = customApiCalls || apiFunctions;
+    if (!apiCalls || Object.keys(apiCalls).length === 0) {
+      console.warn('useMultipleApi: 실행할 API 함수가 없습니다.');
+      return { results: {}, errors: {} };
+    }
+
     setLoading(true);
     setError(null);
     setErrors({});
@@ -167,20 +211,46 @@ export const useMultipleApi = () => {
       setResults(resultsMap);
       setErrors(errorsMap);
 
+      // onSuccess 콜백 실행
+      if (onSuccess && Object.keys(errorsMap).length === 0) {
+        onSuccess(resultsMap);
+      }
+      
+      // onError 콜백 실행 (에러가 하나라도 있으면)
+      if (onError && Object.keys(errorsMap).length > 0) {
+        onError(errorsMap, resultsMap);
+      }
+
       return { results: resultsMap, errors: errorsMap };
     } catch (err) {
       setError(err);
+      
+      // onError 콜백 실행
+      if (onError) {
+        onError(err);
+      }
+      
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiFunctions, onSuccess, onError]);
 
   const clearResults = useCallback(() => {
     setResults({});
     setErrors({});
     setError(null);
   }, []);
+
+  // autoExecute가 true인 경우 컴포넌트 마운트 시 자동 실행
+  useEffect(() => {
+    if (autoExecute) {
+      const functionsToExecute = initialApiFunctions || apiFunctions;
+      if (Object.keys(functionsToExecute).length > 0) {
+        executeMultiple(functionsToExecute);
+      }
+    }
+  }, [autoExecute, initialApiFunctions, apiFunctions, executeMultiple]);
 
   return {
     loading,
