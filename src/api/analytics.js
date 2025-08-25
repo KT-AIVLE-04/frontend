@@ -60,4 +60,10 @@ export const analyticsApi = {
       params: { date, accountId } 
     }),
   
+
+  
+  // ===== 기존 호환성 API (점진적 마이그레이션용) =====
+  
+  // 콘텐츠 성과 분석 (기존)
+  getContentPerformance: (params) => testApi.get(`${BASE_URL}/content-performance`, { params }),
 } 

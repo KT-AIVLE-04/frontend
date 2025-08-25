@@ -533,64 +533,7 @@ export const handlers = [
     });
   }),
 
-  // 댓글 감성 분석
-  http.get(`${API_BASE_URL}/api/analytics/comment-sentiment`, () => {
-    const sentiment = [
-      {
-        sentiment: "positive",
-        count: 245,
-        percentage: 65,
-      },
-      {
-        sentiment: "neutral",
-        count: 87,
-        percentage: 23,
-      },
-      {
-        sentiment: "negative",
-        count: 45,
-        percentage: 12,
-      },
-    ];
 
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "성공입니다.",
-      result: sentiment,
-    });
-  }),
-
-  // 팔로워 트렌드
-  http.get(`${API_BASE_URL}/api/analytics/follower-trend`, () => {
-    const trend = {
-      totalFollowers: 2145,
-      newFollowers: 156,
-      unfollowers: 32,
-      netGrowth: 124,
-      weeklyData: [35, 42, 38, 45, 40, 48, 52],
-    };
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "성공입니다.",
-      result: trend,
-    });
-  }),
-
-  // 최적 게시 시간
-  http.get(`${API_BASE_URL}/api/analytics/optimal-posting-time`, () => {
-    const optimalTimes = {
-      instagram: ["18-20시", "12-14시", "21-23시"],
-      facebook: ["10-12시", "15-17시", "19-21시"],
-      recommendation: "월요일 오후 6시",
-    };
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "성공입니다.",
-      result: optimalTimes,
-    });
-  }),
 
   // ===== SNS API =====
   
@@ -2236,16 +2179,5 @@ export const handlers = [
     });
   }),
 
-  // 헬스 체크 (API 명세서에 맞게 추가)
-  http.get(`${API_BASE_URL}/api/analytics/health`, () => {
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        service: "analytics",
-        status: "UP",
-        timestamp: Date.now(),
-      },
-    });
-  }),
+
 ];

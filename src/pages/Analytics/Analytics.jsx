@@ -7,8 +7,7 @@ import {
   AccountAnalytics,
   ContentPerformanceSection,
   DateRangeSelector,
-  PostAnalytics,
-  PostSelector
+  PostAnalytics
 } from './components';
 
 export function Analytics() {
@@ -93,18 +92,31 @@ export function Analytics() {
           )}
         </div>
         <div className="flex gap-4">
+          {/* SNS 타입 선택 */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">플랫폼:</span>
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              {['youtube', 'instagram', 'facebook'].map((snsType) => (
+                <button
+                  key={snsType}
+                  onClick={() => setSelectedSnsType(snsType)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+                    selectedSnsType === snsType
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  {snsType === 'youtube' ? '🎥 YouTube' : 
+                   snsType === 'instagram' ? '📷 Instagram' : '📘 Facebook'}
+                </button>
+              ))}
+            </div>
+          </div>
           <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
         </div>
       </div>
 
-      {/* SNS 타입 선택 */}
-      <div className="mb-6">
-        <PostSelector
-          selectedSnsType={selectedSnsType}
-          setSelectedSnsType={setSelectedSnsType}
-          connectionStatus={connections}
-        />
-      </div>
+
 
       {/* 3개 섹션으로 나누어진 분석 */}
       <div className="space-y-6">
