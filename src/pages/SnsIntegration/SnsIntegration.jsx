@@ -2,25 +2,21 @@ import {
   AlertCircle,
   CheckCircle,
   ExternalLink,
-  Facebook,
-  Instagram,
   RefreshCw,
   Unlink,
   X,
-  Youtube,
 } from "lucide-react";
-import React, { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { snsApi } from "../../api/sns";
 import { Card } from "../../components/molecules";
-import { SnsIntegrationGuide } from "./components";
 import {
-  fetchSnsAccount,
-  fetchAllSnsAccounts,
-  updateConnectionState,
-  disconnectPlatform,
   clearError,
+  disconnectPlatform,
+  fetchSnsAccount,
+  updateConnectionState,
 } from "../../store/snsSlice";
+import { SnsIntegrationGuide } from "./components";
 
 // 상수 정의
 const AUTH_TIMEOUT = 300000; // 5분
@@ -67,13 +63,6 @@ export function SnsIntegration() {
   const dispatch = useDispatch();
   const { selectedStoreId } = useSelector((state) => state.auth);
   const { connections, loading, error } = useSelector((state) => state.sns);
-
-  // 컴포넌트 마운트 시 모든 플랫폼 연동 상태 확인
-  useEffect(() => {
-    if (selectedStoreId) {
-      dispatch(fetchAllSnsAccounts());
-    }
-  }, [selectedStoreId, dispatch]);
 
   // SNS 계정 연동 시작
   const startIntegration = async (platform) => {

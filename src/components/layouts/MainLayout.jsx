@@ -1,11 +1,12 @@
-import {LogOut, Settings} from 'lucide-react'
-import {useEffect} from 'react'
-import {useDispatch, useSelector} from 'react-redux'
-import {Outlet, useLocation, useNavigate} from 'react-router-dom'
-import {Store} from '../../models/Store.js'
-import {logout, setSelectedStore} from '../../store/authSlice.js'
-import {clearSelectedStore, fetchStoreById} from '../../store/storeSlice.js'
-import {getMenuItems, ROUTES} from '../../routes/routes.js'
+import { LogOut, Settings } from 'lucide-react'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Store } from '../../models/Store.js'
+import { getMenuItems, ROUTES } from '../../routes/routes.js'
+import { logout, setSelectedStore } from '../../store/authSlice.js'
+import { fetchAllSnsAccounts } from '../../store/snsSlice.js'
+import { clearSelectedStore, fetchStoreById } from '../../store/storeSlice.js'
 
 export const MainLayout = () => {
   const location = useLocation()
@@ -18,6 +19,8 @@ export const MainLayout = () => {
   useEffect(() => {
     if (selectedStoreId) {
       dispatch(fetchStoreById(selectedStoreId))
+      // 매장이 선택되면 SNS 계정 정보도 자동으로 불러오기
+      dispatch(fetchAllSnsAccounts())
     } else {
       dispatch(clearSelectedStore())
     }
