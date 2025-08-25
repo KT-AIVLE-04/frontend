@@ -1,6 +1,6 @@
 import { MapPin } from 'lucide-react';
 import React from 'react';
-import { Button } from '../../../components/atoms';
+import { Button, FieldError, FieldLabel, Input } from '../../../components/atoms';
 import { FormField } from '../../../components/molecules';
 
 export function FieldsContainer({
@@ -29,25 +29,24 @@ export function FieldsContainer({
         required
       />
 
-      <div className="space-y-2">
-        <label className={`block text-sm font-medium ${touched.address && errors.address ? 'text-red-600' : 'text-gray-700'}`}>
-          매장 주소 *
-        </label>
+      <div className="mb-6">
+        <FieldLabel
+          label="매장 주소"
+          name="address"
+          required={true}
+          hasError={touched.address && errors.address}
+        />
         <div className="flex gap-2">
-          <input
+          <Input
             type="text"
             name="address"
             value={formData.address}
             onChange={handleChange}
-            onBlur={handleBlur}
             placeholder="주소 찾기를 클릭하여 주소를 입력하세요"
             required
             readOnly
-            className={`flex-1 px-5 py-4 border-2 rounded-2xl bg-gray-100 cursor-not-allowed transition-all duration-300 ${
-              touched.address && errors.address 
-                ? 'border-red-500 bg-red-50' 
-                : 'border-gray-400 hover:border-blue-400'
-            }`}
+            error={touched.address && errors.address}
+            className="flex-1"
           />
           <Button
             type="button"
@@ -58,12 +57,7 @@ export function FieldsContainer({
             주소 찾기
           </Button>
         </div>
-        {touched.address && errors.address && (
-          <p className="mt-2 text-sm text-red-600 font-black flex items-center">
-            <span className="mr-1">⚠️</span>
-            {errors.address}
-          </p>
-        )}
+        <FieldError error={touched.address && errors.address} />
       </div>
 
       <FormField

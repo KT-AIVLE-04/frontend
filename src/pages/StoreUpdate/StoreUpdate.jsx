@@ -5,7 +5,7 @@ import { FormPageLayout } from '../../components';
 import { INDUSTRY_OPTIONS } from '../../const/industries';
 import { useApi, useForm, useNotification } from '../../hooks';
 import { Store } from '../../models/Store';
-import { ROUTES } from '../../routes';
+import { ROUTES } from '../../routes/routes.js';
 import { formatPhoneNumber, STORE_VALIDATION_SCHEMA } from '../../utils/index.js';
 import { FieldsContainer } from './components';
 
@@ -15,12 +15,10 @@ export function StoreUpdate() {
   const editStore = location.state?.store;
   const isEditMode = !!editStore;
   
-  // 포맷터 설정
   const formatters = {
     phoneNumber: formatPhoneNumber
   };
 
-  // useForm 훅 사용
   const {
     values: formData,
     errors,
@@ -32,7 +30,6 @@ export function StoreUpdate() {
     setFieldValue
   } = useForm(editStore ? new Store(editStore) : Store.createEmpty(), formatters);
   
-  // useApi 훅 사용 - 하나의 API 함수로 통합
   const { loading, error, execute: saveStore } = useApi(
     isEditMode ? storeApi.updateStore : storeApi.createStore,
     {
@@ -48,7 +45,6 @@ export function StoreUpdate() {
     }
   );
 
-  // 새로운 훅들 사용
   const { success, error: showError } = useNotification();
 
   
@@ -108,12 +104,7 @@ export function StoreUpdate() {
     
     // 클라이언트 사이드 검증
     const isValid = validateForm(STORE_VALIDATION_SCHEMA);
-    if (!isValid) {
-      console.log('검증 실패:', errors);
-      console.log('현재 폼 데이터:', formData);
-      console.log('검증 스키마:', STORE_VALIDATION_SCHEMA);
-      return;
-    }
+    if (!isValid) return;
     
     try {
       const storeRequest = new Store(formData);
