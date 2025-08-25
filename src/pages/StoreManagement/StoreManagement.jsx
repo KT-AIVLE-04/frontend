@@ -1,11 +1,11 @@
 import { Plus } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { ApiPageLayout, Button } from '../../components';
 import { useApi, useConfirm, useNotification } from '../../hooks';
-import { ROUTES } from '../../routes/routes';
+import { ROUTES } from '../../routes/routes.js';
 import { setSelectedStore } from "../../store/authSlice.js";
 import { StoreTable } from './components';
 
@@ -15,18 +15,39 @@ export function StoreManagement() {
   const {selectedStoreId} = useSelector((state) => state.auth);
 
   // useApi 훅 사용
-  const { data: storesData, loading, error, execute: fetchStores } = useApi(storeApi.getStores);
-  const { execute: deleteStore } = useApi(storeApi.deleteStore);
+  const { data: storesData, loading, error, execute: fetchStores } = useApi(
+    storeApi.getStores,
+    {
+      autoExecute: true,
+      onSuccess: (data) => {
+        console.log('매장 목록 조회 성공:', data);
+      },
+      onError: (error) => {
+        console.error('매장 목록 조회 실패:', error);
+        showError('매장 목록을 불러오는데 실패했습니다.');
+      }
+    }
+  );
+  
+  const { execute: deleteStore } = useApi(
+    storeApi.deleteStore,
+    {
+      onSuccess: (data, message) => {
+        console.log('매장 삭제 성공:', data, message);
+        success('매장이 삭제되었습니다.');
+        fetchStores(); // 목록 새로고침
+      },
+      onError: (error) => {
+        console.error('매장 삭제 실패:', error);
+        showError('매장 삭제에 실패했습니다.');
+      }
+    }
+  );
 
   // 새로운 훅들 사용
   const { confirm } = useConfirm();
   const { success, error: showError } = useNotification();
 
-  useEffect(() => {
-    fetchStores();
-  }, [fetchStores]);
-
-  const stores = storesData?.data?.result || [];
 
   const handleDelete = async (storeId) => {
     const confirmed = await confirm({
@@ -37,11 +58,10 @@ export function StoreManagement() {
     if (confirmed) {
       try {
         await deleteStore(storeId);
-        fetchStores();
-        success('매장이 삭제되었습니다.');
+        // onSuccess에서 자동으로 fetchStores() 호출됨
       } catch (error) {
         console.error('매장 삭제 실패:', error);
-        showError('매장 삭제에 실패했습니다.');
+        // onError에서 자동으로 에러 처리됨
       }
     }
   };
@@ -59,7 +79,7 @@ export function StoreManagement() {
     <ApiPageLayout
       loading={loading}
       error={error}
-      isEmpty={stores.length === 0}
+      isEmpty={storesData?.length === 0}
       topSection={
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">매장 관리</h1>
@@ -83,7 +103,7 @@ export function StoreManagement() {
       }
     >
       <StoreTable
-        stores={stores}
+        stores={storesData??[]}
         handleDelete={handleDelete}
         handleEdit={handleEdit}
         handleSelect={handleSelect}

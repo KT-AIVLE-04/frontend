@@ -4,7 +4,7 @@ import { StoreCard } from './StoreCard';
 
 export const StoreGrid = ({ stores, onStoreSelect, onAddStore }) => {
   return (
-    <div className="grid gap-4 mb-12 justify-items-center grid-flow-col">
+    <div className="flex flex-wrap gap-4 mb-12 justify-center">
       {stores.map((store) => (
         <StoreCard
           key={store.id}

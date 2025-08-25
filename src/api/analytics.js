@@ -1,4 +1,4 @@
-import api, { testApi } from './axios'
+import api, { testApi } from './axios';
 
 const BASE_URL = '/analytics'
 
@@ -6,21 +6,21 @@ export const analyticsApi = {
   // ===== 실시간 API =====
   
   // 실시간 계정 메트릭 조회
-  getRealtimeAccountMetrics: (snsType) => 
+  getRealtimeAccountMetrics: (accountId) => 
     testApi.get(`${BASE_URL}/realtime/accounts/metrics`, { 
-      params: { snsType } 
+      params: { accountId } 
     }),
   
   // 실시간 게시물 메트릭 조회
-  getRealtimePostMetrics: (snsType, postId = null) => {
-    const params = { snsType };
+  getRealtimePostMetrics: (accountId, postId = null) => {
+    const params = { accountId };
     if (postId) params.postId = postId;
     return testApi.get(`${BASE_URL}/realtime/posts/metrics`, { params });
   },
   
   // 실시간 게시물 댓글 조회
-  getRealtimeComments: (snsType, postId = null, page = 0, size = 20) => {
-    const params = { snsType, page, size };
+  getRealtimeComments: (accountId, postId = null, page = 0, size = 20) => {
+    const params = { accountId, page, size };
     if (postId) params.postId = postId;
     return testApi.get(`${BASE_URL}/realtime/posts/comments`, { params });
   },
@@ -28,28 +28,28 @@ export const analyticsApi = {
   // ===== 히스토리 API =====
   
   // 히스토리 계정 메트릭 조회
-  getHistoryAccountMetrics: (date, snsType) => 
+  getHistoryAccountMetrics: (date, accountId) => 
     testApi.get(`${BASE_URL}/history/accounts/metrics`, { 
-      params: { date, snsType } 
+      params: { date, accountId } 
     }),
   
   // 히스토리 게시물 메트릭 조회
-  getHistoryPostMetrics: (date, snsType, postId = null) => {
-    const params = { date, snsType };
+  getHistoryPostMetrics: (date, accountId, postId = null) => {
+    const params = { date, accountId };
     if (postId) params.postId = postId;
     return testApi.get(`${BASE_URL}/history/posts/metrics`, { params });
   },
   
   // 히스토리 게시물 댓글 조회
-  getHistoryComments: (snsType, postId = null, page = 0, size = 20) => {
-    const params = { snsType, page, size };
+  getHistoryComments: (date, accountId, postId = null, page = 0, size = 20) => {
+    const params = { date, accountId, page, size };
     if (postId) params.postId = postId;
     return testApi.get(`${BASE_URL}/history/posts/comments`, { params });
   },
   
   // 히스토리 게시물 감정분석 조회
-  getHistoryEmotionAnalysis: (date, snsType, postId = null) => {
-    const params = { date, snsType };
+  getHistoryEmotionAnalysis: (date, accountId, postId = null) => {
+    const params = { date, accountId };
     if (postId) params.postId = postId;
     return testApi.get(`${BASE_URL}/history/posts/emotion-analysis`, { params });
   },
@@ -61,7 +61,7 @@ export const analyticsApi = {
     testApi.post(`${BASE_URL}/batch/accounts/metrics`),
   
   // 특정 계정 메트릭 수집
-  collectSpecificAccountMetrics: (accountId) => 
+  collectAccountMetricsById: (accountId) => 
     testApi.post(`${BASE_URL}/batch/accounts/${accountId}/metrics`),
   
   // 게시물 메트릭 수집
@@ -69,11 +69,27 @@ export const analyticsApi = {
     testApi.post(`${BASE_URL}/batch/posts/metrics`),
   
   // 특정 게시물 메트릭 수집
-  collectSpecificPostMetrics: (postId) => 
+  collectPostMetricsById: (postId) => 
     testApi.post(`${BASE_URL}/batch/posts/${postId}/metrics`),
   
-  // 배치 작업 상태 조회
-  getBatchJobStatus: (jobName) => 
+  // 게시물 댓글 수집
+  collectPostComments: () => 
+    testApi.post(`${BASE_URL}/batch/posts/comments`),
+  
+  // 특정 게시물 댓글 수집
+  collectPostCommentsById: (postId) => 
+    testApi.post(`${BASE_URL}/batch/posts/${postId}/comments`),
+  
+  // 전체 메트릭 수집
+  collectAllMetrics: () => 
+    testApi.post(`${BASE_URL}/batch/metrics`),
+  
+  // 배치 작업 상태 조회 (전체)
+  getBatchStatus: () => 
+    testApi.get(`${BASE_URL}/batch/status`),
+  
+  // 배치 작업 상태 조회 (특정)
+  getBatchStatusByJob: (jobName) => 
     testApi.get(`${BASE_URL}/batch/status/${jobName}`),
   
   // ===== 기존 호환성 API (점진적 마이그레이션용) =====

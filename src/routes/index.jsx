@@ -1,20 +1,19 @@
-import {useSelector} from "react-redux";
-import {Navigate, Outlet, Route, Routes} from "react-router-dom";
+import { useSelector } from "react-redux";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { MainLayout } from "../components/layouts/MainLayout.jsx";
 import {
-  Analytics,
-  ContentCreation,
-  ContentManagement,
-  Dashboard,
-  Login,
-  PostManagement,
-  Register,
-  SnsIntegration,
-  StoreManagement,
-  StoreSelection,
-  StoreUpdate,
+    Analytics,
+    ContentCreation,
+    ContentManagement,
+    Login,
+    PostManagement,
+    Register,
+    SnsIntegration,
+    StoreManagement,
+    StoreSelection,
+    StoreUpdate,
 } from "../pages";
-import {MainLayout} from "../components/layouts/MainLayout.jsx";
-import {ROUTES} from "./routes";
+import { ROUTES } from "./routes.js";
 
 const ProtectedRoute = () => {
   const {isAuthenticated} = useSelector((state) => state.auth);
@@ -88,7 +87,6 @@ function AppRoutes() {
         <Route path={ROUTES.STORE_UPDATE.route} element={<StoreUpdate/>}/>
         <Route element={<StoreRequiredRoute/>}>
           <Route element={<MainLayout/>}>
-            <Route path={ROUTES.DASHBOARD.route} element={<Dashboard/>}/>
             <Route path={ROUTES.ANALYTICS.route} element={<Analytics/>}/>
             <Route
               path={ROUTES.CONTENT_CREATION.route}

@@ -1,51 +1,69 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-export const useApi = (apiFunction) => {
+/**
+ * API 호출을 위한 커스텀 훅
+ * @param {Function} apiFunction - 호출할 API 함수
+ * @param {Object} options - 옵션 객체
+ * @param {Function} [options.onSuccess] - 성공 시 콜백 함수 (data, message) => void
+ * @param {Function} [options.onError] - 실패 시 콜백 함수 (error) => void
+ * @param {boolean} [options.autoExecute=false] - 컴포넌트 마운트 시 자동 실행 여부
+ * @param {Array} [options.autoExecuteArgs=[]] - 자동 실행 시 전달할 인자들
+ * @returns {Object} API 상태와 함수들
+ * @returns {any} returns.data - API 응답 데이터
+ * @returns {boolean} returns.loading - 로딩 상태
+ * @returns {Error|null} returns.error - 에러 객체
+ * @returns {Function} returns.execute - API 실행 함수 (...args) => Promise<any>
+ * @returns {Function} returns.reset - 상태 초기화 함수 () => void
+ */
+export const useApi = (apiFunction, options = {}) => {
+  const { onSuccess, onError, autoExecute = false, autoExecuteArgs = [] } = options;
+  // 성공시 ({데이터,메세지}) 줌, 실패시 에러객체 제공
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const hasAutoExecuted = useRef(false);
 
   const execute = useCallback(async (...args) => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiFunction(...args);
-      
-      // 백엔드 응답 형식 파싱
-      if (response && typeof response === 'object') {
-        // 성공 응답인 경우 result만 추출
-        if (response.isSuccess === true && response.result !== undefined) {
-          const parsedData = response.result;
-          setData(parsedData);
-          return parsedData;
-        }
-        
-        // 실패 응답인 경우 에러 처리
-        if (response.isSuccess === false) {
-          const errorMessage = response.message || '요청이 실패했습니다.';
-          const apiError = new Error(errorMessage);
-          apiError.response = response;
-          setError(apiError);
-          throw apiError;
+      if (typeof response === 'object' && response?.data) {
+        const {isSuccess, result, message} = response.data;
+        if(isSuccess){
+          setData(result);
+          if(onSuccess){
+            onSuccess(result, message);
+          }
+          return result;
         }
       }
-      
-      // 기존 형식 그대로 반환 (하위 호환성)
-      setData(response);
-      return response;
+      const errorMessage = message || '요청이 실패했습니다.';
+      const apiError = new Error(errorMessage);
+      apiError.response = response;
+      throw apiError;
     } catch (err) {
       setError(err);
+      if (onError) onError(err);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, [apiFunction]);
+  }, [apiFunction, onSuccess, onError]);
 
   const reset = useCallback(() => {
     setData(null);
     setLoading(false);
     setError(null);
   }, []);
+
+  // autoExecute가 true인 경우 컴포넌트 마운트 시 자동 실행
+  useEffect(() => {
+    if (autoExecute && !hasAutoExecuted.current) {
+      hasAutoExecuted.current = true;
+      execute(...autoExecuteArgs);
+    }
+  }, [autoExecute, autoExecuteArgs, execute]);
 
   return {
     data,
