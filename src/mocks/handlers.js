@@ -19,39 +19,42 @@ export const handlers = [
   //   await delay(2000);
   // }),
   // 모든 HTTP 메서드에 대해 passthrough 조건 적용
-  http.all("*", ({ request }) => {
-    const url = new URL(request.url);
-    const workingEndpoints = [
-      // "/api/auth",
-      // "/api/stores",
-      // "/api/shorts",
-      // "/api/contents",
-      // "/api/sns",
-      // "/api/content",
-      // '/api/analytics', // analytics API 활성화
-    ];
-
-    // msw 작동 안하는 조건들
-    const isStaticFile = /\.(css|js|png|jpg|svg|ico|woff|woff2|ttf|eot)$/.test(
-      url.pathname
-    );
-    const isNotHost = url.origin !== API_BASE_URL;
-    const isWorkingEndpoint = workingEndpoints.some((endpoint) =>
-      url.pathname.includes(endpoint)
-    );
-    const isLocalHost = url.origin === "http://localhost:8080";
-    if (isStaticFile || isNotHost || isWorkingEndpoint || isLocalHost) {
-      console.log("🛳️ passthrough", url.pathname, {
-        isStaticFile,
-        isNotHost,
-        isWorkingEndpoint,
-        isLocalHost,
-      });
-      return passthrough();
-    }
-    console.log("🍪 MSW", url.pathname);
-  }),
-  http.post(`${API_BASE_URL}/api/auth/new`, async ({ request }) => {
+  // http.all("*", ({ request }) => {
+  //
+  //   if(request?.url) {
+  //     const url = new URL(request.url);
+  //     const workingEndpoints = [
+  //       // "/api/auth",
+  //       // "/api/stores",
+  //       // "/api/shorts",
+  //       // "/api/contents",
+  //       // "/api/sns",
+  //       // "/api/content",
+  //       // '/api/analytics', // analytics API 활성화
+  //     ];
+  //
+  //     // msw 작동 안하는 조건들
+  //     const isStaticFile = /\.(css|js|png|jpg|svg|ico|woff|woff2|ttf|eot)$/.test(
+  //       url.pathname
+  //     );
+  //     const isNotHost = url.origin !== API_BASE_URL;
+  //     const isWorkingEndpoint = workingEndpoints.some((endpoint) =>
+  //       url.pathname.includes(endpoint)
+  //     );
+  //     const isLocalHost = url.origin === "http://localhost:8080";
+  //     if (isStaticFile || isNotHost || isWorkingEndpoint || isLocalHost) {
+  //       console.log("🛳️ passthrough", url.pathname, {
+  //         isStaticFile,
+  //         isNotHost,
+  //         isWorkingEndpoint,
+  //         isLocalHost,
+  //       });
+  //       return passthrough();
+  //     }
+  //     console.log("🍪 MSW", url.pathname);
+  //   }
+  // }),
+  http.post(`${API_BASE_URL}/api/auth/signup`, async ({ request }) => {
     const { email, password, name, phoneNumber } = await request.json();
 
     if (!email || !password || !name || !phoneNumber) {
