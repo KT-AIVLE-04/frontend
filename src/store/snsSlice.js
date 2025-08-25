@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { snsApi } from "../api/sns";
+import { SNS_TYPES, SnsAccount } from "../models/SnsAccount";
 
 // SNS 계정 정보 가져오기 async thunk
 export const fetchSnsAccount = createAsyncThunk(
@@ -25,7 +26,7 @@ export const fetchSnsAccount = createAsyncThunk(
 export const fetchAllSnsAccounts = createAsyncThunk(
   "sns/fetchAllSnsAccounts",
   async (_, { rejectWithValue }) => {
-    const platforms = ["youtube", "instagram", "facebook"];
+    const platforms = SNS_TYPES.getSnsTypes();
     const results = {};
 
     for (const platform of platforms) {
@@ -33,7 +34,7 @@ export const fetchAllSnsAccounts = createAsyncThunk(
         const response = await snsApi.account.getAccountInfo(platform);
         results[platform] = {
           status: "connected",
-          accountInfo: response.data?.result,
+          accountInfo: SnsAccount.fromResponse(response.data?.result),
           loading: false,
           error: null,
         };
@@ -53,19 +54,19 @@ export const fetchAllSnsAccounts = createAsyncThunk(
 
 const initialState = {
   connections: {
-    youtube: {
+    [SNS_TYPES.YOUTUBE]: {
       status: "disconnected", // 'disconnected', 'connecting', 'connected', 'error'
       accountInfo: null,
       loading: false,
       error: null,
     },
-    instagram: {
+    [SNS_TYPES.INSTAGRAM]: {
       status: "disconnected",
       accountInfo: null,
       loading: false,
       error: null,
     },
-    facebook: {
+    [SNS_TYPES.FACEBOOK]: {
       status: "disconnected",
       accountInfo: null,
       loading: false,
@@ -136,7 +137,7 @@ const snsSlice = createSlice({
         if (state.connections[snsType]) {
           state.connections[snsType] = {
             status: "connected",
-            accountInfo: accountData,
+            accountInfo: SnsAccount.fromResponse(accountData),
             loading: false,
             error: null,
           };

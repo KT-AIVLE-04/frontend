@@ -44,6 +44,22 @@ api.interceptors.request.use(
       delete config.storeId; // 헤더 추가 후 제거
     }
 
+    // snsType이 있고 GET 요청인 경우 SNS 계정 ID를 params에 자동 추가
+    if (config.snsType && config.method?.toLowerCase() === 'get') {
+      const snsType = config.snsType;
+      const connections = store.getState().sns.connections;
+      const connection = connections[snsType];
+      
+      if (connection?.accountInfo?.id) {
+        console.log(`currentSnsAccountId for ${snsType}:`, connection.accountInfo.id);
+        config.params = {
+          ...config.params,
+          accountId: connection.accountInfo.id
+        };
+      }
+      delete config.snsType; // 파라미터 추가 후 제거
+    }
+
     // FormData인 경우 Content-Type 헤더 제거
     if (config.data instanceof FormData) {
       delete config.headers["Content-Type"];
