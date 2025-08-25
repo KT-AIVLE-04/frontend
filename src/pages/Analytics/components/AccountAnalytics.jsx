@@ -83,14 +83,14 @@ export function AccountAnalytics({ selectedSnsType, dateRange }) {
             <div>
               <p className="text-sm text-blue-600 font-medium">팔로워</p>
               <p className="text-2xl font-bold text-blue-800">
-                {realtimeData?.followerCount?.toLocaleString() || '0'}
+                {realtimeData?.followers?.toLocaleString() || '0'}
               </p>
             </div>
             <div className="text-blue-500 text-2xl">👥</div>
           </div>
-          {historyData?.followerCount && (
+          {historyData?.followers && (
             <p className="text-xs text-blue-600 mt-1">
-              어제: {historyData.followerCount.toLocaleString()}
+              어제: {historyData.followers.toLocaleString()}
             </p>
           )}
         </div>
@@ -101,14 +101,14 @@ export function AccountAnalytics({ selectedSnsType, dateRange }) {
             <div>
               <p className="text-sm text-green-600 font-medium">총 조회수</p>
               <p className="text-2xl font-bold text-green-800">
-                {realtimeData?.viewCount?.toLocaleString() || '0'}
+                {realtimeData?.views?.toLocaleString() || '0'}
               </p>
             </div>
             <div className="text-green-500 text-2xl">👁️</div>
           </div>
-          {historyData?.viewCount && (
+          {historyData?.views && (
             <p className="text-xs text-green-600 mt-1">
-              어제: {historyData.viewCount.toLocaleString()}
+              어제: {historyData.views.toLocaleString()}
             </p>
           )}
         </div>
@@ -119,14 +119,14 @@ export function AccountAnalytics({ selectedSnsType, dateRange }) {
             <div>
               <p className="text-sm text-red-600 font-medium">총 좋아요</p>
               <p className="text-2xl font-bold text-red-800">
-                {realtimeData?.likeCount?.toLocaleString() || '0'}
+                {realtimeData?.likes?.toLocaleString() || '0'}
               </p>
             </div>
             <div className="text-red-500 text-2xl">❤️</div>
           </div>
-          {historyData?.likeCount && (
+          {historyData?.likes && (
             <p className="text-xs text-red-600 mt-1">
-              어제: {historyData.likeCount.toLocaleString()}
+              어제: {historyData.likes.toLocaleString()}
             </p>
           )}
         </div>
@@ -137,14 +137,14 @@ export function AccountAnalytics({ selectedSnsType, dateRange }) {
             <div>
               <p className="text-sm text-purple-600 font-medium">총 댓글</p>
               <p className="text-2xl font-bold text-purple-800">
-                {realtimeData?.commentCount?.toLocaleString() || '0'}
+                {realtimeData?.comments?.toLocaleString() || '0'}
               </p>
             </div>
             <div className="text-purple-500 text-2xl">💬</div>
           </div>
-          {historyData?.commentCount && (
+          {historyData?.comments && (
             <p className="text-xs text-purple-600 mt-1">
-              어제: {historyData.commentCount.toLocaleString()}
+              어제: {historyData.comments.toLocaleString()}
             </p>
           )}
         </div>
