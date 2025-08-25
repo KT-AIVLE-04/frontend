@@ -1,5 +1,5 @@
 import React from 'react';
-import { Input, Label, Select, Textarea } from '../atoms';
+import { FieldError, FieldInput, FieldLabel } from '../atoms';
 
 export function FormField({ 
   label, 
@@ -64,60 +64,29 @@ export function FormField({
   // 에러 표시 (외부 에러 또는 검증 에러)
   const displayError = error || (touched && touched[name] && validateField(value));
 
-  const renderInput = () => {
-    const commonProps = {
-      name,
-      value,
-      onChange: handleFieldChange,
-      onBlur: handleFieldBlur,
-      placeholder,
-      required,
-      readOnly,
-      error: !!displayError
-    };
-
-    switch (type) {
-      case 'select':
-        return (
-          <Select 
-            {...commonProps}
-            options={options}
-          />
-        );
-      
-      case 'textarea':
-        return (
-          <Textarea 
-            {...commonProps}
-            rows={rows}
-          />
-        );
-      
-      default:
-        return (
-          <Input 
-            type={type}
-            {...commonProps}
-            step={step}
-          />
-        );
-    }
-  };
-
   return (
     <div className={`mb-6 ${className}`}>
-      {label && (
-        <Label htmlFor={name} required={required} variant={displayError ? "error" : "default"}>
-          {label}
-        </Label>
-      )}
-      {renderInput()}
-      {displayError && (
-        <p className="mt-2 text-sm text-red-600 font-black flex items-center">
-          <span className="mr-1">⚠️</span>
-          {displayError}
-        </p>
-      )}
+      <FieldLabel 
+        label={label}
+        name={name}
+        required={required}
+        hasError={!!displayError}
+      />
+      <FieldInput
+        type={type}
+        name={name}
+        value={value}
+        onChange={handleFieldChange}
+        onBlur={handleFieldBlur}
+        placeholder={placeholder}
+        required={required}
+        readOnly={readOnly}
+        error={!!displayError}
+        options={options}
+        step={step}
+        rows={rows}
+      />
+      <FieldError error={displayError} />
     </div>
   );
 }
