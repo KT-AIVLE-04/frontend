@@ -22,13 +22,13 @@ export const handlers = [
   http.all("*", ({ request }) => {
     const url = new URL(request.url);
     const workingEndpoints = [
-      "/api/auth",
-      "/api/stores",
-      "/api/shorts",
-      "/api/contents",
-      "/api/sns",
-      "/api/content",
-      '/api/analytics', // analytics API 활성화
+      // "/api/auth",
+      // "/api/stores",
+      // "/api/shorts",
+      // "/api/contents",
+      // "/api/sns",
+      // "/api/content",
+      // '/api/analytics', // analytics API 활성화
     ];
 
     // msw 작동 안하는 조건들
@@ -594,6 +594,97 @@ export const handlers = [
   }),
 
   // ===== SNS API =====
+  
+  // SNS 계정 정보 조회
+  http.get(`${API_BASE_URL}/api/sns/accounts/:snsType`, ({ params }) => {
+    const snsType = params.snsType;
+    
+    // snsType에 따른 다른 응답 데이터
+    const accountData = {
+      youtube: {
+        accountId: "UC123456789",
+        channelName: "카페 달콤",
+        channelUrl: "https://www.youtube.com/channel/UC123456789",
+        subscriberCount: 15420,
+        videoCount: 89,
+        viewCount: 2345678,
+        description: "달콤한 순간을 만들어가는 카페 달콤입니다.",
+        profileImageUrl: "https://picsum.photos/200/200?random=1",
+        bannerImageUrl: "https://picsum.photos/1200/300?random=1",
+        isVerified: true,
+        createdAt: "2020-03-15T10:30:00Z",
+        lastUpdated: new Date().toISOString(),
+        status: "active"
+      },
+      instagram: {
+        accountId: "178414123456789",
+        username: "cafe_dalkom",
+        displayName: "카페 달콤",
+        profileUrl: "https://www.instagram.com/cafe_dalkom",
+        followerCount: 8920,
+        followingCount: 245,
+        postCount: 156,
+        bio: "달콤한 순간을 만들어가는 카페 달콤 ☕️🍰",
+        profileImageUrl: "https://picsum.photos/200/200?random=2",
+        isPrivate: false,
+        isVerified: false,
+        createdAt: "2020-05-20T14:20:00Z",
+        lastUpdated: new Date().toISOString(),
+        status: "active"
+      },
+      facebook: {
+        accountId: "123456789012345",
+        pageName: "카페 달콤",
+        pageUrl: "https://www.facebook.com/cafedalkom",
+        followerCount: 5670,
+        likeCount: 5430,
+        postCount: 234,
+        description: "달콤한 순간을 만들어가는 카페 달콤입니다.",
+        profileImageUrl: "https://picsum.photos/200/200?random=3",
+        coverImageUrl: "https://picsum.photos/1200/400?random=3",
+        isVerified: true,
+        category: "Restaurant",
+        createdAt: "2020-02-10T09:15:00Z",
+        lastUpdated: new Date().toISOString(),
+        status: "active"
+      },
+      tiktok: {
+        accountId: "tiktok123456789",
+        username: "@cafe_dalkom",
+        displayName: "카페 달콤",
+        profileUrl: "https://www.tiktok.com/@cafe_dalkom",
+        followerCount: 12340,
+        followingCount: 180,
+        videoCount: 67,
+        likeCount: 456789,
+        bio: "달콤한 순간을 만들어가는 카페 달콤 🍰☕️",
+        profileImageUrl: "https://picsum.photos/200/200?random=4",
+        isVerified: false,
+        createdAt: "2021-08-15T16:45:00Z",
+        lastUpdated: new Date().toISOString(),
+        status: "active"
+      }
+    };
+
+    const data = accountData[snsType];
+    
+    if (!data) {
+      return HttpResponse.json(
+        {
+          isSuccess: false,
+          message: "지원하지 않는 SNS 타입입니다.",
+          result: null,
+        },
+        { status: 400 }
+      );
+    }
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: `${snsType} 계정 정보 조회 성공`,
+      result: data,
+    });
+  }),
   
   // SNS 포스트 목록 조회
   http.get(`${API_BASE_URL}/api/sns/posts`, () => {
