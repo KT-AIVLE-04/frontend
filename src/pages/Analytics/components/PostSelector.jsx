@@ -6,7 +6,6 @@ export function PostSelector({
   selectedPostId,
   setSelectedPostId,
   posts,
-  contents,
   connectionStatus
 }) {
   const snsTypes = [
@@ -27,23 +26,14 @@ export function PostSelector({
     }
   ];
 
-  // 모든 게시물과 콘텐츠를 합쳐서 표시
-  const allItems = [
-    ...posts.map(post => ({
-      id: post.id || post.postId,
-      title: post.title || `포스트 ${post.id || post.postId}`,
-      type: 'post',
-      platform: post.snsType || selectedSnsType,
-      createdAt: post.createdAt
-    })),
-    ...contents.map(content => ({
-      id: content.id || content.contentId,
-      title: content.title || `콘텐츠 ${content.id || content.contentId}`,
-      type: 'content',
-      platform: 'youtube', // 기본값
-      createdAt: content.createdAt
-    }))
-  ];
+  // 게시물만 표시 (콘텐츠는 아직 SNS에 올라가지 않은 것들이므로 제외)
+  const allItems = posts.map(post => ({
+    id: post.id || post.postId,
+    title: post.title || `포스트 ${post.id || post.postId}`,
+    type: 'post',
+    platform: post.snsType || selectedSnsType,
+    createdAt: post.createdAt
+  }));
 
   const handleSnsTypeChange = (value) => {
     setSelectedSnsType(value);
