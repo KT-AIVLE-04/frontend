@@ -1,6 +1,6 @@
 import { LogOut } from 'lucide-react';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import { storeApi } from '../../api/store';
@@ -13,7 +13,6 @@ import { StoreGrid, StoreSelectionHeader } from './components';
 export function StoreSelection() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
 
   // useApi 훅 사용
   const { data: storesData, loading, error, execute: fetchStores } = useApi(storeApi.getStores);
@@ -22,7 +21,6 @@ export function StoreSelection() {
     fetchStores();
   }, [fetchStores]);
 
-  const stores = storesData?.data?.result || [];
 
   const handleStoreSelect = (store) => {
     dispatch(setSelectedStore(store));
@@ -52,11 +50,11 @@ export function StoreSelection() {
         error={error}
         loadingMessage="매장 목록을 불러오는 중..."
         errorTitle="매장 목록 로딩 실패"
-        containerClassName="max-w-2xl w-full mx-auto px-8 text-center"
+        containerClassName="w-full mx-auto px-8 text-center"
       >
         <StoreSelectionHeader />
         <StoreGrid
-          stores={stores}
+          stores={storesData??[]}
           onStoreSelect={handleStoreSelect}
           onAddStore={handleAddStore}
         />

@@ -48,7 +48,6 @@ export function StoreManagement() {
   const { confirm } = useConfirm();
   const { success, error: showError } = useNotification();
 
-  const stores = storesData?.data?.result || [];
 
   const handleDelete = async (storeId) => {
     const confirmed = await confirm({
@@ -80,7 +79,7 @@ export function StoreManagement() {
     <ApiPageLayout
       loading={loading}
       error={error}
-      isEmpty={stores.length === 0}
+      isEmpty={storesData?.length === 0}
       topSection={
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">매장 관리</h1>
@@ -104,7 +103,7 @@ export function StoreManagement() {
       }
     >
       <StoreTable
-        stores={stores}
+        stores={storesData??[]}
         handleDelete={handleDelete}
         handleEdit={handleEdit}
         handleSelect={handleSelect}
