@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * 여러 API를 동시에 또는 순차적으로 호출하는 커스텀 훅
@@ -23,6 +23,7 @@ export const useMultipleApi = (apiFunctions = {}, options = {}) => {
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({}); // 개별 API 에러들을 관리
   const [results, setResults] = useState({});
+  const hasAutoExecuted = useRef(false);
 
   const executeMultiple = useCallback(async (customApiCalls = null) => {
     const apiCalls = customApiCalls || apiFunctions;
@@ -177,7 +178,8 @@ export const useMultipleApi = (apiFunctions = {}, options = {}) => {
 
   // autoExecute가 true인 경우 컴포넌트 마운트 시 자동 실행
   useEffect(() => {
-    if (autoExecute) {
+    if (autoExecute && !hasAutoExecuted.current) {
+      hasAutoExecuted.current = true;
       const functionsToExecute = initialApiFunctions || apiFunctions;
       if (Object.keys(functionsToExecute).length > 0) {
         executeMultiple(functionsToExecute);

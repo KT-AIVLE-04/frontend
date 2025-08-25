@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * API 호출을 위한 커스텀 훅
@@ -21,6 +21,7 @@ export const useApi = (apiFunction, options = {}) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const hasAutoExecuted = useRef(false);
 
   const execute = useCallback(async (...args) => {
     try {
@@ -58,7 +59,8 @@ export const useApi = (apiFunction, options = {}) => {
 
   // autoExecute가 true인 경우 컴포넌트 마운트 시 자동 실행
   useEffect(() => {
-    if (autoExecute) {
+    if (autoExecute && !hasAutoExecuted.current) {
+      hasAutoExecuted.current = true;
       execute(...autoExecuteArgs);
     }
   }, [autoExecute, autoExecuteArgs, execute]);
