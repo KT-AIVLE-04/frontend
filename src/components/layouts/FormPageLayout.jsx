@@ -1,4 +1,5 @@
 import React from 'react';
+import { BG, TEXT } from '../../const/colors';
 import { Alert, Card } from '../molecules';
 import { LoadingSpinner } from '../organisms';
 
@@ -66,37 +67,43 @@ export const FormPageLayout = ({
   }
 
   return (
-    <div className={`flex-1 max-w-2xl mx-auto ${className}`}>
-      {/* 헤더 영역 */}
-      <div className="flex items-center mt-4">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="mr-2! p-3 text-gray-600 rounded-xl"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-          </button>
-        )}
-        <h1 className="text-2xl font-bold">{title}</h1>
-      </div>
+    <div 
+      className="flex-1 min-h-screen"
+      style={{ backgroundColor: BG }}
+    >
+      <div className={`max-w-2xl mx-auto ${className}`}>
+        {/* 헤더 영역 */}
+        <div className="flex items-center mt-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="mr-2 p-3 rounded-xl hover:bg-gray-100 transition-colors"
+              style={{ color: TEXT }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </button>
+          )}
+          <h1 className="text-2xl font-bold" style={{ color: TEXT }}>{title}</h1>
+        </div>
 
-      {/* 메인 콘텐츠 */}
-      <Card className={cardClassName}>
-        {error && (
-          <Alert
-            type="error"
-            title={errorTitle}
-            message={errorMessage || error}
-          />
-        )}
-        <form onSubmit={onSubmit} className={formClassName}>
-          {children}
-          {renderButtonArea()}
-        </form>
-        {bottomContent}
-      </Card>
+        {/* 메인 콘텐츠 */}
+        <Card className={cardClassName}>
+          {error && (
+            <Alert
+              type="error"
+              title={errorTitle}
+              message={errorMessage || error}
+            />
+          )}
+          <form onSubmit={onSubmit} className={formClassName}>
+            {children}
+            {renderButtonArea()}
+          </form>
+          {bottomContent}
+        </Card>
+      </div>
     </div>
   );
 };

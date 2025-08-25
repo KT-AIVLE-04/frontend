@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
-import { FormPageLayout } from '../../components';
+import { Button, FormPageLayout } from '../../components';
 import { INDUSTRY_OPTIONS } from '../../const/industries';
 import { useApi, useForm, useNotification } from '../../hooks';
 import { Store } from '../../models/Store';
