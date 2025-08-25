@@ -32,8 +32,8 @@ export function Register({ onRegister, onLoginClick }) {
   const { loading, error, execute: registerUser } = useApi(
     authApi.register,
     {
-      onSuccess: (data, response) => {
-        console.log('회원가입 성공:', data);
+      onSuccess: (data, message) => {
+        console.log('회원가입 성공:', data, message);
         if (onRegister) {
           onRegister();
         }

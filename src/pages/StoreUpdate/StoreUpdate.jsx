@@ -33,8 +33,8 @@ export function StoreUpdate() {
   const { loading, error, execute: saveStore } = useApi(
     isEditMode ? storeApi.updateStore : storeApi.createStore,
     {
-      onSuccess: (data, response) => {
-        console.log('매장 저장 성공:', data);
+      onSuccess: (data, message) => {
+        console.log('매장 저장 성공:', data, message);
         success('매장이 성공적으로 저장되었습니다.');
         navigate(ROUTES.STORE_MANAGEMENT.route);
       },

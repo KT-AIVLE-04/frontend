@@ -33,10 +33,9 @@ export function Login() {
   const { loading, error, execute: loginUser } = useApi(
     authApi.login,
     {
-      onSuccess: (data, response) => {
-        console.log('로그인 성공:', data);
-        if (!data || !data.result) throw new Error('로그인 정보가 올바르지 않습니다.');
-        const {accessToken, refreshToken} = data.result;
+      onSuccess: (data, message) => {
+        console.log('로그인 성공:', data, message);
+        const {accessToken, refreshToken} = data;
         dispatch(login({accessToken, refreshToken}));
         navigate(ROUTES.STORE_SELECTION.route);
       },

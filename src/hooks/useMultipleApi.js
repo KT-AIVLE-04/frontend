@@ -57,7 +57,11 @@ export const useMultipleApi = (apiFunctions = {}, options = {}) => {
       
       // onSuccess 콜백 실행
       if (onSuccess && Object.keys(errorsMap).length === 0) {
-        onSuccess(resultsMap);
+        const messages = {};
+        Object.entries(resultsMap).forEach(([key, value]) => {
+          messages[key] = value.message;
+        });
+        onSuccess(resultsMap, messages);
       }
       
       // onError 콜백 실행 (에러가 하나라도 있으면)
@@ -120,7 +124,11 @@ export const useMultipleApi = (apiFunctions = {}, options = {}) => {
       
       // onSuccess 콜백 실행
       if (onSuccess && Object.keys(errorsMap).length === 0) {
-        onSuccess(resultsMap);
+        const messages = {};
+        Object.entries(resultsMap).forEach(([key, value]) => {
+          messages[key] = value.message;
+        });
+        onSuccess(resultsMap, messages);
       }
       
       // onError 콜백 실행 (에러가 하나라도 있으면)

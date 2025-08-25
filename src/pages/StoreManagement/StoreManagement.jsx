@@ -32,8 +32,8 @@ export function StoreManagement() {
   const { execute: deleteStore } = useApi(
     storeApi.deleteStore,
     {
-      onSuccess: (data, response) => {
-        console.log('매장 삭제 성공:', data);
+      onSuccess: (data, message) => {
+        console.log('매장 삭제 성공:', data, message);
         success('매장이 삭제되었습니다.');
         fetchStores(); // 목록 새로고침
       },
