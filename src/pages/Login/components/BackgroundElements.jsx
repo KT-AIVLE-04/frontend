@@ -2,7 +2,7 @@ import React from 'react';
 
 export function BackgroundElements() {
   return (
-    <>
+    <div className="absolute inset-0">
       {/* 만화적 배경 요소들 */}
       <div
         className="absolute top-10 left-8 w-24 h-24 bg-yellow-400 rounded-full border-4 border-yellow-600 shadow-lg"
@@ -40,6 +40,6 @@ export function BackgroundElements() {
       <div
         className="absolute bottom-40 right-1/4 w-6 h-6 bg-pink-400 transform rotate-45 border-2 border-pink-600 shadow-lg"
       />
-    </>
+    </div>
   );
 }

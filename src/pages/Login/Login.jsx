@@ -7,13 +7,17 @@ import { useApi, useForm } from '../../hooks';
 import { ROUTES } from '../../routes/routes.js';
 import { login } from '../../store/authSlice';
 import { LOGIN_VALIDATION_SCHEMA } from '../../utils/validations';
-import { BackgroundElements, GoogleIcon, KakaoIcon, NaverIcon } from './components';
+import { BackgroundElements, GoogleIcon, KakaoIcon } from './components';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // 소셜 로그인 상태
+  const [socialLoading, setSocialLoading] = React.useState(false);
+  const [socialError, setSocialError] = React.useState('');
 
   // useForm 훅 사용
   const {
@@ -80,55 +84,41 @@ export function Login() {
 
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError('');
+    setSocialLoading(true);
+    setSocialError('');
 
     try {
       window.location.href = API_BASE_URL + '/auth/google/login';
     } catch (error) {
       console.error('구글 로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '구글 로그인에 실패했습니다.';
-      setError(errorMessage);
-      setLoading(false);
+      setSocialError(errorMessage);
+      setSocialLoading(false);
     }
   };
 
   const handleKakaoLogin = async () => {
-    setLoading(true);
-    setError('');
+    setSocialLoading(true);
+    setSocialError('');
 
     try {
       window.location.href = API_BASE_URL + '/auth/kakao/login';
     } catch (error) {
       console.error('카카오 로그인 실패:', error);
       const errorMessage = error.response?.data?.message || '카카오 로그인에 실패했습니다.';
-      setError(errorMessage);
-      setLoading(false);
+      setSocialError(errorMessage);
+      setSocialLoading(false);
     }
   };
 
-  const handleNaverLogin = async () => {
-    // setLoading(true);
-    // setError('');
-
-    // try {
-    //   window.location.href = API_BASE_URL+'/auth/naver/login';
-    // } catch (error) {
-    //   console.error('네이버 로그인 실패:', error);
-    //   const errorMessage = error.response?.data?.message || '네이버 로그인에 실패했습니다.';
-    //   setError(errorMessage);
-    //   setLoading(false);
-    // }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-300 via-purple-300 to-indigo-400 relative overflow-hidden">
+    <div className="bg-gradient-to-br h-screen from-pink-300 via-purple-300 to-indigo-400 relative overflow-hidden">
       <BackgroundElements />
       
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+      <div className="z-10 flex items-center justify-center min-h-[500px] p-4">
         <div
-          className="bg-white rounded-[1.5rem] border-2 border-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] p-8 w-full max-w-md relative">
-          <div className="relative z-10">
+          className="bg-white z-10 rounded-[1.5rem] border-2 border-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] p-8 w-full max-w-md">
+          <div>
             <div className="text-center mb-8">
               <div className="mb-6">
                 <h1 className="text-4xl font-black text-gray-800 mb-3 tracking-tight drop-shadow-lg">
@@ -138,11 +128,11 @@ export function Login() {
               </div>
             </div>
 
-            {error && (
+            {(error || socialError) && (
               <Alert
                 type="error"
                 title="로그인 실패"
-                message={error.response?.data?.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'}
+                message={error?.response?.data?.message || socialError || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'}
               />
             )}
 
@@ -204,34 +194,25 @@ export function Login() {
                 {/* Google 버튼 */}
                 <button
                   type="button"
-                  className="w-full bg-white border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-black py-3 px-6 rounded-2xl transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] flex items-center justify-center space-x-3 h-12 transform hover:translate-x-0.5 hover:translate-y-0.5"
+                  className="w-full bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-black py-3 px-6 rounded-2xl transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] flex items-center justify-center space-x-3 h-12 transform hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleGoogleLogin}
-                  disabled={loading}
+                  disabled={socialLoading}
                 >
-                  <GoogleIcon size={20} className="text-gray-600"/>
-                  <span>{loading ? '구글 로그인 중...' : 'Google로 로그인'}</span>
+                  <div className="flex items-center space-x-3">
+                    <GoogleIcon size={20} />
+                    <span >{socialLoading ? '구글 로그인 중...' : '구글로 로그인'}</span>
+                  </div>
                 </button>
 
                 {/* Kakao 버튼 */}
                 <button
                   type="button"
-                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-black py-3 px-6 rounded-2xl border-2 border-yellow-600 transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] flex items-center justify-center space-x-3 h-12 transform hover:translate-x-0.5 hover:translate-y-0.5"
+                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-black py-3 px-6 rounded-2xl border-2 border-yellow-600 transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] flex items-center justify-center space-x-3 h-12 transform hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleKakaoLogin}
-                  disabled={loading}
+                  disabled={socialLoading}
                 >
                   <KakaoIcon size={20} className="text-black"/>
-                  <span>{loading ? '카카오 로그인 중...' : '카카오로 로그인'}</span>
-                </button>
-
-                {/* Naver 버튼 */}
-                <button
-                  type="button"
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-black py-3 px-6 rounded-2xl border-2 border-green-700 transition-all duration-150 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.8)] flex items-center justify-center space-x-3 h-12 transform hover:translate-x-0.5 hover:translate-y-0.5"
-                  onClick={handleNaverLogin}
-                  disabled={loading}
-                >
-                  <NaverIcon size={20} className="text-white"/>
-                  <span>{loading ? '네이버 로그인 중...' : '네이버로 로그인'}</span>
+                  <span>{socialLoading ? '카카오 로그인 중...' : '카카오로 로그인'}</span>
                 </button>
               </div>
             </div>
