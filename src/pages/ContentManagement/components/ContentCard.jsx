@@ -1,6 +1,7 @@
 import { Download, Edit, Trash2, Video, Image, Calendar } from "lucide-react";
 import React from "react";
 import { Card } from "../../../components/molecules";
+import { detectMediaType, formatFileSize } from "../../../utils/media";
 
 export function ContentCard({
   content,
@@ -9,9 +10,10 @@ export function ContentCard({
   onEdit,
   onDelete,
 }) {
-  // contentType을 기반으로 미디어 타입 판단
-  const isVideo = content.contentType?.startsWith("video/");
-  const isImage = content.contentType?.startsWith("image/");
+  // 미디어 타입을 보다 정확하게 판단
+  const mediaType = detectMediaType(content);
+  const isVideo = mediaType === "video";
+  const isImage = mediaType === "image";
 
   // 카드 클릭 핸들러
   const handleCardClick = () => {
@@ -120,41 +122,21 @@ export function ContentCard({
           {content.title || content.originalName}
         </h3>
 
-        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-          <Calendar size={12} />
-          생성일 : {formatDate(content.createdAt)}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-      <div className="p-4">
-        {/* 제목과 미디어 타입 */}
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 truncate flex-1">
-            {content.title}
-          </h3>
-          <div className="flex items-center gap-1 ml-2">
-            {getMediaIcon()}
-            <span className="text-xs text-gray-500">{getMediaTypeLabel()}</span>
-          </div>
-        </div>
-
         {/* 파일 정보 */}
-        <div className="space-y-1 text-xs text-gray-500">
+        <div className="space-y-1 text-xs text-gray-500 mb-2">
           {content.bytes && (
             <div>파일 크기: {formatFileSize(content.bytes)}</div>
           )}
           {(content.width || content.height) && (
-            <div>해상도: {content.width || 0} × {content.height || 0}</div>
+            <div>
+              해상도: {content.width || 0} × {content.height || 0}
+            </div>
           )}
         </div>
 
-        {/* 생성일 */}
-        <div className="flex items-center gap-1 mt-3 text-xs text-gray-500">
-          <Calendar size={10} />
-          <span>{formatDate(content.createdAt)}</span>
+        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+          <Calendar size={12} />
+          생성일 : {formatDate(content.createdAt)}
         </div>
       </div>
     </Card>
