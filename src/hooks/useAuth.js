@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { authApi } from '../api/auth'
@@ -13,6 +13,7 @@ export const useAuth = () => {
   const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(false)
   const location = useLocation()
+  const hasInitialized = useRef(false)
 
   // 현재 인증 상태 확인
   const {isAuthenticated} = useSelector(state => state.auth)
@@ -83,14 +84,19 @@ export const useAuth = () => {
   }
 
   useEffect(() => {
-    // 이미 로그인 상태면 불필요한 API 호출 방지
-    if (isAuthenticated) {
+    // 이미 초기화되었거나 로그인 상태면 실행하지 않음
+    if (hasInitialized.current || isAuthenticated) {
       setIsLoading(false)
       return
     }
+    
     if (isLoading) return;
+    
+    // 초기화 플래그 설정
+    hasInitialized.current = true;
+    
     oauthParams ? handleOAuthCallback(oauthParams) : checkLogin();
-  }, [oauthParams])
+  }, [oauthParams, isAuthenticated])
 
   return {isLoading}
 } 
