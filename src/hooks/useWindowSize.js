@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
 
+/**
+ * 윈도우 크기와 반응형 상태를 관리하는 커스텀 훅
+ * @returns {Object} 윈도우 크기와 반응형 상태
+ * @returns {number} returns.width - 윈도우 너비
+ * @returns {number} returns.height - 윈도우 높이
+ * @returns {boolean} returns.isMobile - 모바일 여부 (width < 768px)
+ * @returns {boolean} returns.isTablet - 태블릿 여부 (768px <= width < 1024px)
+ * @returns {boolean} returns.isDesktop - 데스크톱 여부 (width >= 1024px)
+ */
 export const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,

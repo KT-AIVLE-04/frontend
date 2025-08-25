@@ -4,6 +4,11 @@ import { useLocation } from 'react-router-dom'
 import { authApi } from '../api/auth'
 import { login, logout, updateToken } from '../store/authSlice'
 
+/**
+ * 인증 상태 관리를 위한 커스텀 훅
+ * @returns {Object} 인증 관련 상태와 함수들
+ * @returns {boolean} returns.isLoading - 인증 처리 중 로딩 상태
+ */
 export const useAuth = () => {
   const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(false)

@@ -10,4 +10,5 @@ export { useConfirm } from './useConfirm';
 export { useFileUpload } from './useFileUpload';
 export { useNotification } from './useNotification';
 export { useSearch } from './useSearch';
+export { useWindowSize } from './useWindowSize';
 

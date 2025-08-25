@@ -1,5 +1,21 @@
 import { useCallback, useState } from 'react';
 
+/**
+ * 폼 상태 관리를 위한 커스텀 훅
+ * @param {Object} initialValues - 초기 폼 값들
+ * @param {Object} formatters - 필드별 포맷터 함수들 { fieldName: (value) => formattedValue }
+ * @returns {Object} 폼 상태와 함수들
+ * @returns {Object} returns.values - 현재 폼 값들
+ * @returns {Object} returns.errors - 필드별 에러 메시지들
+ * @returns {Object} returns.touched - 필드별 터치 상태들
+ * @returns {Function} returns.handleChange - 값 변경 핸들러 (nameOrEvent, value?) => void
+ * @returns {Function} returns.handleBlur - 블러 핸들러 (nameOrEvent) => void
+ * @returns {Function} returns.setFieldValue - 특정 필드 값 설정 (name, value) => void
+ * @returns {Function} returns.setFieldError - 특정 필드 에러 설정 (name, error) => void
+ * @returns {Function} returns.setAllErrors - 모든 에러 설정 (errors) => void
+ * @returns {Function} returns.resetForm - 폼 초기화 (newValues?) => void
+ * @returns {Function} returns.validateForm - 폼 유효성 검사 (validationSchema) => boolean
+ */
 export const useForm = (initialValues = {}, formatters = {}) => {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});

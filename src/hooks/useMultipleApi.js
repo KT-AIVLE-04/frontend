@@ -1,5 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 
+/**
+ * 여러 API를 동시에 또는 순차적으로 호출하는 커스텀 훅
+ * @param {Object} apiFunctions - API 함수들 { key: () => Promise }
+ * @param {Object} options - 옵션 객체
+ * @param {Function} [options.onSuccess] - 모든 API 성공 시 콜백 (results, messages) => void
+ * @param {Function} [options.onError] - 에러 발생 시 콜백 (errors, results?) => void
+ * @param {boolean} [options.autoExecute=false] - 컴포넌트 마운트 시 자동 실행 여부
+ * @param {Object} [options.initialApiFunctions] - 초기 실행할 API 함수들
+ * @returns {Object} API 상태와 함수들
+ * @returns {boolean} returns.loading - 로딩 상태
+ * @returns {Error|null} returns.error - 전체 에러
+ * @returns {Object} returns.errors - 개별 API 에러들 { key: Error }
+ * @returns {Object} returns.results - API 결과들 { key: { result, message } }
+ * @returns {Function} returns.executeMultiple - 병렬 실행 함수 (customApiCalls?) => Promise
+ * @returns {Function} returns.executeSequential - 순차 실행 함수 (customApiCalls?) => Promise
+ */
 export const useMultipleApi = (apiFunctions = {}, options = {}) => {
   const { onSuccess, onError, autoExecute = false, initialApiFunctions = null } = options;
   
