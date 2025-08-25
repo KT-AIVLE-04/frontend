@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { Alert } from '../../components';
+import { ROUTES } from '../../routes/routes';
 import {
   AccountAnalytics,
   ContentPerformanceSection,
@@ -10,6 +12,7 @@ import {
 } from './components';
 
 export function Analytics() {
+  const navigate = useNavigate();
   const { connections } = useSelector((state) => state.sns);
   const [dateRange, setDateRange] = useState("last7");
   const [selectedSnsType, setSelectedSnsType] = useState("youtube");
@@ -32,7 +35,7 @@ export function Analytics() {
             </p>
             <div className="space-y-4">
               <button
-                onClick={() => window.location.href = '/sns-integration'}
+                onClick={() => navigate(ROUTES.SNS_INTEGRATION.route)}
                 className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
                 SNS 계정 연결하기
@@ -59,7 +62,7 @@ export function Analytics() {
           />
           <div className="mt-4 text-center">
             <button
-              onClick={() => window.location.href = '/sns-integration'}
+              onClick={() => navigate(ROUTES.SNS_INTEGRATION.route)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
             >
               SNS 계정 관리
