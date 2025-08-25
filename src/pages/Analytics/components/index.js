@@ -1,12 +1,11 @@
-export { AnalyticsCharts } from './AnalyticsCharts';
 export { AnalyticsOverview } from './AnalyticsOverview';
 export { ApiErrorDisplay } from './ApiErrorDisplay';
-export { CommentSentiment } from './CommentSentiment';
+export { CommentsDisplay } from './CommentsDisplay';
+export { ComparisonStats } from './ComparisonStats';
 export { ContentPerformanceTable } from './ContentPerformanceTable';
 export { DateRangeSelector } from './DateRangeSelector';
 export { EmotionAnalysis } from './EmotionAnalysis';
-export { FollowerTrendChart } from './FollowerTrendChart';
-export { OptimalPostingTime } from './OptimalPostingTime';
+export { PostSelector } from './PostSelector';
 export { StatCard } from './StatCard';
 export { StatCardCreator } from './StatCardCreator';
 
