@@ -1,1 +1,204 @@
 @import "tailwindcss";
+
+@theme {
+  /* 기본 색상 */
+  --color-text: #040324;
+  --color-bg: #f7f7fe;
+  --color-white: #ffffff;
+  --color-primary: #b5b5ff;
+  --color-secondary: #f38380;
+  --color-accent: #eec64a;
+  --color-textcontrast: #64d97b;
+  --color-bgcontrast: #64d97b;
+  --color-primarycontrast: #64d97b;
+  --color-secondarycontrast: #64d97b;
+  --color-accentcontrast: #64d97b;
+
+  /* Text 색상 변형 */
+  --color-text-5: hsl(242, 85%, 8%, 5%);
+  --color-text-10: hsl(242, 85%, 8%, 10%);
+  --color-text-15: hsl(242, 85%, 8%, 15%);
+  --color-text-20: hsl(242, 85%, 8%, 20%);
+  --color-text-25: hsl(242, 85%, 8%, 25%);
+  --color-text-30: hsl(242, 85%, 8%, 30%);
+  --color-text-35: hsl(242, 85%, 8%, 35%);
+  --color-text-40: hsl(242, 85%, 8%, 40%);
+  --color-text-45: hsl(242, 85%, 8%, 45%);
+  --color-text-50: hsl(242, 85%, 8%, 50%);
+  --color-text-55: hsl(242, 85%, 8%, 55%);
+  --color-text-60: hsl(242, 85%, 8%, 60%);
+  --color-text-65: hsl(242, 85%, 8%, 65%);
+  --color-text-70: hsl(242, 85%, 8%, 70%);
+  --color-text-75: hsl(242, 85%, 8%, 75%);
+  --color-text-80: hsl(242, 85%, 8%, 80%);
+  --color-text-85: hsl(242, 85%, 8%, 85%);
+  --color-text-90: hsl(242, 85%, 8%, 90%);
+  --color-text-95: hsl(242, 85%, 8%, 95%);
+
+  /* Primary 색상 변형 */
+  --color-primary-5: hsl(240, 100%, 85%, 5%);
+  --color-primary-10: hsl(240, 100%, 85%, 10%);
+  --color-primary-15: hsl(240, 100%, 85%, 15%);
+  --color-primary-20: hsl(240, 100%, 85%, 20%);
+  --color-primary-25: hsl(240, 100%, 85%, 25%);
+  --color-primary-30: hsl(240, 100%, 85%, 30%);
+  --color-primary-35: hsl(240, 100%, 85%, 35%);
+  --color-primary-40: hsl(240, 100%, 85%, 40%);
+  --color-primary-45: hsl(240, 100%, 85%, 45%);
+  --color-primary-50: hsl(240, 100%, 85%, 50%);
+  --color-primary-55: hsl(240, 100%, 85%, 55%);
+  --color-primary-60: hsl(240, 100%, 85%, 60%);
+  --color-primary-65: hsl(240, 100%, 85%, 65%);
+  --color-primary-70: hsl(240, 100%, 85%, 70%);
+  --color-primary-75: hsl(240, 100%, 85%, 75%);
+  --color-primary-80: hsl(240, 100%, 85%, 80%);
+  --color-primary-85: hsl(240, 100%, 85%, 85%);
+  --color-primary-90: hsl(240, 100%, 85%, 90%);
+  --color-primary-95: hsl(240, 100%, 85%, 95%);
+
+  /* Secondary 색상 변형 */
+  --color-secondary-5: hsl(2, 83%, 73%, 5%);
+  --color-secondary-10: hsl(2, 83%, 73%, 10%);
+  --color-secondary-15: hsl(2, 83%, 73%, 15%);
+  --color-secondary-20: hsl(2, 83%, 73%, 20%);
+  --color-secondary-25: hsl(2, 83%, 73%, 25%);
+  --color-secondary-30: hsl(2, 83%, 73%, 30%);
+  --color-secondary-35: hsl(2, 83%, 73%, 35%);
+  --color-secondary-40: hsl(2, 83%, 73%, 40%);
+  --color-secondary-45: hsl(2, 83%, 73%, 45%);
+  --color-secondary-50: hsl(2, 83%, 73%, 50%);
+  --color-secondary-55: hsl(2, 83%, 73%, 55%);
+  --color-secondary-60: hsl(2, 83%, 73%, 60%);
+  --color-secondary-65: hsl(2, 83%, 73%, 65%);
+  --color-secondary-70: hsl(2, 83%, 73%, 70%);
+  --color-secondary-75: hsl(2, 83%, 73%, 75%);
+  --color-secondary-80: hsl(2, 83%, 73%, 80%);
+  --color-secondary-85: hsl(2, 83%, 73%, 85%);
+  --color-secondary-90: hsl(2, 83%, 73%, 90%);
+  --color-secondary-95: hsl(2, 83%, 73%, 95%);
+
+  /* Accent 색상 변형 */
+  --color-accent-5: hsl(45, 83%, 61%, 5%);
+  --color-accent-10: hsl(45, 83%, 61%, 10%);
+  --color-accent-15: hsl(45, 83%, 61%, 15%);
+  --color-accent-20: hsl(45, 83%, 61%, 20%);
+  --color-accent-25: hsl(45, 83%, 61%, 25%);
+  --color-accent-30: hsl(45, 83%, 61%, 30%);
+  --color-accent-35: hsl(45, 83%, 61%, 35%);
+  --color-accent-40: hsl(45, 83%, 61%, 40%);
+  --color-accent-45: hsl(45, 83%, 61%, 45%);
+  --color-accent-50: hsl(45, 83%, 61%, 50%);
+  --color-accent-55: hsl(45, 83%, 61%, 55%);
+  --color-accent-60: hsl(45, 83%, 61%, 60%);
+  --color-accent-65: hsl(45, 83%, 61%, 65%);
+  --color-accent-70: hsl(45, 83%, 61%, 70%);
+  --color-accent-75: hsl(45, 83%, 61%, 75%);
+  --color-accent-80: hsl(45, 83%, 61%, 80%);
+  --color-accent-85: hsl(45, 83%, 61%, 85%);
+  --color-accent-90: hsl(45, 83%, 61%, 90%);
+  --color-accent-95: hsl(45, 83%, 61%, 95%);
+
+  /* 배경색 변형 */
+  --color-bg-dark: #e8e8ff;
+  --color-bg-darker: #d8d8ff;
+
+  /* 상태 색상 */
+  --color-success: #64d97b;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* Danger 색상 변형 */
+  --color-danger-5: hsl(0, 84%, 60%, 5%);
+  --color-danger-10: hsl(0, 84%, 60%, 10%);
+  --color-danger-15: hsl(0, 84%, 60%, 15%);
+  --color-danger-20: hsl(0, 84%, 60%, 20%);
+  --color-danger-25: hsl(0, 84%, 60%, 25%);
+  --color-danger-30: hsl(0, 84%, 60%, 30%);
+  --color-danger-35: hsl(0, 84%, 60%, 35%);
+  --color-danger-40: hsl(0, 84%, 60%, 40%);
+  --color-danger-45: hsl(0, 84%, 60%, 45%);
+  --color-danger-50: hsl(0, 84%, 60%, 50%);
+  --color-danger-55: hsl(0, 84%, 60%, 55%);
+  --color-danger-60: hsl(0, 84%, 60%, 60%);
+  --color-danger-65: hsl(0, 84%, 60%, 65%);
+  --color-danger-70: hsl(0, 84%, 60%, 70%);
+  --color-danger-75: hsl(0, 84%, 60%, 75%);
+  --color-danger-80: hsl(0, 84%, 60%, 80%);
+  --color-danger-85: hsl(0, 84%, 60%, 85%);
+  --color-danger-90: hsl(0, 84%, 60%, 90%);
+  --color-danger-95: hsl(0, 84%, 60%, 95%);
+
+  /* 플랫폼 색상 */
+  --color-platform-instagram: #f97316;
+  --color-platform-facebook: #3b82f6;
+  --color-platform-youtube: #ef4444;
+  --color-platform-kakao: #fbbf24;
+  --color-platform-naver: #22c55e;
+  --color-platform-google: #6b7280;
+
+  /* YouTube 파스텔 레드 */
+  --color-youtube: #ff6b6b;
+  --color-youtube-5: hsl(0, 100%, 71%, 5%);
+  --color-youtube-10: hsl(0, 100%, 71%, 10%);
+  --color-youtube-15: hsl(0, 100%, 71%, 15%);
+  --color-youtube-20: hsl(0, 100%, 71%, 20%);
+  --color-youtube-25: hsl(0, 100%, 71%, 25%);
+  --color-youtube-30: hsl(0, 100%, 71%, 30%);
+  --color-youtube-35: hsl(0, 100%, 71%, 35%);
+  --color-youtube-40: hsl(0, 100%, 71%, 40%);
+  --color-youtube-45: hsl(0, 100%, 71%, 45%);
+  --color-youtube-50: hsl(0, 100%, 71%, 50%);
+  --color-youtube-55: hsl(0, 100%, 71%, 55%);
+  --color-youtube-60: hsl(0, 100%, 71%, 60%);
+  --color-youtube-65: hsl(0, 100%, 71%, 65%);
+  --color-youtube-70: hsl(0, 100%, 71%, 70%);
+  --color-youtube-75: hsl(0, 100%, 71%, 75%);
+  --color-youtube-80: hsl(0, 100%, 71%, 80%);
+  --color-youtube-85: hsl(0, 100%, 71%, 85%);
+  --color-youtube-90: hsl(0, 100%, 71%, 90%);
+  --color-youtube-95: hsl(0, 100%, 71%, 95%);
+
+  /* Facebook 파스텔 블루 */
+  --color-facebook: #74b9ff;
+  --color-facebook-5: hsl(210, 100%, 73%, 5%);
+  --color-facebook-10: hsl(210, 100%, 73%, 10%);
+  --color-facebook-15: hsl(210, 100%, 73%, 15%);
+  --color-facebook-20: hsl(210, 100%, 73%, 20%);
+  --color-facebook-25: hsl(210, 100%, 73%, 25%);
+  --color-facebook-30: hsl(210, 100%, 73%, 30%);
+  --color-facebook-35: hsl(210, 100%, 73%, 35%);
+  --color-facebook-40: hsl(210, 100%, 73%, 40%);
+  --color-facebook-45: hsl(210, 100%, 73%, 45%);
+  --color-facebook-50: hsl(210, 100%, 73%, 50%);
+  --color-facebook-55: hsl(210, 100%, 73%, 55%);
+  --color-facebook-60: hsl(210, 100%, 73%, 60%);
+  --color-facebook-65: hsl(210, 100%, 73%, 65%);
+  --color-facebook-70: hsl(210, 100%, 73%, 70%);
+  --color-facebook-75: hsl(210, 100%, 73%, 75%);
+  --color-facebook-80: hsl(210, 100%, 73%, 80%);
+  --color-facebook-85: hsl(210, 100%, 73%, 85%);
+  --color-facebook-90: hsl(210, 100%, 73%, 90%);
+  --color-facebook-95: hsl(210, 100%, 73%, 95%);
+
+  /* Instagram 파스텔 핑크 */
+  --color-instagram: #fd79a8;
+  --color-instagram-5: hsl(340, 96%, 74%, 5%);
+  --color-instagram-10: hsl(340, 96%, 74%, 10%);
+  --color-instagram-15: hsl(340, 96%, 74%, 15%);
+  --color-instagram-20: hsl(340, 96%, 74%, 20%);
+  --color-instagram-25: hsl(340, 96%, 74%, 25%);
+  --color-instagram-30: hsl(340, 96%, 74%, 30%);
+  --color-instagram-35: hsl(340, 96%, 74%, 35%);
+  --color-instagram-40: hsl(340, 96%, 74%, 40%);
+  --color-instagram-45: hsl(340, 96%, 74%, 45%);
+  --color-instagram-50: hsl(340, 96%, 74%, 50%);
+  --color-instagram-55: hsl(340, 96%, 74%, 55%);
+  --color-instagram-60: hsl(340, 96%, 74%, 60%);
+  --color-instagram-65: hsl(340, 96%, 74%, 65%);
+  --color-instagram-70: hsl(340, 96%, 74%, 70%);
+  --color-instagram-75: hsl(340, 96%, 74%, 75%);
+  --color-instagram-80: hsl(340, 96%, 74%, 80%);
+  --color-instagram-85: hsl(340, 96%, 74%, 85%);
+  --color-instagram-90: hsl(340, 96%, 74%, 90%);
+  --color-instagram-95: hsl(340, 96%, 74%, 95%);
+}
