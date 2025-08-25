@@ -26,7 +26,9 @@ export const handlers = [
       "/api/stores",
       "/api/shorts",
       "/api/contents",
-      // '/api/analytics',
+      "/api/sns",
+      "/api/content",
+      '/api/analytics', // analytics API 활성화
     ];
 
     // msw 작동 안하는 조건들
@@ -591,6 +593,65 @@ export const handlers = [
     });
   }),
 
+  // ===== SNS API =====
+  
+  // SNS 포스트 목록 조회
+  http.get(`${API_BASE_URL}/api/sns/posts`, () => {
+    const posts = [
+      {
+        id: 1,
+        postId: 1,
+        title: "카페 달콤 신메뉴 소개",
+        content: "새로운 시즌 메뉴를 소개합니다!",
+        snsType: "youtube",
+        createdAt: "2023-06-15T10:30:00Z",
+        status: "published"
+      },
+      {
+        id: 2,
+        postId: 2,
+        title: "여름 신상품 컬렉션",
+        content: "시원한 여름을 위한 새로운 컬렉션",
+        snsType: "instagram",
+        createdAt: "2023-06-10T14:20:00Z",
+        status: "published"
+      },
+      {
+        id: 3,
+        postId: 3,
+        title: "바리스타 추천 커피",
+        content: "오늘의 추천 커피를 소개합니다",
+        snsType: "youtube",
+        createdAt: "2023-06-08T09:15:00Z",
+        status: "published"
+      },
+      {
+        id: 4,
+        postId: 4,
+        title: "주말 브런치 메뉴",
+        content: "특별한 주말을 위한 브런치 메뉴",
+        snsType: "facebook",
+        createdAt: "2023-06-05T16:45:00Z",
+        status: "published"
+      },
+      {
+        id: 5,
+        postId: 5,
+        title: "매장 인테리어 투어",
+        content: "새롭게 단장한 매장을 소개합니다",
+        snsType: "instagram",
+        createdAt: "2023-06-01T11:00:00Z",
+        status: "published"
+      }
+    ];
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "SNS 포스트 목록 조회 성공",
+      result: posts,
+    });
+  }),
+
   // ===== 콘텐츠 API =====
 
   // ===== 이미지 관리 API =====
@@ -977,6 +1038,85 @@ export const handlers = [
     });
   }),
 
+  // ===== 콘텐츠 API =====
+  
+  // 콘텐츠 목록 조회
+  http.get(`${API_BASE_URL}/api/contents`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get("page")) || 1;
+    const size = parseInt(url.searchParams.get("size")) || 10;
+    const type = url.searchParams.get("type") || "videos";
+
+    const contents = [
+      {
+        id: 1,
+        contentId: 1,
+        title: "카페 달콤 신메뉴 소개",
+        type: "video",
+        duration: "00:15",
+        createdAt: "2023-06-15",
+        views: 245,
+        likes: 32,
+        store: "카페 달콤",
+        snsType: "youtube"
+      },
+      {
+        id: 2,
+        contentId: 2,
+        title: "여름 신상품 컬렉션",
+        type: "video",
+        duration: "00:22",
+        createdAt: "2023-06-10",
+        views: 189,
+        likes: 24,
+        store: "스타일 의류",
+        snsType: "instagram"
+      },
+      {
+        id: 3,
+        contentId: 3,
+        title: "바리스타 추천 커피 레시피",
+        type: "video",
+        duration: "00:18",
+        createdAt: "2023-06-08",
+        views: 156,
+        likes: 18,
+        store: "카페 달콤",
+        snsType: "youtube"
+      },
+      {
+        id: 4,
+        contentId: 4,
+        title: "주말 브런치 메뉴 소개",
+        type: "video",
+        duration: "00:25",
+        createdAt: "2023-06-05",
+        views: 134,
+        likes: 15,
+        store: "카페 달콤",
+        snsType: "facebook"
+      },
+      {
+        id: 5,
+        contentId: 5,
+        title: "매장 인테리어 투어",
+        type: "video",
+        duration: "00:30",
+        createdAt: "2023-06-01",
+        views: 98,
+        likes: 12,
+        store: "스타일 의류",
+        snsType: "instagram"
+      }
+    ];
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "콘텐츠 목록 조회 성공",
+      result: contents,
+    });
+  }),
+
   // 시나리오 목록 조회
   http.get(`${API_BASE_URL}/api/content/scenarios`, () => {
     const scenarios = [
@@ -1012,123 +1152,165 @@ export const handlers = [
 
   // ===== Analytics API Mocks =====
 
-  // 실시간 게시물 메트릭
+  // ===== 실시간 API =====
+
+  // 실시간 계정 메트릭 조회
   http.get(
-    `${API_BASE_URL}/api/analytics/realtime/posts/:postId/metrics`,
-    ({ params }) => {
-      const postId = params.postId;
+    `${API_BASE_URL}/api/analytics/realtime/accounts/metrics`,
+    ({ request }) => {
+      const url = new URL(request.url);
+      const snsType = url.searchParams.get("snsType");
+
+      if (!snsType) {
+        return HttpResponse.json(
+          {
+            isSuccess: false,
+            message: "snsType 파라미터가 필요합니다.",
+            result: null,
+          },
+          { status: 400 }
+        );
+      }
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
+          accountId: 123,
+          followers: 43400,
+          views: 13739858,
+          fetchedAt: new Date().toISOString(),
+          snsType: snsType.toUpperCase(),
+        },
+      });
+    }
+  ),
+
+  // 실시간 게시물 메트릭 조회
+  http.get(
+    `${API_BASE_URL}/api/analytics/realtime/posts/metrics`,
+    ({ request }) => {
+      const url = new URL(request.url);
+      const snsType = url.searchParams.get("snsType");
+      const postId = url.searchParams.get("postId");
+
+      if (!snsType) {
+        return HttpResponse.json(
+          {
+            isSuccess: false,
+            message: "snsType 파라미터가 필요합니다.",
+            result: null,
+          },
+          { status: 400 }
+        );
+      }
 
       // postId에 따라 다른 데이터 반환
       const metricsData = {
-        1: { views: 115374, likes: "6032", comments: 198, shares: null },
-        2: { views: 89234, likes: "3456", comments: 234, shares: null },
-        3: { views: 23456, likes: "1234", comments: 89, shares: null },
-        4: { views: 34567, likes: "1890", comments: 156, shares: null },
-        5: { views: 67890, likes: "2987", comments: 267, shares: null },
+        1: { views: 115374, likes: 6032, comments: 198, shares: 50 },
+        2: { views: 89234, likes: 3456, comments: 234, shares: 30 },
+        3: { views: 23456, likes: 1234, comments: 89, shares: 15 },
+        4: { views: 34567, likes: 1890, comments: 156, shares: 25 },
+        5: { views: 67890, likes: 2987, comments: 267, shares: 40 },
       };
 
-      const data = metricsData[postId] || {
-        views: 15000,
-        likes: "800",
-        comments: 120,
-        shares: null,
-      };
+      const data = postId
+        ? metricsData[postId] || {
+            views: 15000,
+            likes: 800,
+            comments: 120,
+            shares: 20,
+          }
+        : metricsData[1]; // postId가 없으면 첫 번째 게시물 데이터
 
       return HttpResponse.json({
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
-        result: [
-          {
-            postId: parseInt(postId),
-            snsPostId: `w7YKHjH_MpM_${postId}`,
-            accountId: 1,
-            likes: data.likes,
-            dislikes: 0,
-            comments: data.comments,
-            shares: data.shares,
-            views: data.views,
-            fetchedAt: new Date().toISOString(),
-            dataSource: "youtube_api",
-            isCached: false,
-          },
-        ],
+        result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
+          postId: postId ? parseInt(postId) : 1,
+          accountId: 123,
+          likes: data.likes,
+          dislikes: 10,
+          comments: data.comments,
+          shares: data.shares,
+          views: data.views,
+          fetchedAt: new Date().toISOString(),
+          snsType: snsType.toUpperCase(),
+        },
       });
     }
   ),
 
-  // 실시간 계정 메트릭
+  // 실시간 게시물 댓글 조회
   http.get(
-    `${API_BASE_URL}/api/analytics/realtime/accounts/:accountId/metrics`,
-    ({ params }) => {
-      const accountId = params.accountId;
-
-      return HttpResponse.json({
-        isSuccess: true,
-        message: "요청이 성공적으로 처리되었습니다.",
-        result: [
-          {
-            accountId: parseInt(accountId),
-            snsAccountId: `UC_BDaOejkuzpT4Jlt_r2vlA`,
-            followers: 43400,
-            views: 13739858,
-            fetchedAt: new Date().toISOString(),
-            dataSource: "youtube_api",
-            isCached: false,
-          },
-        ],
-      });
-    }
-  ),
-
-  // 실시간 댓글 조회
-  http.get(
-    `${API_BASE_URL}/api/analytics/realtime/posts/:postId/comments`,
-    ({ params, request }) => {
-      const postId = params.postId;
+    `${API_BASE_URL}/api/analytics/realtime/posts/comments`,
+    ({ request }) => {
       const url = new URL(request.url);
+      const snsType = url.searchParams.get("snsType");
+      const postId = url.searchParams.get("postId");
       const page = parseInt(url.searchParams.get("page")) || 0;
       const size = parseInt(url.searchParams.get("size")) || 20;
 
+      if (!snsType) {
+        return HttpResponse.json(
+          {
+            isSuccess: false,
+            message: "snsType 파라미터가 필요합니다.",
+            result: null,
+          },
+          { status: 400 }
+        );
+      }
+
       const comments = [
         {
-          commentId: `UgzDE8pqJ_c_${postId}_${page}_1`,
-          authorId: 123456789,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_1`,
+          authorId: "user123456789",
           text: "정말 맛있어 보여요! 다음에 꼭 가보고 싶습니다 😋",
           likeCount: 15,
           publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          crawledAt: new Date().toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${postId}_${page}_2`,
-          authorId: 987654321,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_2`,
+          authorId: "user987654321",
           text: "인테리어가 너무 예쁘네요. 분위기 좋아 보여요!",
           likeCount: 8,
           publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          crawledAt: new Date().toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${postId}_${page}_3`,
-          authorId: 456789123,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_3`,
+          authorId: "user456789123",
           text: "가격대비 퀄리티가 정말 좋은 것 같아요 👍",
           likeCount: 12,
           publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-          crawledAt: new Date().toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${postId}_${page}_4`,
-          authorId: 789123456,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_4`,
+          authorId: "user789123456",
           text: "주차는 어떻게 되나요?",
           likeCount: 3,
           publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-          crawledAt: new Date().toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${postId}_${page}_5`,
-          authorId: 321654987,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_5`,
+          authorId: "user321654987",
           text: "사진이 너무 잘 나와요! 카메라 앵글 대박 👏",
           likeCount: 20,
           publishedAt: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
-          crawledAt: new Date().toISOString(),
         },
       ].slice(0, Math.min(size, 5));
 
@@ -1140,19 +1322,57 @@ export const handlers = [
     }
   ),
 
-  // 히스토리 게시물 메트릭
+  // ===== 히스토리 API =====
+
+  // 히스토리 계정 메트릭 조회
   http.get(
-    `${API_BASE_URL}/api/analytics/history/posts/:postId/metrics`,
-    ({ params, request }) => {
-      const postId = params.postId;
+    `${API_BASE_URL}/api/analytics/history/accounts/metrics`,
+    ({ request }) => {
       const url = new URL(request.url);
       const date = url.searchParams.get("date");
+      const snsType = url.searchParams.get("snsType");
 
-      if (!date) {
+      if (!date || !snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "날짜 파라미터가 필요합니다.",
+            message: "date와 snsType 파라미터가 필요합니다.",
+            result: null,
+          },
+          { status: 400 }
+        );
+      }
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
+          accountId: 123,
+          followers: 43300, // 어제 팔로워 수 (실시간보다 적음)
+          views: 13726084, // 어제 총 조회 수
+          fetchedAt: `${date}T12:00:00`,
+          snsType: snsType.toUpperCase(),
+        },
+      });
+    }
+  ),
+
+  // 히스토리 게시물 메트릭 조회
+  http.get(
+    `${API_BASE_URL}/api/analytics/history/posts/metrics`,
+    ({ request }) => {
+      const url = new URL(request.url);
+      const date = url.searchParams.get("date");
+      const snsType = url.searchParams.get("snsType");
+      const postId = url.searchParams.get("postId");
+
+      if (!date || !snsType) {
+        return HttpResponse.json(
+          {
+            isSuccess: false,
+            message: "date와 snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1161,87 +1381,57 @@ export const handlers = [
 
       // 어제 데이터는 실시간 데이터보다 약간 적게
       const yesterdayData = {
-        1: { views: 115172, likes: "6026", comments: 198, shares: null },
-        2: { views: 85000, likes: "3200", comments: 210, shares: null },
-        3: { views: 21000, likes: "1100", comments: 75, shares: null },
-        4: { views: 31000, likes: "1700", comments: 140, shares: null },
-        5: { views: 62000, likes: "2700", comments: 240, shares: null },
+        1: { views: 115172, likes: 6026, comments: 198, shares: 48 },
+        2: { views: 85000, likes: 3200, comments: 210, shares: 28 },
+        3: { views: 21000, likes: 1100, comments: 75, shares: 12 },
+        4: { views: 31000, likes: 1700, comments: 140, shares: 22 },
+        5: { views: 62000, likes: 2700, comments: 240, shares: 35 },
       };
 
-      const data = yesterdayData[postId] || {
-        views: 13500,
-        likes: "720",
-        comments: 105,
-        shares: null,
-      };
+      const data = postId
+        ? yesterdayData[postId] || {
+            views: 13500,
+            likes: 720,
+            comments: 105,
+            shares: 18,
+          }
+        : yesterdayData[1]; // postId가 없으면 첫 번째 게시물 데이터
 
       return HttpResponse.json({
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
-        result: [
-          {
-            postId: parseInt(postId),
-            likes: data.likes,
-            dislikes: 0,
-            comments: data.comments,
-            shares: data.shares,
-            views: data.views,
-            crawledAt: `${date}T12:00:00`,
-          },
-        ],
+        result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
+          postId: postId ? parseInt(postId) : 1,
+          accountId: 123,
+          likes: data.likes,
+          dislikes: 8,
+          comments: data.comments,
+          shares: data.shares,
+          views: data.views,
+          fetchedAt: `${date}T12:00:00`,
+          snsType: snsType.toUpperCase(),
+        },
       });
     }
   ),
 
-  // 히스토리 계정 메트릭
+  // 히스토리 게시물 댓글 조회
   http.get(
-    `${API_BASE_URL}/api/analytics/history/accounts/:accountId/metrics`,
-    ({ params, request }) => {
-      const accountId = params.accountId;
+    `${API_BASE_URL}/api/analytics/history/posts/comments`,
+    ({ request }) => {
       const url = new URL(request.url);
-      const date = url.searchParams.get("date");
-
-      if (!date) {
-        return HttpResponse.json(
-          {
-            isSuccess: false,
-            message: "날짜 파라미터가 필요합니다.",
-            result: null,
-          },
-          { status: 400 }
-        );
-      }
-
-      return HttpResponse.json({
-        isSuccess: true,
-        message: "요청이 성공적으로 처리되었습니다.",
-        result: [
-          {
-            accountId: parseInt(accountId),
-            followers: 43300, // 어제 팔로워 수 (실시간보다 적음)
-            views: 13726084, // 어제 총 조회 수
-            crawledAt: `${date}T12:00:00`,
-          },
-        ],
-      });
-    }
-  ),
-
-  // 히스토리 댓글 조회
-  http.get(
-    `${API_BASE_URL}/api/analytics/history/posts/:postId/comments`,
-    ({ params, request }) => {
-      const postId = params.postId;
-      const url = new URL(request.url);
-      const date = url.searchParams.get("date");
+      const snsType = url.searchParams.get("snsType");
+      const postId = url.searchParams.get("postId");
       const page = parseInt(url.searchParams.get("page")) || 0;
       const size = parseInt(url.searchParams.get("size")) || 20;
 
-      if (!date) {
+      if (!snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "날짜 파라미터가 필요합니다.",
+            message: "snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1250,44 +1440,49 @@ export const handlers = [
 
       const comments = [
         {
-          commentId: `UgzDE8pqJ_c_${date}_${postId}_1`,
-          authorId: 123456789,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_1`,
+          authorId: "user123456789",
           text: "어제 갔는데 정말 맛있었어요! 추천합니다 😊",
           likeCount: 12,
-          publishedAt: `${date}T14:30:00`,
-          crawledAt: `${date}T12:00:00`,
+          publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${date}_${postId}_2`,
-          authorId: 987654321,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_2`,
+          authorId: "user987654321",
           text: "분위기가 너무 좋아서 오래 앉아있었어요",
           likeCount: 6,
-          publishedAt: `${date}T16:45:00`,
-          crawledAt: `${date}T12:00:00`,
+          publishedAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${date}_${postId}_3`,
-          authorId: 456789123,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_3`,
+          authorId: "user456789123",
           text: "가격이 조금 비싸지만 퀄리티가 좋아요",
           likeCount: 9,
-          publishedAt: `${date}T18:20:00`,
-          crawledAt: `${date}T12:00:00`,
+          publishedAt: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${date}_${postId}_4`,
-          authorId: 789123456,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_4`,
+          authorId: "user789123456",
           text: "직원분들이 친절하시네요 👍",
           likeCount: 4,
-          publishedAt: `${date}T20:15:00`,
-          crawledAt: `${date}T12:00:00`,
+          publishedAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: `UgzDE8pqJ_c_${date}_${postId}_5`,
-          authorId: 321654987,
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_5`,
+          authorId: "user321654987",
           text: "다음에 친구들이랑 같이 가려고 해요!",
           likeCount: 7,
-          publishedAt: `${date}T21:30:00`,
-          crawledAt: `${date}T12:00:00`,
+          publishedAt: new Date(Date.now() - 32 * 60 * 60 * 1000).toISOString(),
         },
       ].slice(0, Math.min(size, 5));
 
@@ -1295,6 +1490,148 @@ export const handlers = [
         isSuccess: true,
         message: "히스토리 댓글 조회 성공",
         result: comments,
+      });
+    }
+  ),
+
+  // 히스토리 게시물 감정분석 조회
+  http.get(
+    `${API_BASE_URL}/api/analytics/history/posts/emotion-analysis`,
+    ({ request }) => {
+      const url = new URL(request.url);
+      const date = url.searchParams.get("date");
+      const snsType = url.searchParams.get("snsType");
+      const postId = url.searchParams.get("postId");
+
+      if (!date || !snsType) {
+        return HttpResponse.json(
+          {
+            isSuccess: false,
+            message: "date와 snsType 파라미터가 필요합니다.",
+            result: null,
+          },
+          { status: 400 }
+        );
+      }
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse",
+          postId: postId ? parseInt(postId) : 1,
+          emotionSummary: {
+            "@class":
+              "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse$EmotionSummary",
+            positiveCount: 150,
+            neutralCount: 30,
+            negativeCount: 20,
+            totalCount: 200,
+          },
+          keywords: {
+            positive: ["좋아요", "최고", "대박", "맛있어요", "추천"],
+            negative: ["별로", "실망", "아쉽다", "비싸다", "불친절"],
+          },
+        },
+      });
+    }
+  ),
+
+  // ===== 배치 API =====
+
+  // 계정 메트릭 수집
+  http.post(`${API_BASE_URL}/api/analytics/batch/accounts/metrics`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "요청이 성공적으로 처리되었습니다.",
+      result: {
+        operationName: "account metrics collection",
+        status: "SUCCESS",
+        executedAt: new Date().toISOString(),
+        message: "account metrics collection completed successfully",
+        processedCount: 3,
+        failedCount: 0,
+      },
+    });
+  }),
+
+  // 특정 계정 메트릭 수집
+  http.post(
+    `${API_BASE_URL}/api/analytics/batch/accounts/:accountId/metrics`,
+    ({ params }) => {
+      const accountId = params.accountId;
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          operationName: `account ${accountId} metrics collection`,
+          status: "SUCCESS",
+          executedAt: new Date().toISOString(),
+          message: `account ${accountId} metrics collection completed successfully`,
+          processedCount: 1,
+          failedCount: 0,
+        },
+      });
+    }
+  ),
+
+  // 게시물 메트릭 수집
+  http.post(`${API_BASE_URL}/api/analytics/batch/posts/metrics`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "요청이 성공적으로 처리되었습니다.",
+      result: {
+        operationName: "post metrics collection",
+        status: "SUCCESS",
+        executedAt: new Date().toISOString(),
+        message: "post metrics collection completed successfully",
+        processedCount: 15,
+        failedCount: 0,
+      },
+    });
+  }),
+
+  // 특정 게시물 메트릭 수집
+  http.post(
+    `${API_BASE_URL}/api/analytics/batch/posts/:postId/metrics`,
+    ({ params }) => {
+      const postId = params.postId;
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          operationName: `post ${postId} metrics collection`,
+          status: "SUCCESS",
+          executedAt: new Date().toISOString(),
+          message: `post ${postId} metrics collection completed successfully`,
+          processedCount: 1,
+          failedCount: 0,
+        },
+      });
+    }
+  ),
+
+  // 배치 작업 상태 조회
+  http.get(
+    `${API_BASE_URL}/api/analytics/batch/status/:jobName`,
+    ({ params }) => {
+      const jobName = params.jobName;
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          jobName: jobName,
+          status: "COMPLETED",
+          startTime: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          endTime: new Date().toISOString(),
+          progress: 100,
+          totalItems: 15,
+          errorMessage: null,
+        },
       });
     }
   ),
@@ -1525,6 +1862,175 @@ export const handlers = [
       isSuccess: true,
       message: "키워드 분석 조회 성공",
       result: analysis,
+    });
+  }),
+
+  // ===== 새로운 Analytics API =====
+
+  // 실시간 계정 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/accounts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+
+    const accountMetrics = {
+      accountId: 123,
+      followers: 10000 + Math.floor(Math.random() * 1000),
+      views: 500000 + Math.floor(Math.random() * 50000),
+      fetchedAt: new Date().toISOString(),
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "실시간 계정 메트릭 조회 성공",
+      result: accountMetrics,
+    });
+  }),
+
+  // 실시간 게시물 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+
+    const postMetrics = {
+      postId: postId ? parseInt(postId) : 456,
+      accountId: 123,
+      likes: 1500 + Math.floor(Math.random() * 200),
+      dislikes: 10 + Math.floor(Math.random() * 5),
+      comments: 200 + Math.floor(Math.random() * 50),
+      shares: 50 + Math.floor(Math.random() * 20),
+      views: 25000 + Math.floor(Math.random() * 5000),
+      fetchedAt: new Date().toISOString(),
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "실시간 게시물 메트릭 조회 성공",
+      result: postMetrics,
+    });
+  }),
+
+  // 실시간 게시물 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/comments`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+    const page = parseInt(url.searchParams.get("page")) || 0;
+    const size = parseInt(url.searchParams.get("size")) || 20;
+
+    const comments = Array.from({ length: size }, (_, i) => ({
+      commentId: `comment_${page * size + i + 1}`,
+      authorId: `user_${Math.floor(Math.random() * 1000)}`,
+      text: `정말 좋은 영상이네요! ${i + 1}`,
+      likeCount: Math.floor(Math.random() * 50),
+      publishedAt: new Date(Date.now() - Math.random() * 86400000).toISOString()
+    }));
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "실시간 게시물 댓글 조회 성공",
+      result: comments,
+    });
+  }),
+
+  // 히스토리 계정 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/accounts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+
+    const accountMetrics = {
+      accountId: 123,
+      followers: 9500 + Math.floor(Math.random() * 1000),
+      views: 480000 + Math.floor(Math.random() * 50000),
+      fetchedAt: `${date}T10:30:00`,
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 계정 메트릭 조회 성공",
+      result: accountMetrics,
+    });
+  }),
+
+  // 히스토리 게시물 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+
+    const postMetrics = {
+      postId: postId ? parseInt(postId) : 456,
+      accountId: 123,
+      likes: 1400 + Math.floor(Math.random() * 200),
+      dislikes: 8 + Math.floor(Math.random() * 5),
+      comments: 180 + Math.floor(Math.random() * 50),
+      shares: 45 + Math.floor(Math.random() * 20),
+      views: 23000 + Math.floor(Math.random() * 5000),
+      fetchedAt: `${date}T10:30:00`,
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 메트릭 조회 성공",
+      result: postMetrics,
+    });
+  }),
+
+  // 히스토리 게시물 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/comments`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+    const page = parseInt(url.searchParams.get("page")) || 0;
+    const size = parseInt(url.searchParams.get("size")) || 20;
+
+    const comments = Array.from({ length: size }, (_, i) => ({
+      commentId: `comment_${page * size + i + 1}`,
+      authorId: `user_${Math.floor(Math.random() * 1000)}`,
+      text: `히스토리 댓글 ${i + 1}`,
+      likeCount: Math.floor(Math.random() * 50),
+      publishedAt: `${date}T${10 + Math.floor(Math.random() * 12)}:${Math.floor(Math.random() * 60)}:00`
+    }));
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 댓글 조회 성공",
+      result: comments,
+    });
+  }),
+
+  // 히스토리 게시물 감정분석 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/emotion-analysis`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+
+    const emotionAnalysis = {
+      postId: postId ? parseInt(postId) : 456,
+      emotionSummary: {
+        positiveCount: 150 + Math.floor(Math.random() * 50),
+        neutralCount: 30 + Math.floor(Math.random() * 20),
+        negativeCount: 20 + Math.floor(Math.random() * 15),
+        totalCount: 200 + Math.floor(Math.random() * 50)
+      },
+      keywords: {
+        positive: ["좋아요", "최고", "대박", "훌륭", "추천"],
+        negative: ["별로", "실망", "아쉽다", "부족", "개선"]
+      }
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 감정분석 조회 성공",
+      result: emotionAnalysis,
     });
   }),
 ];

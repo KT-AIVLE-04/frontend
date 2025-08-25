@@ -1,101 +1,245 @@
 import React from "react";
-import { Trash2, Calendar, Hash, X, Play } from "lucide-react";
+import {
+  Calendar,
+  Tag,
+  ExternalLink,
+  Youtube,
+  Facebook,
+  Instagram,
+  Eye,
+  Heart,
+  MessageCircle,
+  X,
+  Trash2,
+} from "lucide-react";
 
-export function PostDetail({ post, onClose, handleDelete }) {
+export function PostDetail({ post, onClose, onDelete }) {
   if (!post) {
     return null;
   }
 
-  const onDeleteClick = () => {
-    if (handleDelete) {
-      handleDelete(post.id);
+  const handleDeletePost = () => {
+    if (onDelete) {
+      onDelete(post.id);
     }
   };
 
+  const handleCloseDetail = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  const getSnsIcon = (snsType) => {
+    const iconProps = { size: 20 };
+    switch (snsType) {
+      case "youtube":
+        return <Youtube {...iconProps} className="text-red-500" />;
+      case "instagram":
+        return <Instagram {...iconProps} className="text-pink-500" />;
+      case "facebook":
+        return <Facebook {...iconProps} className="text-blue-600" />;
+      default:
+        return <ExternalLink {...iconProps} className="text-gray-500" />;
+    }
+  };
+
+  const getOriginalPostUrl = (snsType, snsPostId) => {
+    if (!snsPostId) return null;
+
+    switch (snsType) {
+      case "youtube":
+        return `https://www.${snsType}.com/watch?v=${snsPostId}`;
+      case "instagram":
+        return `https://www.${snsType}.com/p/${snsPostId}`;
+      case "facebook":
+        return `https://www.${snsType}.com/posts/${snsPostId}`;
+      default:
+        return null;
+    }
+  };
+
+  const formatNumber = (num) => {
+    if (!num) return "0";
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + "M";
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "미정";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // 더미 데이터 생성
+  const getDummyStats = (id) => {
+    const seed = id || 1;
+    return {
+      viewCount: Math.floor(Math.random() * seed * 10000) + 1000,
+      likeCount: Math.floor(Math.random() * seed * 500) + 50,
+      commentCount: Math.floor(Math.random() * seed * 100) + 5,
+    };
+  };
+
+  const dummyStats = getDummyStats(post.id);
+  const viewCount = post.viewCount ?? dummyStats.viewCount;
+  const likeCount = post.likeCount ?? dummyStats.likeCount;
+  const commentCount = post.commentCount ?? dummyStats.commentCount;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* 헤더 */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">게시물 상세</h2>
+        <div className="flex justify-between items-center p-4 border-b border-gray-300">
+          <div className="flex items-center gap-3">
+            {getSnsIcon(post.snsType)}
+            <span className="text-lg font-semibold text-gray-900">
+              게시물 상세보기
+            </span>
+          </div>
           <button
-            onClick={onClose}
+            onClick={handleCloseDetail}
             className="text-gray-400 hover:text-gray-600 p-1"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="flex flex-col lg:flex-row">
-          {/* 왼쪽: 미디어 영역 */}
-          <div className="lg:w-1/2 bg-gray-100">
-            <div className="aspect-video relative">
-              <img
-                src={post.url}
-                alt={post.title}
-                className="w-full h-full object-cover object-center"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-white rounded-full p-3 shadow-md cursor-pointer hover:shadow-lg transition-shadow">
-                  <Play className="w-6 h-6 text-gray-700 ml-0.5" />
-                </div>
+        <div className="flex flex-col lg:flex-row max-h-[calc(90vh-80px)]">
+          {/* 왼쪽: 이미지 영역 */}
+          <div className="lg:w-7/12 bg-gray-100 flex items-center justify-center">
+            {post.url && (
+              <div className="w-full h-full min-h-[300px] lg:min-h-[500px]">
+                <img
+                  src={post.url}
+                  alt={post.title}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                  }}
+                />
               </div>
-            </div>
+            )}
           </div>
 
           {/* 오른쪽: 정보 영역 */}
-          <div className="lg:w-1/2 p-6">
-            <div className="space-y-6">
+          <div className="lg:w-5/12 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-6">
               {/* 제목 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  제목
-                </label>
-                <p className="text-gray-900 leading-relaxed">{post.title}</p>
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 leading-tight">
+                {post.title}
+              </h2>
 
               {/* 설명 */}
-              {post.description && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    설명
-                  </label>
-                  <p className="text-gray-900 leading-relaxed">
-                    {post.description}
-                  </p>
+              <p className="text-gray-700 leading-relaxed mb-6">
+                {post.description}
+              </p>
+
+              {/* 태그 */}
+              {post.tags && post.tags.length > 0 && (
+                <div className="mb-6 pb-6 border-b border-gray-300">
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Tag size={16} />
+                    태그
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* 해시태그 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  태그
-                </label>
-                <p className="text-gray-900">{post.tags || "태그 없음"}</p>
+              {/* 통계 정보 */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3">통계</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-center mb-1 gap-1">
+                      <Eye size={16} className="text-emerald-500" />
+                      <span className="text-xs text-gray-500">조회수</span>
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {formatNumber(viewCount)}
+                    </div>
+                  </div>
+
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-center mb-1 gap-1">
+                      <Heart size={16} className="text-red-500" />
+                      <span className="text-xs text-gray-500">좋아요</span>
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {formatNumber(likeCount)}
+                    </div>
+                  </div>
+
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-center mb-1 gap-1">
+                      <MessageCircle size={16} className="text-blue-500" />
+                      <span className="text-xs text-gray-500">댓글</span>
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {formatNumber(commentCount)}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* 발행일 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  발행일
-                </label>
-                <p className="text-gray-900">
-                  {post.publishAt
-                    ? new Date(post.publishAt).toLocaleDateString("ko-KR")
-                    : "미정"}
-                </p>
+              {/* 게시 정보 */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3">게시 정보</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar size={16} className="text-gray-400" />
+                  {formatDate(post.publishAt)}
+                </div>
               </div>
             </div>
 
-            {/* 삭제 버튼 */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <button
-                onClick={onDeleteClick}
-                className="w-full flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition-colors"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                삭제
-              </button>
+            {/* 하단 액션 버튼들 */}
+            <div className="border-t border-gray-300 p-4">
+              <div className="flex gap-3">
+                {getOriginalPostUrl(post.snsType, post.snsPostId) && (
+                  <button
+                    onClick={() => {
+                      const url = getOriginalPostUrl(
+                        post.snsType,
+                        post.snsPostId
+                      );
+                      if (url) {
+                        window.open(url, "_blank");
+                      }
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  >
+                    <ExternalLink size={16} />
+                    원본 보기
+                  </button>
+                )}
+
+                <button
+                  onClick={handleDeletePost}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                >
+                  <Trash2 size={16} />
+                  삭제
+                </button>
+              </div>
             </div>
           </div>
         </div>

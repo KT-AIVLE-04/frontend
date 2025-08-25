@@ -26,3 +26,6 @@ package-lock.json
 
 .env
 .env.*
+
+_myDocs
+DS_Store

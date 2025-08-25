@@ -24,7 +24,15 @@ export class Store {
 
   // 백엔드 응답에서 Store 객체 생성
   static fromResponse(responseData) {
-    return new Store(responseData);
+    // 백엔드에서 받은 한국어 industry를 enum 값으로 변환
+    const industryKey = Object.keys(INDUSTRY_LABELS).find(
+      key => INDUSTRY_LABELS[key] === responseData.industry
+    );
+    
+    return new Store({
+      ...responseData,
+      industry: industryKey || responseData.industry
+    });
   }
 
   // 백엔드 응답 배열에서 Store 객체 배열 생성
@@ -71,7 +79,7 @@ export class Store {
       businessNumber: this.businessNumber,
       latitude: this.latitude,
       longitude: this.longitude,
-      industry: this.industry
+      industry: Store.getIndustryLabel(this.industry) // 한국어 값으로 변환
     };
   }
 
@@ -83,7 +91,7 @@ export class Store {
       phoneNumber: this.phoneNumber,
       latitude: this.latitude,
       longitude: this.longitude,
-      industry: this.industry
+      industry: Store.getIndustryLabel(this.industry) // 한국어 값으로 변환
     };
   }
 } 

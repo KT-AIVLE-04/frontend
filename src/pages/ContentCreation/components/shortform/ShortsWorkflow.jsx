@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container } from '../../../../components/Container';
+import { Card } from '../../../../components';
 import { ShortformGenerationProvider, useShortformGeneration } from '../../context/ShortformGenerationContext';
 import { InformationInput } from './InformationInput';
 import { ScenarioSelection } from './ScenarioSelection';
@@ -9,7 +9,7 @@ const ShortsWorkflowContent = ({ setContentType }) => {
   const { activeStep } = useShortformGeneration();
 
   return (
-    <Container className="overflow-hidden">
+    <Card className="overflow-hidden">
       <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
         <div className="flex items-center">
           <div className={`flex items-center ${activeStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
@@ -40,7 +40,7 @@ const ShortsWorkflowContent = ({ setContentType }) => {
         {activeStep === 2 && <ScenarioSelection />}
         {activeStep === 3 && <ShortsGeneration setContentType={setContentType} />}
       </div>
-    </Container>
+    </Card>
   );
 };
 

@@ -1,7 +1,6 @@
 export { Analytics } from './Analytics/Analytics';
 export { ContentCreation } from './ContentCreation/ContentCreation';
 export { ContentManagement } from './ContentManagement/ContentManagement';
-export { Dashboard } from './Dashboard/Dashboard';
 export { Login } from './Login/Login';
 export { PostManagement } from './PostManagement/PostManagement';
 export { Register } from './Register/Register';

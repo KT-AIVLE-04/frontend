@@ -1,6 +1,7 @@
-import { Download, Edit, Trash2 } from "lucide-react";
+import { Download, Edit, Trash2, Video, Image, Calendar } from "lucide-react";
 import React from "react";
-import { Container } from "../../../components/Container";
+import { Card } from "../../../components/molecules";
+import { detectMediaType, formatFileSize } from "../../../utils/media";
 
 export function ContentCard({
   content,
@@ -8,118 +9,136 @@ export function ContentCard({
   onDownload,
   onEdit,
   onDelete,
-  showActions = true,
 }) {
-  // contentType을 기반으로 미디어 타입 판단
-  const isVideo = content.contentType?.startsWith("video/");
-  // const isImage = content.contentType?.startsWith("image/");
+  // 미디어 타입을 보다 정확하게 판단
+  const mediaType = detectMediaType(content);
+  const isVideo = mediaType === "video";
+  const isImage = mediaType === "image";
 
-  // 날짜 포맷팅
+  // 카드 클릭 핸들러
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(content.id);
+    }
+  };
+
+  const handleDownload = (e) => {
+    e.stopPropagation();
+    if (onDownload) {
+      onDownload(content);
+    }
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit(content);
+    }
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(content.id);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("ko-KR", {
       year: "numeric",
-      month: "short",
+      month: "long",
       day: "numeric",
     });
   };
 
-  // 카드 클릭 핸들러
-  const handleCardClick = () => {
-    if (onClick) {
-      onClick(content);
+  const getMediaIcon = () => {
+    const iconProps = { size: 12 };
+    if (isVideo) {
+      return <Video {...iconProps} className="text-red-500" />;
+    } else if (isImage) {
+      return <Image {...iconProps} className="text-green-500" />;
     }
+    return <Image {...iconProps} className="text-gray-500" />;
+  };
+
+  const getMediaTypeLabel = () => {
+    if (isVideo) return "Video";
+    if (isImage) return "Image";
+    return "Media";
   };
 
   return (
-    <Container
-      variant="hover"
-      className="overflow-hidden group cursor-pointer"
-      onClick={handleCardClick}
-    >
-      <div className="relative">
-        <img
-          src={content.url}
-          alt={content.title || content.originalName}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-150"
-        />
-
-        {/* 영상인 경우 재생 버튼 오버레이 */}
-        {isVideo && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-4">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="p-6">
-        <h3
-          className="font-black mb-3 line-clamp-2 text-gray-800 group-hover:text-blue-700 transition-colors"
-          title={content.title || content.originalName}
+    <Card variant="interactive" onClick={handleCardClick}>
+      {/* 상단 액션 버튼들 - 호버시에만 표시 */}
+      <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+        <button
+          onClick={handleDownload}
+          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1.5 shadow-lg"
+          title="다운로드"
         >
+          <Download size={14} />
+        </button>
+        <button
+          onClick={handleEdit}
+          className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-full p-1.5 shadow-lg"
+          title="수정"
+        >
+          <Edit size={14} />
+        </button>
+        <button
+          onClick={handleDelete}
+          className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg"
+          title="삭제"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+
+      {/* 썸네일 이미지 */}
+      {content.url && (
+        <div className="aspect-video bg-gray-100">
+          <img
+            src={content.url}
+            alt={content.title || content.originalName}
+            className="w-full h-full object-cover object-center"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+        </div>
+      )}
+
+      <div className="p-4">
+        <div className="flex items-center gap-2 mb-2">
+          {getMediaIcon()}
+          <span className="text-xs font-medium text-gray-600">
+            {getMediaTypeLabel()}
+          </span>
+        </div>
+
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 line-clamp-2">
           {content.title || content.originalName}
         </h3>
-        <div className="flex items-center text-sm text-gray-600 mb-3 font-bold">
-          <span className="font-black">{content.originalName}</span>
-          <span className="mx-2">•</span>
-          <span>{formatDate(content.createdAt)}</span>
+
+        {/* 파일 정보 */}
+        <div className="space-y-1 text-xs text-gray-500 mb-2">
+          {content.bytes && (
+            <div>파일 크기: {formatFileSize(content.bytes)}</div>
+          )}
+          {(content.width || content.height) && (
+            <div>
+              해상도: {content.width || 0} × {content.height || 0}
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-between items-center text-xs text-gray-500 mb-4 font-bold">
-          <div>{content.contentType || "미디어"}</div>
-          <div>
-            <span
-              className={`px-2 py-1 text-xs font-black rounded-full border-2 ${
-                isVideo
-                  ? "bg-blue-500 text-white border-blue-700"
-                  : "bg-green-500 text-white border-green-700"
-              }`}
-            >
-              {isVideo ? "영상" : "이미지"}
-            </span>
-          </div>
+        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+          <Calendar size={12} />
+          생성일 : {formatDate(content.createdAt)}
         </div>
-
-        {showActions && (
-          <div className="flex justify-between">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDownload?.(content.id);
-              }}
-              className="text-gray-500 hover:text-blue-600 transition-colors p-2 rounded-lg hover:bg-blue-50 border-2 border-transparent hover:border-blue-200"
-            >
-              <Download size={18} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit?.(content.id);
-              }}
-              className="text-gray-500 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-indigo-50 border-2 border-transparent hover:border-indigo-200"
-            >
-              <Edit size={18} />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete?.(content.id);
-              }}
-              className="text-gray-500 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50 border-2 border-transparent hover:border-red-200"
-            >
-              <Trash2 size={18} />
-            </button>
-          </div>
-        )}
       </div>
-    </Container>
+    </Card>
   );
 }

@@ -1,1 +1,1 @@
-export { StoreForm } from './StoreForm';
+export { FieldsContainer } from './FieldsContainer';
