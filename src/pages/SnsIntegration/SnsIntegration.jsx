@@ -2,9 +2,12 @@ import {
   AlertCircle,
   CheckCircle,
   ExternalLink,
+  Facebook,
+  Instagram,
   RefreshCw,
   Unlink,
   X,
+  Youtube,
 } from "lucide-react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
