@@ -2,10 +2,10 @@ import { ArrowLeft } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
-import { Alert, Button, Card, FormField } from '../../components';
+import { Alert, Button, Card } from '../../components';
 import { useApi, useForm } from '../../hooks';
 import { REGISTER_VALIDATION_SCHEMA } from '../../utils/validations';
-import { ageOptions } from './components';
+import { FieldsContainer } from './components';
 
 export function Register({ onRegister, onLoginClick }) {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export function Register({ onRegister, onLoginClick }) {
           onRegister();
         }
       },
-      onError: (error, response) => {
+      onError: (error) => {
         console.error('회원가입 실패:', error);
         // 서버 에러를 폼 에러로 변환
         if (error.response?.data?.message) {
@@ -101,61 +101,13 @@ export function Register({ onRegister, onLoginClick }) {
           />
         )}
         <form onSubmit={handleSubmit}>
-          <FormField
-            label="이름"
-            name="name"
-            type="text"
-            value={formData.name}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.name && errors.name}
-            placeholder="이름을 입력하세요"
-            required
-          />
-          <FormField
-            label="이메일"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.email && errors.email}
-            placeholder="이메일 주소를 입력하세요"
-            required
-          />
-          <FormField
-            label="전화번호"
-            name="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.phone && errors.phone}
-            placeholder="전화번호를 입력하세요"
-            required
-          />
-          <FormField
-            label="연령대"
-            name="age"
-            type="select"
-            value={formData.age}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.age && errors.age}
-            placeholder="연령대를 선택하세요"
-            required
-            options={ageOptions}
-          />
-          <FormField
-            label="비밀번호"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.password && errors.password}
-            placeholder="비밀번호를 입력하세요"
-            required
+          <FieldsContainer
+            formData={formData}
+            handleChange={handleChange}
+            handleBlur={handleBlur}
+            touched={touched}
+            errors={errors}
+            validationSchema={REGISTER_VALIDATION_SCHEMA}
           />
           <Button 
             type="submit" 

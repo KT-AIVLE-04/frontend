@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { analyticsApi } from '../../api/analytics';
 import { contentApi } from '../../api/content';
 import { snsApi } from '../../api/sns';
@@ -24,7 +24,33 @@ export function Analytics() {
   // 비교 기간 설정
   const [comparisonPeriod, setComparisonPeriod] = useState("yesterday"); // yesterday, week, month
   
-  const { loading, error, errors, results, executeMultiple } = useMultipleApi();
+  const { loading, error, errors, results, executeMultiple } = useMultipleApi(
+    {}, // 기본 API 함수들 (현재는 비어있음)
+    {
+      autoExecute: true,
+      initialApiFunctions: {
+        // 초기 실행할 API 함수들
+        posts: () => snsApi.post.getPosts(),
+        contents: () => contentApi.getContents()
+      },
+      onSuccess: (results) => {
+        if (results.posts) {
+          setPosts(results.posts || []);
+        }
+        if (results.contents) {
+          setContents(results.contents || []);
+        }
+        
+        // 첫 번째 포스트를 기본 선택
+        if (results.posts && results.posts.length > 0) {
+          setSelectedPostId(results.posts[0].id || results.posts[0].postId);
+        }
+      },
+      onError: (errors) => {
+        console.error('사용자 데이터 로드 실패:', errors);
+      }
+    }
+  );
 
   // 날짜 계산 헬퍼
   const getDateString = (daysAgo) => {
@@ -33,33 +59,7 @@ export function Analytics() {
     return date.toISOString().split('T')[0];
   };
 
-  // 사용자 데이터 로드 (SNS 포스트, 콘텐츠)
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const { results: userResults, errors: userErrors } = await executeMultiple({
-          posts: () => snsApi.post.getPosts(),
-          contents: () => contentApi.getContents()
-        });
 
-        if (!userErrors.posts) {
-          setPosts(userResults.posts || []);
-        }
-        if (!userErrors.contents) {
-          setContents(userResults.contents || []);
-        }
-
-        // 첫 번째 포스트를 기본 선택
-        if (userResults.posts && userResults.posts.length > 0) {
-          setSelectedPostId(userResults.posts[0].id || userResults.posts[0].postId);
-        }
-      } catch (error) {
-        console.error('사용자 데이터 로드 실패:', error);
-      }
-    };
-
-    loadUserData();
-  }, []);
 
   // 분석 데이터 로드
   useEffect(() => {

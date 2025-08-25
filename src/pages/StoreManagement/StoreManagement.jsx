@@ -19,10 +19,10 @@ export function StoreManagement() {
     storeApi.getStores,
     {
       autoExecute: true,
-      onSuccess: (data, response) => {
+      onSuccess: (data) => {
         console.log('매장 목록 조회 성공:', data);
       },
-      onError: (error, response) => {
+      onError: (error) => {
         console.error('매장 목록 조회 실패:', error);
         showError('매장 목록을 불러오는데 실패했습니다.');
       }
@@ -37,7 +37,7 @@ export function StoreManagement() {
         success('매장이 삭제되었습니다.');
         fetchStores(); // 목록 새로고침
       },
-      onError: (error, response) => {
+      onError: (error) => {
         console.error('매장 삭제 실패:', error);
         showError('매장 삭제에 실패했습니다.');
       }

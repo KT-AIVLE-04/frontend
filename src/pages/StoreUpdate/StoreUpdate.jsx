@@ -38,7 +38,7 @@ export function StoreUpdate() {
         success('매장이 성공적으로 저장되었습니다.');
         navigate(ROUTES.STORE_MANAGEMENT.route);
       },
-      onError: (error, response) => {
+      onError: (error) => {
         console.error('매장 저장 실패:', error);
         showError('매장 저장에 실패했습니다.');
       }
