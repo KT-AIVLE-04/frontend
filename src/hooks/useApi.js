@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 export const useApi = (apiFunction, options = {}) => {
   const { onSuccess, onError, autoExecute = false, autoExecuteArgs = [] } = options;
-  // 성공시 데이터,메세지 줌, 실패시 에러객체 제공
+  // 성공시 ({데이터,메세지}) 줌, 실패시 에러객체 제공
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
