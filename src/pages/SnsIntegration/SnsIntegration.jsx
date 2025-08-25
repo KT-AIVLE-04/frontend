@@ -1,19 +1,26 @@
 import {
-    AlertCircle,
-    CheckCircle,
-    ExternalLink,
-    Facebook,
-    Instagram,
-    RefreshCw,
-    Unlink,
-    X,
-    Youtube,
+  AlertCircle,
+  CheckCircle,
+  ExternalLink,
+  Facebook,
+  Instagram,
+  RefreshCw,
+  Unlink,
+  X,
+  Youtube,
 } from "lucide-react";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { snsApi } from "../../api/sns";
-import { useNotification } from "../../hooks";
+import { Card } from "../../components/molecules";
 import { SnsIntegrationGuide } from "./components";
+import {
+  fetchSnsAccount,
+  fetchAllSnsAccounts,
+  updateConnectionState,
+  disconnectPlatform,
+  clearError,
+} from "../../store/snsSlice";
 
 // 상수 정의
 const AUTH_TIMEOUT = 300000; // 5분
@@ -57,67 +64,33 @@ const INITIAL_CONNECTION_STATE = {
 };
 
 export function SnsIntegration() {
+  const dispatch = useDispatch();
   const { selectedStoreId } = useSelector((state) => state.auth);
+  const { connections, loading, error } = useSelector((state) => state.sns);
 
-  const [connections, setConnections] = useState({
-    youtube: { ...INITIAL_CONNECTION_STATE },
-    instagram: { ...INITIAL_CONNECTION_STATE },
-    facebook: { ...INITIAL_CONNECTION_STATE },
-  });
-
-  // 에러 상태 추가
-  const [error, setError] = useState("");
-
-  // 새로운 훅들 사용
-  const { success, error: showError } = useNotification();
-
-  // Helper 함수: 연결 상태 업데이트
-  const updateConnectionState = (platform, updates) => {
-    setConnections((prev) => ({
-      ...prev,
-      [platform]: { ...prev[platform], ...updates },
-    }));
-  };
-
-  // 특정 SNS 연동 상태 확인
-  const checkConnectionStatus = async (platform, isInitialCheck = false) => {
-    try {
-      updateConnectionState(platform, { loading: true });
-
-      const response = await snsApi.account.getAccountInfo(platform);
-
-      updateConnectionState(platform, {
-        status: "connected",
-        accountInfo: response.data.result, // result 객체를 저장
-        loading: false,
-      });
-    } catch (error) {
-      const status =
-        error.response?.status === 404 || isInitialCheck
-          ? "disconnected"
-          : "error";
-
-      updateConnectionState(platform, {
-        status,
-        accountInfo: null,
-        loading: false,
-      });
+  // 컴포넌트 마운트 시 모든 플랫폼 연동 상태 확인
+  useEffect(() => {
+    if (selectedStoreId) {
+      dispatch(fetchAllSnsAccounts());
     }
-  };
+  }, [selectedStoreId, dispatch]);
 
   // SNS 계정 연동 시작
   const startIntegration = async (platform) => {
     if (!selectedStoreId) {
-      setError("스토어를 먼저 선택해주세요.");
+      // 로컬 에러 메시지 처리 (Redux error와 별도)
+      alert("스토어를 먼저 선택해주세요.");
       return;
     }
 
     try {
-      setError("");
-      updateConnectionState(platform, {
-        status: "connecting",
-        loading: true,
-      });
+      dispatch(clearError());
+      dispatch(
+        updateConnectionState({
+          platform,
+          updates: { status: "connecting", loading: true },
+        })
+      );
 
       // OAuth URL 요청
       const response = await snsApi.oauth.getAuthUrl(platform);
@@ -135,8 +108,9 @@ export function SnsIntegration() {
         try {
           if (authWindow.closed) {
             clearInterval(checkAuth);
+            // 연동 완료 후 계정 정보 다시 가져오기
             setTimeout(() => {
-              checkConnectionStatus(platform);
+              dispatch(fetchSnsAccount(platform));
             }, CONNECTION_CHECK_DELAY);
           }
         } catch {
@@ -150,22 +124,24 @@ export function SnsIntegration() {
         if (!authWindow.closed) {
           authWindow.close();
         }
-        if (connections[platform].status === "connecting") {
-          updateConnectionState(platform, {
-            status: "error",
-            loading: false,
-          });
-          setError("인증 시간이 초과되었습니다. 다시 시도해주세요.");
+        // 현재 상태 확인해서 connecting이면 에러로 변경
+        const currentConnection = connections[platform];
+        if (currentConnection && currentConnection.status === "connecting") {
+          dispatch(
+            updateConnectionState({
+              platform,
+              updates: { status: "error", loading: false },
+            })
+          );
         }
       }, AUTH_TIMEOUT);
     } catch (err) {
       console.error("연동 실패:", err);
-      updateConnectionState(platform, {
-        status: "error",
-        loading: false,
-      });
-      setError(
-        `${PLATFORMS[platform].name} 연동 중 오류가 발생했습니다. 다시 시도해주세요.`
+      dispatch(
+        updateConnectionState({
+          platform,
+          updates: { status: "error", loading: false },
+        })
       );
     }
   };
@@ -173,26 +149,25 @@ export function SnsIntegration() {
   // 연결 해제
   const disconnectAccount = async (platform) => {
     try {
-      updateConnectionState(platform, { loading: true });
+      dispatch(
+        updateConnectionState({
+          platform,
+          updates: { loading: true },
+        })
+      );
 
       // TODO: 실제 연결 해제 API 구현 필요
-      updateConnectionState(platform, {
-        status: "disconnected",
-        accountInfo: null,
-        loading: false,
-      });
-    } catch {
-      setError(`${PLATFORMS[platform].name} 연결 해제 중 오류가 발생했습니다.`);
-      updateConnectionState(platform, { loading: false });
+      dispatch(disconnectPlatform(platform));
+    } catch (err) {
+      console.error("연결 해제 실패:", err);
+      dispatch(
+        updateConnectionState({
+          platform,
+          updates: { loading: false },
+        })
+      );
     }
   };
-
-  // 컴포넌트 마운트 시 모든 플랫폼 연동 상태 확인
-  React.useEffect(() => {
-    Object.keys(PLATFORMS).forEach((platform) => {
-      checkConnectionStatus(platform, true);
-    });
-  }, [selectedStoreId]);
 
   // 연결된 계정 수 계산
   const connectedCount = Object.values(connections).filter(
@@ -225,7 +200,7 @@ export function SnsIntegration() {
             <div className="flex items-center justify-between w-full">
               <p className="text-red-800 font-medium">{error}</p>
               <button
-                onClick={() => setError("")}
+                onClick={() => dispatch(clearError())}
                 className="text-red-600 hover:text-red-700 p-1 rounded transition-colors"
                 aria-label="에러 메시지 닫기"
               >
@@ -241,20 +216,21 @@ export function SnsIntegration() {
         {Object.entries(PLATFORMS).map(([platform, platformValue]) => {
           const connection = connections[platform];
           const IconComponent = platformValue.icon;
-          const isConnected = connection.status === "connected";
-          const isConnecting = connection.status === "connecting";
-          const hasError = connection.status === "error";
+          const isConnected = connection?.status === "connected";
+          const isConnecting = connection?.status === "connecting";
+          const hasError = connection?.status === "error";
 
           return (
-            <div
+            <Card
               key={platform}
-              className={`group relative bg-white rounded-2xl shadow-md border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+              variant="hover"
+              className={
                 isConnected
-                  ? "border-emerald-300 shadow-emerald-100"
+                  ? "!border-emerald-300 hover:!border-emerald-400 overflow-visible group"
                   : hasError
-                  ? "border-red-200"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
+                  ? "!border-red-300 hover:!border-red-400 overflow-visible group"
+                  : "overflow-visible group"
+              }
             >
               {/* 연결 상태 배지 */}
               <div className="absolute -top-2 -right-2 z-10">
@@ -298,7 +274,7 @@ export function SnsIntegration() {
                 </div>
 
                 {/* 연결된 계정 정보는 연동된 경우에만 표시 */}
-                {isConnected && connection.accountInfo && (
+                {isConnected && connection?.accountInfo && (
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
                     <h4 className="text-sm font-semibold text-gray-900 mb-3">
                       연결된 계정
@@ -389,30 +365,30 @@ export function SnsIntegration() {
                   {isConnected ? (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => checkConnectionStatus(platform)}
-                        disabled={connection.loading}
+                        onClick={() => dispatch(fetchSnsAccount(platform))}
+                        disabled={connection?.loading}
                         className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-all duration-200 font-medium text-sm"
                       >
                         <RefreshCw
                           className={`w-4 h-4 ${
-                            connection.loading ? "animate-spin" : ""
+                            connection?.loading ? "animate-spin" : ""
                           }`}
                         />
-                        {connection.loading ? "확인 중..." : "새로고침"}
+                        {connection?.loading ? "확인 중..." : "새로고침"}
                       </button>
                       <button
                         onClick={() => disconnectAccount(platform)}
-                        disabled={connection.loading}
+                        disabled={connection?.loading}
                         className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-red-300 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-all duration-200 font-medium text-sm"
                       >
                         <Unlink className="w-4 h-4" />
-                        {connection.loading ? "처리 중..." : "연결 해제"}
+                        {connection?.loading ? "처리 중..." : "연결 해제"}
                       </button>
                     </div>
                   ) : (
                     <button
                       onClick={() => startIntegration(platform)}
-                      disabled={isConnecting || connection.loading}
+                      disabled={isConnecting || connection?.loading}
                       className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 ${platformValue.buttonColor}`}
                     >
                       {isConnecting ? (
@@ -431,7 +407,7 @@ export function SnsIntegration() {
                   )}
                 </div>
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>

@@ -1,9 +1,10 @@
 import React from "react";
+import { Card } from "../../../components/molecules";
 
 export function SnsIntegrationGuide() {
   return (
     <div className="mt-12">
-      <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
+      <Card variant="default" className="p-8">
         <div className="text-center mb-6">
           <h3 className="text-xl font-bold text-gray-900 mb-2">
             SNS 계정 연동 방법
@@ -51,7 +52,7 @@ export function SnsIntegrationGuide() {
             </p>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

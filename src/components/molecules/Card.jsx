@@ -1,27 +1,27 @@
-import React from 'react';
+import React from "react";
 
-export function Card({ 
-  children, 
-  className = "", 
+export function Card({
+  children,
+  className = "",
   variant = "default",
   onClick,
-  hover = false,
-  ...props 
+  ...props
 }) {
-  const baseClasses = "bg-white rounded-2xl border-2 border-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)]";
-  
+  const baseClasses =
+    "bg-white rounded-xl shadow-sm border-2 border-gray-200 group overflow-hidden relative";
+
   const variantClasses = {
     default: "",
-    hover: "hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all duration-150 transform hover:translate-x-0.5 hover:translate-y-0.5",
-    interactive: "hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all duration-150 transform hover:translate-x-0.5 hover:translate-y-0.5 cursor-pointer"
+    hover: "hover:border-gray-300 hover:shadow-lg transition-shadow",
+    interactive:
+      "hover:border-gray-300 hover:shadow-lg transition-shadow cursor-pointer",
   };
 
-  const hoverClass = hover ? "hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.8)] transition-all duration-150 transform hover:translate-x-0.5 hover:translate-y-0.5" : "";
   const cursorClass = onClick ? "cursor-pointer" : "";
 
   return (
-    <div 
-      className={`${baseClasses} ${variantClasses[variant]} ${hoverClass} ${cursorClass} ${className}`}
+    <div
+      className={`${baseClasses} ${variantClasses[variant]} ${cursorClass} ${className}`}
       onClick={onClick}
       {...props}
     >
