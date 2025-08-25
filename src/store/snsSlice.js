@@ -26,10 +26,12 @@ export const fetchSnsAccount = createAsyncThunk(
 // 모든 SNS 계정 정보 가져오기
 export const fetchAllSnsAccounts = createAsyncThunk(
   "sns/fetchAllSnsAccounts",
-  async ( { rejectWithValue }) => {
-    
-    const platforms = getEnabledSnsTypeIds();
-    console.log('사용 가능한 플랫폼 목록:', platforms);
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log('fetchAllSnsAccounts 시작')
+      
+      const platforms = getEnabledSnsTypeIds();
+      console.log('사용 가능한 플랫폼 목록:', platforms);
     
     const results = {};
 
@@ -40,7 +42,7 @@ export const fetchAllSnsAccounts = createAsyncThunk(
         console.log(`${platform} API 호출 성공:`, response);
         results[platform] = {
           status: "connected",
-          accountInfo: SnsAccount.fromResponse(response.data?.result),
+          accountInfo: response.data?.result, // SnsAccount 객체 대신 일반 객체 사용
           loading: false,
           error: null,
         };
@@ -57,6 +59,10 @@ export const fetchAllSnsAccounts = createAsyncThunk(
 
     console.log('fetchAllSnsAccounts 완료, 결과:', results);
     return results;
+    } catch (error) {
+      console.error('fetchAllSnsAccounts 에러:', error);
+      return rejectWithValue(error.message);
+    }
   }
 );
 
