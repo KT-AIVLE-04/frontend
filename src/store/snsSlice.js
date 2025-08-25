@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { snsApi } from "../api/sns";
-import { SNS_TYPES, SnsAccount } from "../models/SnsAccount";
+import { getEnabledSnsTypeIds, getEnabledSnsTypes } from "../const/snsTypes";
+import { SnsAccount } from "../models/SnsAccount";
 
 // SNS 계정 정보 가져오기 async thunk
 export const fetchSnsAccount = createAsyncThunk(
@@ -25,13 +26,19 @@ export const fetchSnsAccount = createAsyncThunk(
 // 모든 SNS 계정 정보 가져오기
 export const fetchAllSnsAccounts = createAsyncThunk(
   "sns/fetchAllSnsAccounts",
-  async (_, { rejectWithValue }) => {
-    const platforms = SNS_TYPES.getSnsTypes();
+  async (storeId, { rejectWithValue }) => {
+    console.log('fetchAllSnsAccounts 시작, storeId:', storeId);
+    
+    const platforms = getEnabledSnsTypeIds();
+    console.log('사용 가능한 플랫폼 목록:', platforms);
+    
     const results = {};
 
     for (const platform of platforms) {
+      console.log(`${platform} API 호출 시작`);
       try {
         const response = await snsApi.account.getAccountInfo(platform);
+        console.log(`${platform} API 호출 성공:`, response);
         results[platform] = {
           status: "connected",
           accountInfo: SnsAccount.fromResponse(response.data?.result),
@@ -39,6 +46,7 @@ export const fetchAllSnsAccounts = createAsyncThunk(
           error: null,
         };
       } catch (error) {
+        console.log(`${platform} API 호출 실패:`, error);
         results[platform] = {
           status: error.response?.status === 404 ? "disconnected" : "error",
           accountInfo: null,
@@ -48,31 +56,27 @@ export const fetchAllSnsAccounts = createAsyncThunk(
       }
     }
 
+    console.log('fetchAllSnsAccounts 완료, 결과:', results);
     return results;
   }
 );
 
-const initialState = {
-  connections: {
-    [SNS_TYPES.YOUTUBE]: {
+// 사용 가능한 SNS_TYPES를 활용해서 동적으로 초기 상태 생성
+const createInitialConnections = () => {
+  const connections = {};
+  getEnabledSnsTypes().forEach(platform => {
+    connections[platform.id] = {
       status: "disconnected", // 'disconnected', 'connecting', 'connected', 'error'
       accountInfo: null,
       loading: false,
       error: null,
-    },
-    [SNS_TYPES.INSTAGRAM]: {
-      status: "disconnected",
-      accountInfo: null,
-      loading: false,
-      error: null,
-    },
-    [SNS_TYPES.FACEBOOK]: {
-      status: "disconnected",
-      accountInfo: null,
-      loading: false,
-      error: null,
-    },
-  },
+    };
+  });
+  return connections;
+};
+
+const initialState = {
+  connections: createInitialConnections(),
   loading: false,
   error: null,
 };
