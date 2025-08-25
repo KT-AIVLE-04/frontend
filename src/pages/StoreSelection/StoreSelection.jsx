@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { ErrorPage, LoadingSpinner } from '../../components';
 import { useApi } from '../../hooks';
-import { ROUTES } from '../../routes/routes';
+import { ROUTES } from '../../routes/routes.js';
 import { setSelectedStore } from '../../store/authSlice';
 import { StoreGrid, StoreSelectionHeader } from './components';
 

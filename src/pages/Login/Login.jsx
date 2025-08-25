@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
 import { Alert, Button, FormField } from '../../components';
 import { useApi, useForm } from '../../hooks';
-import { ROUTES } from '../../routes/routes';
+import { ROUTES } from '../../routes/routes.js';
 import { login } from '../../store/authSlice';
 import { LOGIN_VALIDATION_SCHEMA } from '../../utils/validations';
 import { GoogleIcon, KakaoIcon, NaverIcon } from './components';

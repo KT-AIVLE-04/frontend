@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from "react";
 import {
-  Video,
-  Plus,
-  Hash,
-  Sparkles,
-  X,
-  FolderOpen,
-  Search,
+  AlertTriangle,
   Eye,
-  AlertTriangle, // 추가
+  FolderOpen,
+  Hash,
+  Plus,
+  Search,
+  Sparkles,
+  Video,
+  X,
 } from "lucide-react";
-import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
-import { SearchFilter, PostCard, PostDetail } from "./components";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { storeApi } from "../../api/store";
-import { snsApi } from "../../api/sns";
-import { contentApi } from "../../api/content";
-import { Store } from "../../models/Store";
-import { SNS_TYPES } from "../../const/snsTypes";
-import { INDUSTRY_OPTIONS } from "../../const/industries";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "../../routes/routes";
+import { contentApi } from "../../api/content";
+import { snsApi } from "../../api/sns";
+import { storeApi } from "../../api/store";
+import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
+import { INDUSTRY_OPTIONS } from "../../const/industries";
+import { SNS_TYPES } from "../../const/snsTypes";
+import { Store } from "../../models/Store";
+import { ROUTES } from "../../routes/routes.js";
+import { PostCard, PostDetail, SearchFilter } from "./components";
 
 const PostManagement = () => {
   /** ----------------------

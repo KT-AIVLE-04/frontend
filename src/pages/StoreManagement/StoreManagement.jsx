@@ -1,11 +1,11 @@
 import { Plus } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { storeApi } from '../../api/store';
 import { ApiPageLayout, Button } from '../../components';
 import { useApi, useConfirm, useNotification } from '../../hooks';
-import { ROUTES } from '../../routes/routes';
+import { ROUTES } from '../../routes/routes.js';
 import { setSelectedStore } from "../../store/authSlice.js";
 import { StoreTable } from './components';
 

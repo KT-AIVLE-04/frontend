@@ -13,7 +13,7 @@ import {
     StoreSelection,
     StoreUpdate,
 } from "../pages";
-import { ROUTES } from "./routes";
+import { ROUTES } from "./routes.js";
 
 const ProtectedRoute = () => {
   const {isAuthenticated} = useSelector((state) => state.auth);
