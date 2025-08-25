@@ -26,8 +26,7 @@ export const fetchSnsAccount = createAsyncThunk(
 // 모든 SNS 계정 정보 가져오기
 export const fetchAllSnsAccounts = createAsyncThunk(
   "sns/fetchAllSnsAccounts",
-  async (storeId, { rejectWithValue }) => {
-    console.log('fetchAllSnsAccounts 시작, storeId:', storeId);
+  async ( { rejectWithValue }) => {
     
     const platforms = getEnabledSnsTypeIds();
     console.log('사용 가능한 플랫폼 목록:', platforms);
