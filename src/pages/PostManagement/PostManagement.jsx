@@ -8,9 +8,8 @@ import {
   FolderOpen,
   Search,
   Eye,
-  AlertTriangle, // 추가
 } from "lucide-react";
-import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
+import { EmptyState, ErrorPage, LoadingSpinner, Card } from "../../components";
 import { SearchFilter, PostCard, PostDetail } from "./components";
 import { useSelector } from "react-redux";
 import { storeApi } from "../../api/store";
@@ -698,7 +697,7 @@ const PostManagement = () => {
       <h2 className="text-2xl font-bold text-gray-900">새 게시물 업로드</h2>
 
       {/* 1. 콘텐츠 업로드 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <Card className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           1. 콘텐츠 업로드
         </h3>
@@ -745,7 +744,7 @@ const PostManagement = () => {
               </button>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4">
               <div className="grid grid-cols-4 gap-4">
                 {uploadedContents.map((content) => (
                   <div
@@ -811,23 +810,22 @@ const PostManagement = () => {
                   </div>
                 ))}
               </div>
-
-              {/* 안내 */}
-              <div className="space-y-2 text-sm mt-4">
-                <div className="flex items-center space-x-2 text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
-                  <span className="text-blue-600 text-xs">💡</span>
-                  <span>
-                    대표 이미지를 선택하세요. 미리보기와 썸네일로 사용됩니다.
-                  </span>
-                </div>
+            </div>
+            {/* 안내 */}
+            <div className="space-y-2 text-sm mt-4">
+              <div className="flex items-center space-x-2 text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
+                <span className="text-blue-600 text-xs">💡</span>
+                <span>
+                  대표 이미지를 선택하세요. 미리보기와 썸네일로 사용됩니다.
+                </span>
               </div>
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* 2. 게시물 작성 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <Card className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           2. 게시물 작성
         </h3>
@@ -844,7 +842,7 @@ const PostManagement = () => {
           </div>
 
           {/* AI 생성 옵션 */}
-          <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-4 mb-6 p-4 bg-gray-100 rounded-lg">
             <h5 className="text-sm font-semibold text-gray-700">
               AI 생성 옵션
             </h5>
@@ -1185,9 +1183,10 @@ const PostManagement = () => {
             />
           </div>
         </div>
-      </div>
+      </Card>
+
       {/* 3. 게시 옵션 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <Card className="p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           3. 게시 옵션
         </h3>
@@ -1248,7 +1247,7 @@ const PostManagement = () => {
 
             {/* 선택된 플랫폼의 계정 연동 상태를 별도 영역에 표시 */}
             {publishOptions.snsType && (
-              <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+              <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-medium text-gray-700">
@@ -1367,10 +1366,10 @@ const PostManagement = () => {
             )}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* 4. 미리보기 및 업로드 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
             4. 미리보기 및 업로드
@@ -1411,7 +1410,7 @@ const PostManagement = () => {
                     </span>
                   </div>
                   {selectedThumbnail && (
-                    <div className="relative aspect-[9/16] bg-black m-2">
+                    <div className="relative bg-black m-2 aspect-square">
                       <img
                         src={
                           uploadedContents.find(
@@ -1499,7 +1498,7 @@ const PostManagement = () => {
                   </div>
 
                   {selectedThumbnail && (
-                    <div className="relative aspect-square bg-gray-100">
+                    <div className="relative bg-gray-100 aspect-square">
                       <img
                         src={
                           uploadedContents.find(
@@ -1622,7 +1621,7 @@ const PostManagement = () => {
                             )?.url
                           }
                           alt="facebook 미리보기"
-                          className="w-full h-48 object-cover"
+                          className="w-full h-45 object-cover"
                         />
                         {uploadedContents.find(
                           (c) => c.id === selectedThumbnail
@@ -1674,7 +1673,7 @@ const PostManagement = () => {
         >
           {checkingAccountStatus ? "계정 연동 확인 중..." : "업로드하기"}
         </button>
-      </div>
+      </Card>
     </div>
   );
 
