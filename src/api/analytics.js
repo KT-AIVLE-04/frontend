@@ -1,4 +1,4 @@
-import { testApi } from './axios';
+import api from './axios';
 
 const BASE_URL = '/analytics'
 
@@ -6,58 +6,75 @@ export const analyticsApi = {
   // ===== 실시간 API =====
   
   // 실시간 계정 메트릭 조회
-  getRealtimeAccountMetrics: (accountId) => 
-    testApi.get(`${BASE_URL}/realtime/accounts/metrics`, { 
-      params: { accountId } 
+  getRealtimeAccountMetrics: (snsType) => 
+    api.get(`${BASE_URL}/realtime/accounts/metrics`, { 
+      snsType 
     }),
   
   // 실시간 게시물 메트릭 조회
-  getRealtimePostMetrics: (accountId, postId = null) => {
-    const params = { accountId };
+  getRealtimePostMetrics: (snsType, postId = null) => {
+    const params = {};
     if (postId) params.postId = postId;
-    return testApi.get(`${BASE_URL}/realtime/posts/metrics`, { params });
+    return api.get(`${BASE_URL}/realtime/posts/metrics`, { 
+      snsType,
+      params 
+    });
   },
   
   // 실시간 게시물 댓글 조회
-  getRealtimeComments: (accountId, postId = null, page = 0, size = 20) => {
-    const params = { accountId, page, size };
+  getRealtimeComments: (snsType, postId = null, page = 0, size = 20) => {
+    const params = { page, size };
     if (postId) params.postId = postId;
-    return testApi.get(`${BASE_URL}/realtime/posts/comments`, { params });
+    return api.get(`${BASE_URL}/realtime/posts/comments`, { 
+      snsType,
+      params 
+    });
   },
   
   // ===== 히스토리 API =====
   
   // 히스토리 계정 메트릭 조회
-  getHistoryAccountMetrics: (date, accountId) => 
-    testApi.get(`${BASE_URL}/history/accounts/metrics`, { 
-      params: { date, accountId } 
+  getHistoryAccountMetrics: (date, snsType) => 
+    api.get(`${BASE_URL}/history/accounts/metrics`, { 
+      snsType,
+      params: { date } 
     }),
   
   // 히스토리 게시물 메트릭 조회
-  getHistoryPostMetrics: (date, accountId, postId = null) => {
-    const params = { date, accountId };
+  getHistoryPostMetrics: (date, snsType, postId = null) => {
+    const params = { date };
     if (postId) params.postId = postId;
-    return testApi.get(`${BASE_URL}/history/posts/metrics`, { params });
+    return api.get(`${BASE_URL}/history/posts/metrics`, { 
+      snsType,
+      params 
+    });
   },
   
   // 히스토리 게시물 댓글 조회
-  getHistoryComments: (date, accountId, postId = null, page = 0, size = 20) => {
-    const params = { date, accountId, page, size };
+  getHistoryComments: (date, snsType, postId = null, page = 0, size = 20) => {
+    const params = { date, page, size };
     if (postId) params.postId = postId;
-    return testApi.get(`${BASE_URL}/history/posts/comments`, { params });
+    return api.get(`${BASE_URL}/history/posts/comments`, { 
+      snsType,
+      params 
+    });
   },
   
   // 히스토리 게시물 감정분석 조회
-  getHistoryEmotionAnalysis: (date, accountId, postId = null) => {
-    const params = { date, accountId };
+  getHistoryEmotionAnalysis: (date, snsType, postId = null) => {
+    const params = { date };
     if (postId) params.postId = postId;
-    return testApi.get(`${BASE_URL}/history/posts/emotion-analysis`, { params });
+    return api.get(`${BASE_URL}/history/posts/emotion-analysis`, { 
+      snsType,
+      params 
+    });
   },
   
   // 감정 분석 조회 (API 명세서에 맞게 추가)
-  getEmotionAnalysis: (date, accountId) => 
-    testApi.get(`${BASE_URL}/history/emotion-analysis`, { 
-      params: { date, accountId } 
+  getEmotionAnalysis: (date, snsType) => 
+    api.get(`${BASE_URL}/history/emotion-analysis`, { 
+      snsType,
+      params: { date } 
     }),
   
 
@@ -65,5 +82,5 @@ export const analyticsApi = {
   // ===== 기존 호환성 API (점진적 마이그레이션용) =====
   
   // 콘텐츠 성과 분석 (기존)
-  getContentPerformance: (params) => testApi.get(`${BASE_URL}/content-performance`, { params }),
+  getContentPerformance: (params) => api.get(`${BASE_URL}/content-performance`, { params }),
 } 

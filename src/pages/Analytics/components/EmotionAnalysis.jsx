@@ -4,7 +4,7 @@ import { ProgressBar } from '../../../components';
 export const EmotionAnalysis = ({ emotionAnalysis }) => {
   if (!emotionAnalysis || !emotionAnalysis.emotionSummary) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg p-6 shadow-sm border">
         <h2 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
           <BarChart3 size={18} className="mr-2 text-purple-600" />
           댓글 감정분석

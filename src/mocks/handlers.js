@@ -1,4 +1,4 @@
-import { http, HttpResponse, passthrough } from "msw";
+import { http, HttpResponse } from "msw";
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5173/api"
@@ -18,37 +18,7 @@ export const handlers = [
   // http.all('*', async () => {
   //   await delay(2000);
   // }),
-  // 모든 HTTP 메서드에 대해 passthrough 조건 적용
-  http.all("*", ({ request }) => {
-    const url = new URL(request.url);
-    const workingEndpoints = [
-      // "/api/auth",
-      // "/api/stores", 
-      // "/api/shorts",
-      // "/api/contents",
-      // "/api/sns",
-      // "/api/content",
-      // '/api/analytics', // analytics API 활성화
-    ];
 
-    // msw 작동 안하는 조건들
-    const isStaticFile = /\.(css|js|png|jpg|svg|ico|woff|woff2|ttf|eot)$/.test(
-      url.pathname
-    );
-    const isNotHost = url.origin !== API_BASE_URL;
-    const isWorkingEndpoint = false; // 모든 API를 MSW로 처리
-    const isLocalHost = url.origin === "http://localhost:8080";
-    if (isStaticFile || isNotHost || isWorkingEndpoint || isLocalHost) {
-      console.log("🛳️ passthrough", url.pathname, {
-        isStaticFile,
-        isNotHost,
-        isWorkingEndpoint,
-        isLocalHost,
-      });
-      return passthrough();
-    }
-    console.log("🍪 MSW", url.pathname);
-  }),
   // 회원가입 (기존 호환성)
   http.post(`${API_BASE_URL}/api/auth/new`, async ({ request }) => {
     const { email, password, name, phoneNumber } = await request.json();

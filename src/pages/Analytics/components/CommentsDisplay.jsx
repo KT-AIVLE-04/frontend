@@ -65,7 +65,7 @@ export function CommentsDisplay({
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">댓글 분석</h3>
+        <h3 className="text-lg font-semibold text-gray-800">댓글 목록 조회</h3>
         <div className="flex bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('realtime')}

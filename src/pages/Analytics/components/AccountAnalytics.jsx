@@ -4,7 +4,7 @@ import { analyticsApi } from '../../../api/analytics';
 import { LoadingSpinner } from '../../../components';
 import { useApi } from '../../../hooks';
 
-export function AccountAnalytics({ selectedSnsType, dateRange }) {
+export function AccountAnalytics({ selectedSnsType }) {
   const { connections } = useSelector((state) => state.sns);
   const currentConnection = connections[selectedSnsType];
   const accountId = currentConnection?.accountInfo?.id;
@@ -34,14 +34,14 @@ export function AccountAnalytics({ selectedSnsType, dateRange }) {
 
   // 데이터 로드
   useEffect(() => {
-    if (!accountId) return;
+    if (!selectedSnsType) return;
 
     const yesterday = getDateString(1);
-    executeRealtime(accountId);
-    executeHistory(yesterday, accountId);
-  }, [accountId, executeRealtime, executeHistory]);
+    executeRealtime(selectedSnsType);
+    executeHistory(yesterday, selectedSnsType);
+  }, [selectedSnsType, executeRealtime, executeHistory]);
 
-  if (!accountId) {
+  if (!selectedSnsType) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm border">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">계정 분석</h2>

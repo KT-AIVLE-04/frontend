@@ -45,23 +45,25 @@ export const useMultipleApi = (apiFunctions = {}, options = {}) => {
           if (typeof response === 'object' && response?.data) {
             const {isSuccess, result, message} = response.data;
             if(isSuccess){
-              return { key, result, message, status: 'fulfilled' };
+              return { key, result, message};
             }
           }
           const errorMessage = message || '요청이 실패했습니다.';
           const apiError = new Error(errorMessage);
           apiError.response = response;
           throw apiError;
-        }).catch(err => ({ key, error: err, status: 'rejected' }))
+        }).catch(err => ({ key, error: err }))
       );
 
       const responses = await Promise.allSettled(promises);
+      console.log("useMultipleApi",responses);
       
       // 결과와 에러를 분리해서 처리
       const resultsMap = {};
       const errorsMap = {};
 
-      responses.forEach(({ key, result, message, error, status }) => {
+      responses.forEach(({value, status }) => {
+        const {key, result, message, error} = value;
         if (status === 'fulfilled') {
           resultsMap[key] = { result, message };
         } else {
@@ -101,74 +103,6 @@ export const useMultipleApi = (apiFunctions = {}, options = {}) => {
     }
   }, [apiFunctions, onSuccess, onError]);
 
-  const executeSequential = useCallback(async (customApiCalls = null) => {
-    const apiCalls = customApiCalls || apiFunctions;
-    if (!apiCalls || Object.keys(apiCalls).length === 0) {
-      console.warn('useMultipleApi: 실행할 API 함수가 없습니다.');
-      return { results: {}, errors: {} };
-    }
-
-    setLoading(true);
-    setError(null);
-    setErrors({});
-    
-    try {
-      const resultsMap = {};
-      const errorsMap = {};
-      
-      for (const [key, apiFunction] of Object.entries(apiCalls)) {
-        try {
-          const response = await apiFunction();
-          if (typeof response === 'object' && response?.data) {
-            const {isSuccess, result, message} = response.data;
-            if(isSuccess){
-              resultsMap[key] = { result, message };
-            } else {
-              const errorMessage = message || '요청이 실패했습니다.';
-              const apiError = new Error(errorMessage);
-              apiError.response = response;
-              throw apiError;
-            }
-          }
-        } catch (err) {
-          // 개별 API 실패 시에도 다른 API는 계속 실행
-          errorsMap[key] = err;
-        }
-      }
-
-      setResults(resultsMap);
-      setErrors(errorsMap);
-      
-      // onSuccess 콜백 실행
-      if (onSuccess && Object.keys(errorsMap).length === 0) {
-        const messages = {};
-        Object.entries(resultsMap).forEach(([key, value]) => {
-          messages[key] = value.message;
-        });
-        onSuccess(resultsMap, messages);
-      }
-      
-      // onError 콜백 실행 (에러가 하나라도 있으면)
-      if (onError && Object.keys(errorsMap).length > 0) {
-        onError(errorsMap, resultsMap);
-      }
-
-      return { results: resultsMap, errors: errorsMap };
-    } catch (err) {
-      setError(err);
-      
-      // onError 콜백 실행
-      if (onError) {
-        onError(err);
-      }
-      
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [apiFunctions, onSuccess, onError]);
-
-
 
   const clearResults = useCallback(() => {
     setResults({});
@@ -193,7 +127,6 @@ export const useMultipleApi = (apiFunctions = {}, options = {}) => {
     errors,        // 개별 API 에러들
     results,
     executeMultiple,    // 병렬 실행 Promise.allSettled 방식
-    executeSequential,  // 순차 실행
     clearResults
   };
 };

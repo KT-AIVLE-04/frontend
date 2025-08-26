@@ -2,19 +2,33 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Alert } from '../../components';
+import { SNS_TYPES, SNS_TYPE_LABELS } from '../../models/SnsAccount';
 import { ROUTES } from '../../routes/routes';
 import {
   AccountAnalytics,
   ContentPerformanceSection,
-  DateRangeSelector,
   PostAnalytics
 } from './components';
 
 export function Analytics() {
   const navigate = useNavigate();
   const { connections } = useSelector((state) => state.sns);
-  const [dateRange, setDateRange] = useState("last7");
-  const [selectedSnsType, setSelectedSnsType] = useState("youtube");
+
+  const [selectedSnsType, setSelectedSnsType] = useState(SNS_TYPES.YOUTUBE);
+
+  // SNS 타입별 아이콘과 라벨 헬퍼 함수
+  const getSnsTypeInfo = (snsType) => {
+    const icons = {
+      [SNS_TYPES.YOUTUBE]: '🎥',
+      [SNS_TYPES.INSTAGRAM]: '📷',
+      [SNS_TYPES.FACEBOOK]: '📘'
+    };
+    
+    return {
+      icon: icons[snsType] || '📱',
+      label: SNS_TYPE_LABELS[snsType] || snsType
+    };
+  };
 
   // 현재 선택된 SNS 계정 정보
   const currentConnection = connections[selectedSnsType];
@@ -30,7 +44,7 @@ export function Analytics() {
               SNS 계정 연결이 필요합니다
             </h2>
             <p className="text-yellow-700 mb-6 text-lg">
-              {selectedSnsType === 'youtube' ? 'YouTube' : selectedSnsType === 'instagram' ? 'Instagram' : 'Facebook'} 계정을 연결해야 분석 데이터를 확인할 수 있습니다.
+              {SNS_TYPE_LABELS[selectedSnsType]} 계정을 연결해야 분석 데이터를 확인할 수 있습니다.
             </p>
             <div className="space-y-4">
               <button
@@ -81,7 +95,7 @@ export function Analytics() {
           {currentConnection?.accountInfo && (
             <div className="flex items-center mt-2 text-sm text-gray-600">
               <span className="mr-2">
-                {selectedSnsType === 'youtube' ? '🎥' : selectedSnsType === 'instagram' ? '📷' : '📱'}
+                {getSnsTypeInfo(selectedSnsType).icon}
               </span>
               <span className="font-medium">
                 {currentConnection.accountInfo.snsAccountName || '연결된 계정'}
@@ -96,7 +110,7 @@ export function Analytics() {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-700">플랫폼:</span>
             <div className="flex bg-gray-100 rounded-lg p-1">
-              {['youtube', 'instagram', 'facebook'].map((snsType) => (
+              {Object.values(SNS_TYPES).map((snsType) => (
                 <button
                   key={snsType}
                   onClick={() => setSelectedSnsType(snsType)}
@@ -106,13 +120,11 @@ export function Analytics() {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  {snsType === 'youtube' ? '🎥 YouTube' : 
-                   snsType === 'instagram' ? '📷 Instagram' : '📘 Facebook'}
+                  {getSnsTypeInfo(snsType).icon} {getSnsTypeInfo(snsType).label}
                 </button>
               ))}
             </div>
           </div>
-          <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
         </div>
       </div>
 
@@ -123,19 +135,16 @@ export function Analytics() {
         {/* 1. 계정 분석 섹션 */}
         <AccountAnalytics 
           selectedSnsType={selectedSnsType} 
-          dateRange={dateRange} 
         />
 
         {/* 2. 포스트 분석 섹션 */}
         <PostAnalytics 
           selectedSnsType={selectedSnsType} 
-          dateRange={dateRange} 
         />
 
         {/* 3. 콘텐츠 성과 분석 섹션 */}
         <ContentPerformanceSection 
           selectedSnsType={selectedSnsType} 
-          dateRange={dateRange} 
         />
       </div>
     </div>
