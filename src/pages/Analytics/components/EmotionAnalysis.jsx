@@ -1,5 +1,6 @@
-import { BarChart3, Frown, Meh, MessageSquare, Smile } from 'lucide-react';
-import { ProgressBar } from '../../../components';
+import { BarChart3, Frown, Meh, MessageSquare, Smile } from "lucide-react";
+import { ProgressBar } from "../../../components";
+import { Card } from "../../../components/molecules/Card";
 
 export const EmotionAnalysis = ({ emotionAnalysis }) => {
   if (!emotionAnalysis || !emotionAnalysis.emotionSummary) {
@@ -12,7 +13,9 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
         <div className="text-center text-gray-500 py-8">
           <MessageSquare size={48} className="mx-auto mb-4 text-gray-300" />
           <p>감정분석 데이터가 없습니다.</p>
-          <p className="text-sm mt-2">게시물을 선택하면 감정분석 결과를 확인할 수 있습니다.</p>
+          <p className="text-sm mt-2">
+            게시물을 선택하면 감정분석 결과를 확인할 수 있습니다.
+          </p>
         </div>
       </div>
     );
@@ -23,41 +26,50 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
 
   const getSentimentData = () => {
     const data = [];
-    
+
     if (emotionSummary.positiveCount > 0) {
       data.push({
-        sentiment: 'positive',
+        sentiment: "positive",
         count: emotionSummary.positiveCount,
-        percentage: total > 0 ? Math.round((emotionSummary.positiveCount / total) * 100) : 0
+        percentage:
+          total > 0
+            ? Math.round((emotionSummary.positiveCount / total) * 100)
+            : 0,
       });
     }
-    
+
     if (emotionSummary.neutralCount > 0) {
       data.push({
-        sentiment: 'neutral',
+        sentiment: "neutral",
         count: emotionSummary.neutralCount,
-        percentage: total > 0 ? Math.round((emotionSummary.neutralCount / total) * 100) : 0
+        percentage:
+          total > 0
+            ? Math.round((emotionSummary.neutralCount / total) * 100)
+            : 0,
       });
     }
-    
+
     if (emotionSummary.negativeCount > 0) {
       data.push({
-        sentiment: 'negative',
+        sentiment: "negative",
         count: emotionSummary.negativeCount,
-        percentage: total > 0 ? Math.round((emotionSummary.negativeCount / total) * 100) : 0
+        percentage:
+          total > 0
+            ? Math.round((emotionSummary.negativeCount / total) * 100)
+            : 0,
       });
     }
-    
+
     return data;
   };
 
   const getSentimentIcon = (sentiment) => {
     switch (sentiment) {
-      case 'positive':
+      case "positive":
         return <Smile size={16} className="text-green-500 mr-2" />;
-      case 'neutral':
+      case "neutral":
         return <Meh size={16} className="text-gray-500 mr-2" />;
-      case 'negative':
+      case "negative":
         return <Frown size={16} className="text-red-500 mr-2" />;
       default:
         return null;
@@ -66,12 +78,12 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
 
   const getSentimentLabel = (sentiment) => {
     switch (sentiment) {
-      case 'positive':
-        return '긍정적';
-      case 'neutral':
-        return '중립적';
-      case 'negative':
-        return '부정적';
+      case "positive":
+        return "긍정적";
+      case "neutral":
+        return "중립적";
+      case "negative":
+        return "부정적";
       default:
         return sentiment;
     }
@@ -79,26 +91,26 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
 
   const getSentimentColor = (sentiment) => {
     switch (sentiment) {
-      case 'positive':
-        return 'green';
-      case 'neutral':
-        return 'gray';
-      case 'negative':
-        return 'red';
+      case "positive":
+        return "green";
+      case "neutral":
+        return "gray";
+      case "negative":
+        return "red";
       default:
-        return 'gray';
+        return "gray";
     }
   };
 
   const sentimentData = getSentimentData();
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm border">
+    <Card variant="default" className="p-6">
       <h2 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
         <BarChart3 size={18} className="mr-2 text-purple-600" />
         댓글 감정분석
       </h2>
-      
+
       {/* 전체 통계 */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center p-3 bg-green-50 rounded-lg">
@@ -151,43 +163,50 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
       </div>
 
       {/* 키워드 분석 */}
-      {keywords && (keywords.positive?.length > 0 || keywords.negative?.length > 0) && (
-        <div className="border-t border-gray-200 pt-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">주요 키워드</h3>
-          
-          {keywords.positive && keywords.positive.length > 0 && (
-            <div className="mb-3">
-              <div className="text-xs text-green-600 font-medium mb-2">긍정적 키워드</div>
-              <div className="flex flex-wrap gap-1">
-                {keywords.positive.slice(0, 5).map((keyword, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
-                  >
-                    {keyword}
-                  </span>
-                ))}
+      {keywords &&
+        (keywords.positive?.length > 0 || keywords.negative?.length > 0) && (
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              주요 키워드
+            </h3>
+
+            {keywords.positive && keywords.positive.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs text-green-600 font-medium mb-2">
+                  긍정적 키워드
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {keywords.positive.slice(0, 5).map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          
-          {keywords.negative && keywords.negative.length > 0 && (
-            <div>
-              <div className="text-xs text-red-600 font-medium mb-2">부정적 키워드</div>
-              <div className="flex flex-wrap gap-1">
-                {keywords.negative.slice(0, 5).map((keyword, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full"
-                  >
-                    {keyword}
-                  </span>
-                ))}
+            )}
+
+            {keywords.negative && keywords.negative.length > 0 && (
+              <div>
+                <div className="text-xs text-red-600 font-medium mb-2">
+                  부정적 키워드
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {keywords.negative.slice(0, 5).map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+            )}
+          </div>
+        )}
+    </Card>
   );
 };

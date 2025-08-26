@@ -8,13 +8,13 @@ export function Card({
   ...props
 }) {
   const baseClasses =
-    "bg-white rounded-xl shadow-sm border-2 border-gray-200 group overflow-hidden relative";
+    "bg-white rounded-xl shadow-xs border-1 border-gray-400 group overflow-hidden relative";
 
   const variantClasses = {
     default: "",
-    hover: "hover:border-gray-300 hover:shadow-lg transition-shadow",
+    hover: "hover:border-gray-400 hover:shadow-lg transition-shadow",
     interactive:
-      "hover:border-gray-300 hover:shadow-lg transition-shadow cursor-pointer",
+      "hover:border-gray-400 hover:shadow-lg transition-shadow cursor-pointer",
   };
 
   const cursorClass = onClick ? "cursor-pointer" : "";

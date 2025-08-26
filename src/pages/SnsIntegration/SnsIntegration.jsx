@@ -218,9 +218,9 @@ export function SnsIntegration() {
               variant="hover"
               className={
                 isConnected
-                  ? "!border-emerald-300 hover:!border-emerald-400 overflow-visible group"
+                  ? "!border-emerald-300 hover:!border-emerald-400 !border-2 overflow-visible group"
                   : hasError
-                  ? "!border-red-300 hover:!border-red-400 overflow-visible group"
+                  ? "!border-red-300 hover:!border-red-400 !border-2 overflow-visible group"
                   : "overflow-visible group"
               }
             >

@@ -1,9 +1,10 @@
-import { Eye, Users } from 'lucide-react';
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { analyticsApi } from '../../../api/analytics';
-import { LoadingSpinner } from '../../../components';
-import { useApi } from '../../../hooks';
+import { Eye, Users } from "lucide-react";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { analyticsApi } from "../../../api/analytics";
+import { LoadingSpinner } from "../../../components";
+import { useApi } from "../../../hooks";
+import { Card } from "../../../components/molecules/Card";
 
 export function AccountAnalytics({ selectedSnsType }) {
   const { connections } = useSelector((state) => state.sns);
@@ -13,23 +14,23 @@ export function AccountAnalytics({ selectedSnsType }) {
   const getDateString = (daysAgo) => {
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
 
   // 실시간 계정 메트릭
-  const { 
-    data: realtimeData, 
-    loading: realtimeLoading, 
+  const {
+    data: realtimeData,
+    loading: realtimeLoading,
     error: realtimeError,
-    execute: executeRealtime 
+    execute: executeRealtime,
   } = useApi(analyticsApi.getRealtimeAccountMetrics);
 
   // 히스토리 계정 메트릭 (어제)
-  const { 
-    data: historyData, 
-    loading: historyLoading, 
+  const {
+    data: historyData,
+    loading: historyLoading,
     error: historyError,
-    execute: executeHistory 
+    execute: executeHistory,
   } = useApi(analyticsApi.getHistoryAccountMetrics);
 
   // 데이터 로드
@@ -73,9 +74,9 @@ export function AccountAnalytics({ selectedSnsType }) {
   }
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm border">
+    <Card variant="default" className="p-6">
       <h2 className="text-xl font-semibold mb-4 text-gray-800">계정 분석</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 팔로워 수 */}
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
@@ -83,7 +84,7 @@ export function AccountAnalytics({ selectedSnsType }) {
             <div>
               <p className="text-sm text-blue-600 font-medium">팔로워</p>
               <p className="text-2xl font-bold text-blue-800">
-                {realtimeData?.followers?.toLocaleString() || '0'}
+                {realtimeData?.followers?.toLocaleString() || "0"}
               </p>
             </div>
             <div className="text-blue-500">
@@ -103,7 +104,7 @@ export function AccountAnalytics({ selectedSnsType }) {
             <div>
               <p className="text-sm text-green-600 font-medium">총 조회수</p>
               <p className="text-2xl font-bold text-green-800">
-                {realtimeData?.views?.toLocaleString() || '0'}
+                {realtimeData?.views?.toLocaleString() || "0"}
               </p>
             </div>
             <div className="text-green-500">
@@ -120,35 +121,41 @@ export function AccountAnalytics({ selectedSnsType }) {
         {/* 계정 정보 */}
         {currentConnection?.accountInfo && (
           <div className="md:col-span-2 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
-            <h3 className="text-lg font-medium text-gray-800 mb-2">계정 정보</h3>
+            <h3 className="text-lg font-medium text-gray-800 mb-2">
+              계정 정보
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">계정명:</span>
-                <span className="ml-2 font-medium">{currentConnection.accountInfo.snsAccountName}</span>
+                <span className="ml-2 font-medium">
+                  {currentConnection.accountInfo.snsAccountName}
+                </span>
               </div>
-                          <div>
-              <span className="text-gray-600">키워드:</span>
-              <div className=" flex flex-wrap gap-1 mt-2">
-                {currentConnection.accountInfo.keyword?.map((kw, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-primary-20 text-shadow-purple-700 text-xs rounded-full font-medium"
-                  >
-                    #{kw}
-                  </span>
-                )) || <span className="text-gray-500">키워드 없음</span>}
+              <div>
+                <span className="text-gray-600">키워드:</span>
+                <div className=" flex flex-wrap gap-1 mt-2">
+                  {currentConnection.accountInfo.keyword?.map((kw, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-primary-20 text-shadow-purple-700 text-xs rounded-full font-medium"
+                    >
+                      #{kw}
+                    </span>
+                  )) || <span className="text-gray-500">키워드 없음</span>}
+                </div>
               </div>
-            </div>
               {currentConnection.accountInfo.snsAccountDescription && (
                 <div className="md:col-span-2">
                   <span className="text-gray-600">설명:</span>
-                  <span className="ml-2">{currentConnection.accountInfo.snsAccountDescription}</span>
+                  <span className="ml-2">
+                    {currentConnection.accountInfo.snsAccountDescription}
+                  </span>
                 </div>
               )}
             </div>
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
