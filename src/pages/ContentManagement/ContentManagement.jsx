@@ -194,14 +194,15 @@ export function ContentManagement() {
           </label>
         </div>
       </div>
-
-      <SearchFilter
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        onSearch={handleSearch}
-      />
+      <div className="mb-6">
+        <SearchFilter
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          onSearch={handleSearch}
+        />
+      </div>
 
       {contents.length === 0 ? (
         <EmptyState

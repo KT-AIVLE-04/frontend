@@ -10,7 +10,12 @@ import {
   Eye,
 } from "lucide-react";
 import { EmptyState, ErrorPage, LoadingSpinner, Card } from "../../components";
-import { SearchFilter, PostCard, PostDetail } from "./components";
+import {
+  SearchFilter,
+  PostCard,
+  PostDetail,
+  SnsTypeFilter,
+} from "./components";
 import { useSelector } from "react-redux";
 import { storeApi } from "../../api/store";
 import { snsApi } from "../../api/sns";
@@ -18,6 +23,7 @@ import { contentApi } from "../../api/content";
 import { Store } from "../../models/Store";
 import { SNS_TYPES } from "../../const/snsTypes";
 import { INDUSTRY_OPTIONS } from "../../const/industries";
+import { TEXT, TEXT_VARIANTS } from "../../const/colors";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../routes/routes";
 import { detectMediaType } from "../../utils/media";
@@ -110,7 +116,7 @@ const PostManagement = () => {
    ----------------------- */
   useEffect(() => {
     if (activeTab === "list") fetchPostList();
-  }, [activeTab]); // selectedSnsType 배열 변경 시에도 다시 로드
+  }, [activeTab, selectedSnsType]); // selectedSnsType 배열 변경 시에도 다시 로드
 
   useEffect(() => {
     if (selectedStoreId && !selectedStore) {
@@ -171,7 +177,7 @@ const PostManagement = () => {
       //     "notifySubscribers": true
       //   }
       // ],
-
+      console.log("@@ getPostsResponseData", getPostsResponseData[0]);
       let filteredPostList = getPostsResponseData;
       if (selectedSnsType.length > 0) {
         filteredPostList = getPostsResponseData.filter(
@@ -473,54 +479,6 @@ const PostManagement = () => {
   };
 
   /** ----------------------
-   * 플랫폼 필터 컴포넌트
-   ----------------------- */
-  const SnsTypeFilter = ({ selectedSnsTypes, onSnsTypeChange }) => (
-    <div className="mb-4 p-4 bg-white rounded-xl border border-gray-200">
-      <div className="flex flex-wrap gap-3">
-        <span className="text-sm font-bold text-gray-700 flex items-center">
-          플랫폼 필터:
-        </span>
-        {SNS_TYPES.map((snsType) => (
-          <button
-            key={snsType.id}
-            onClick={() => {
-              if (selectedSnsTypes.includes(snsType.id)) {
-                onSnsTypeChange(
-                  selectedSnsTypes.filter((p) => p !== snsType.id)
-                );
-              } else {
-                onSnsTypeChange([...selectedSnsTypes, snsType.id]);
-              }
-            }}
-            className={`flex items-center px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border-2 ${
-              selectedSnsTypes.includes(snsType.id)
-                ? `${snsType.color} border-transparent`
-                : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
-            }`}
-          >
-            <img
-              src={snsType.icon}
-              alt={snsType.name}
-              className="w-5 h-5 mr-2"
-            />
-            {snsType.name}
-          </button>
-        ))}
-        {/* 전체 선택/해제 버튼 추가 */}
-        {selectedSnsTypes.length > 0 && (
-          <button
-            onClick={() => onSnsTypeChange([])}
-            className="flex items-center px-3 py-1 rounded-full text-xs text-gray-500 border border-gray-300 hover:bg-gray-50 transition-colors"
-          >
-            ✕ 전체 해제
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
-  /** ----------------------
    * 게시물 목록 렌더링
    ----------------------- */
   const renderPostList = () => {
@@ -544,27 +502,41 @@ const PostManagement = () => {
           </button>
         </div>
 
-        {/* 플랫폼 필터 */}
-        <SnsTypeFilter
-          selectedSnsTypes={selectedSnsType}
-          onSnsTypeChange={setSelectedSnsType}
-        />
-
-        {/* 검색 필터 */}
-        <SearchFilter
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          onSearch={handleSearch}
-        />
+        {/* 필터 섹션 */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+          {/* 검색 필터 */}
+          <div className="lg:flex-1">
+            <SearchFilter
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              onSearch={handleSearch}
+            />
+          </div>
+          {/* 플랫폼 필터 */}
+          <div className="lg:w-auto">
+            <SnsTypeFilter
+              selectedSnsTypes={selectedSnsType}
+              onSnsTypeChange={setSelectedSnsType}
+            />
+          </div>
+        </div>
 
         {/* 게시물 목록 */}
         {postList.length === 0 ? (
           <EmptyState
             icon={Video}
-            title="게시물이 없습니다"
-            description="업로드된 게시물이 여기에 표시됩니다."
+            title={
+              selectedSnsType.length > 0 || searchTerm
+                ? "필터 조건에 맞는 게시물이 없습니다"
+                : "게시물이 없습니다"
+            }
+            description={
+              selectedSnsType.length > 0 || searchTerm
+                ? "다른 플랫폼이나 검색어로 시도해보세요."
+                : "업로드된 게시물이 여기에 표시됩니다."
+            }
             actionText="새 게시물 업로드"
             onAction={() => setActiveTab("upload")}
           />
@@ -572,6 +544,7 @@ const PostManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {postList.map((post) => (
               <PostCard
+                key={post.id}
                 post={post}
                 onClick={() => handleCardClick(post)}
                 onDelete={() => handleDeletePost(post.id)}
@@ -756,22 +729,7 @@ const PostManagement = () => {
                     }`}
                     onClick={() => setSelectedThumbnail(content.id)}
                   >
-                    {getContentType(content) === "image" ? (
-                      <img
-                        src={content.url}
-                        alt={content.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-24 bg-gray-100 flex items-center justify-center">
-                        <Video className="h-8 w-8 text-gray-400" />
-                        <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                          <div className="w-8 h-8 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                            <div className="w-0 h-0 border-l-[10px] border-l-gray-700 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-0.5"></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <img src={content.url} alt="YouTube 미리보기" />
 
                     {/* 대표 이미지 배지 */}
                     {selectedThumbnail === content.id && (
@@ -946,7 +904,7 @@ const PostManagement = () => {
                     !aiOptions.industry ? "text-gray-500" : "text-gray-900"
                   }`}
                   style={{
-                    color: !aiOptions.industry ? "#6B7280" : "#111827",
+                    color: !aiOptions.industry ? TEXT_VARIANTS[50] : TEXT,
                   }}
                 >
                   <option value="" disabled>
@@ -958,7 +916,7 @@ const PostManagement = () => {
                     <option
                       key={industry.value}
                       value={industry.label}
-                      style={{ color: "#111827" }}
+                      style={{ color: TEXT }}
                     >
                       {industry.label}
                     </option>
