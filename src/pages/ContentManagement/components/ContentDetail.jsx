@@ -15,6 +15,7 @@ import {
   Edit,
   Play,
 } from "lucide-react";
+import { formatDateTime } from "../../../utils/formatters";
 
 export function ContentDetail({
   content,
@@ -62,18 +63,6 @@ export function ContentDetail({
       default:
         return <ExternalLink {...iconProps} className="text-gray-500" />;
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "미정";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   const isContentModified = () => {
@@ -218,14 +207,14 @@ export function ContentDetail({
                 <h3 className="font-semibold text-gray-900 mb-3">생성 정보</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                   <Calendar size={16} className="text-gray-400" />
-                  생성일 : {formatDate(content.createdAt)}
+                  생성일 : {formatDateTime(content.createdAt)}
                 </div>
 
                 {/* 수정일 - 실제로 수정되었을 때만 표시 */}
                 {isContentModified() && (
                   <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                     <Calendar size={16} className="text-gray-400" />
-                    수정일 : {formatDate(content.updatedAt)}
+                    수정일 : {formatDateTime(content.updatedAt)}
                   </div>
                 )}
 

@@ -2,6 +2,7 @@ import { Download, Edit, Trash2, Video, Image, Calendar } from "lucide-react";
 import React from "react";
 import { Card } from "../../../components/molecules";
 import { detectMediaType, formatFileSize } from "../../../utils/media";
+import { formatDateKorean } from "../../../utils/formatters";
 
 export function ContentCard({
   content,
@@ -41,16 +42,6 @@ export function ContentCard({
     if (onDelete) {
       onDelete(content.id);
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   };
 
   const getMediaIcon = () => {
@@ -136,7 +127,7 @@ export function ContentCard({
 
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
           <Calendar size={12} />
-          생성일 : {formatDate(content.createdAt)}
+          생성일 : {formatDateKorean(content.createdAt)}
         </div>
       </div>
     </Card>

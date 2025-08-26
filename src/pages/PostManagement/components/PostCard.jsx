@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Card } from "../../../components/molecules";
+import { formatDateKorean } from "../../../utils/formatters";
 
 export function PostCard({ post, onClick, onDelete }) {
   const handleCardClick = () => {
@@ -79,16 +80,6 @@ export function PostCard({ post, onClick, onDelete }) {
       return (num / 1000).toFixed(1) + "K";
     }
     return num.toString();
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   };
 
   // 더미 데이터 생성
@@ -192,7 +183,7 @@ export function PostCard({ post, onClick, onDelete }) {
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
           <Calendar size={12} />
-          게시일 : {formatDate(post.publishAt)}
+          게시일 : {formatDateKorean(post.publishAt)}
         </div>
       </div>
     </Card>

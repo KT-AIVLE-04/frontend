@@ -12,6 +12,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
+import { formatDateTime } from "../../../utils/formatters";
 
 export function PostDetail({ post, onClose, onDelete }) {
   if (!post) {
@@ -67,18 +68,6 @@ export function PostDetail({ post, onClose, onDelete }) {
       return (num / 1000).toFixed(1) + "K";
     }
     return num.toString();
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "미정";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   // 더미 데이터 생성
@@ -206,7 +195,7 @@ export function PostDetail({ post, onClose, onDelete }) {
                 <h3 className="font-semibold text-gray-900 mb-3">게시 정보</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar size={16} className="text-gray-400" />
-                  {formatDate(post.publishAt)}
+                  {formatDateTime(post.publishAt)}
                 </div>
               </div>
             </div>
