@@ -23,11 +23,16 @@ export class SnsAccount {
   constructor(data = {}) {
     this.id = data.id || null;
     this.userId = data.userId || null;
+    this.storeId = data.storeId || null;
     this.snsType = data.snsType || '';
     this.snsAccountId = data.snsAccountId || '';
     this.snsAccountName = data.snsAccountName || '';
     this.snsAccountDescription = data.snsAccountDescription || '';
     this.snsAccountUrl = data.snsAccountUrl || '';
+    this.follower = data.follower || 0;
+    this.postCount = data.postCount || 0;
+    this.viewCount = data.viewCount || 0;
+    this.keyword = data.keyword || [];
   }
 
   // 초기화 함수
@@ -81,6 +86,26 @@ export class SnsAccount {
   // 유효성 검사
   isValid() {
     return this.snsType && this.snsAccountId && this.snsAccountName;
+  }
+
+  // 팔로워 수 가져오기
+  getFollowerCount() {
+    return this.follower || 0;
+  }
+
+  // 게시물 수 가져오기
+  getPostCount() {
+    return this.postCount || 0;
+  }
+
+  // 조회수 가져오기
+  getViewCount() {
+    return this.viewCount || 0;
+  }
+
+  // 키워드 배열 가져오기
+  getKeywords() {
+    return this.keyword || [];
   }
 
   // 에러 메시지 가져오기
