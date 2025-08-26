@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Calendar,
   Tag,
@@ -13,8 +13,21 @@ import {
   Trash2,
 } from "lucide-react";
 import { formatDateTime } from "../../../utils/formatters";
+import { analyticsApi } from "../../../api/analytics";
+import { useApi } from "../../../hooks";
 
 export function PostDetail({ post, onClose, onDelete }) {
+  const {
+    data: metricsData,
+    loading: metricsLoading,
+    execute: executeMetrics,
+  } = useApi(analyticsApi.getRealtimePostMetrics);
+
+  useEffect(() => {
+    if (!post?.snsType || !post?.id) return;
+    executeMetrics(post.snsType, post.id);
+  }, [post?.snsType, post?.id, executeMetrics]);
+
   if (!post) {
     return null;
   }
@@ -70,20 +83,16 @@ export function PostDetail({ post, onClose, onDelete }) {
     return num.toString();
   };
 
-  // 더미 데이터 생성
-  const getDummyStats = (id) => {
-    const seed = id || 1;
-    return {
-      viewCount: Math.floor(Math.random() * seed * 10000) + 1000,
-      likeCount: Math.floor(Math.random() * seed * 500) + 50,
-      commentCount: Math.floor(Math.random() * seed * 100) + 5,
-    };
-  };
-
-  const dummyStats = getDummyStats(post.id);
-  const viewCount = post.viewCount ?? dummyStats.viewCount;
-  const likeCount = post.likeCount ?? dummyStats.likeCount;
-  const commentCount = post.commentCount ?? dummyStats.commentCount;
+  console.log("@@ metricsData", metricsData);
+  const viewCount = metricsLoading
+    ? "..."
+    : metricsData?.views?.toLocaleString() || "222";
+  const likeCount = metricsLoading
+    ? "..."
+    : metricsData?.likes?.toLocaleString() || "333";
+  const commentCount = metricsLoading
+    ? "..."
+    : metricsData?.comments?.toLocaleString() || "444";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
