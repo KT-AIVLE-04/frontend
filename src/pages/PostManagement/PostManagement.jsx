@@ -852,7 +852,7 @@ const PostManagement = () => {
             {/* 플랫폼 선택 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                대상 플랫폼
+                대상 플랫폼 <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-4">
                 {SNS_TYPES.map((snsType) => (
@@ -889,7 +889,7 @@ const PostManagement = () => {
             {/* 키워드 입력 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                키워드 (선택사항)
+                키워드
               </label>
 
               {/* 키워드 목록 */}
@@ -934,7 +934,7 @@ const PostManagement = () => {
               {/* 업종/비즈니스 타입 선택 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  업종
+                  업종 <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={aiOptions.industry}
@@ -971,7 +971,7 @@ const PostManagement = () => {
               {/* 위치 정보 입력 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  위치 정보 (선택사항)
+                  위치 정보
                 </label>
                 <input
                   type="text"
@@ -1075,7 +1075,7 @@ const PostManagement = () => {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700">
-              제목
+              제목 <span className="text-red-500">*</span>
             </label>
             {generatedPost.title && (
               <span className="inline-flex items-center space-x-1 text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full font-medium">
@@ -1100,7 +1100,7 @@ const PostManagement = () => {
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700">
-              본문
+              본문 <span className="text-red-500">*</span>
             </label>
             {generatedPost.description && (
               <span className="inline-flex items-center space-x-1 text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full font-medium">
@@ -1125,7 +1125,7 @@ const PostManagement = () => {
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700">
-              해시태그
+              해시태그 <span className="text-red-500">*</span>
             </label>
             {generatedPost.tags && (
               <span className="inline-flex items-center space-x-1 text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full font-medium">
@@ -1196,7 +1196,7 @@ const PostManagement = () => {
           {/* 플랫폼 선택 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              게시할 플랫폼
+              게시할 플랫폼 <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-4">
               {SNS_TYPES.map((snsType) => (
@@ -1294,7 +1294,7 @@ const PostManagement = () => {
           {/* 게시 시점 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              게시 시점
+              게시 시점 <span className="text-red-500">*</span>
             </label>
             <div className="flex space-x-4">
               <label className="flex items-center space-x-2 cursor-pointer">
