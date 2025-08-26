@@ -4,18 +4,17 @@ import {
   Tag,
   ExternalLink,
   Youtube,
-  Facebook,
   Instagram,
-  Eye,
-  Heart,
-  MessageCircle,
   X,
   Trash2,
   Download,
   Edit,
   Play,
+  Video,
+  Image,
 } from "lucide-react";
 import { formatDateTime } from "../../../utils/formatters";
+import { isVideoFile, isImageFile } from "../../../utils/media";
 
 export function ContentDetail({
   content,
@@ -52,16 +51,29 @@ export function ContentDetail({
     }
   };
 
-  const getContentTypeIcon = (type) => {
+  const getContentTypeIcon = (content) => {
     const iconProps = { size: 20 };
-    switch (type) {
-      case "video":
-      case "content":
-        return <Youtube {...iconProps} className="text-red-500" />;
-      case "image":
-        return <Instagram {...iconProps} className="text-pink-500" />;
-      default:
-        return <ExternalLink {...iconProps} className="text-gray-500" />;
+
+    if (
+      isVideoFile(
+        content.originalName,
+        content.contentType,
+        content.url,
+        content.type
+      )
+    ) {
+      return <Video {...iconProps} className="text-red-500" />;
+    } else if (
+      isImageFile(
+        content.originalName,
+        content.contentType,
+        content.url,
+        content.type
+      )
+    ) {
+      return <Image {...iconProps} className="text-green-500" />;
+    } else {
+      return <ExternalLink {...iconProps} className="text-gray-500" />;
     }
   };
 
@@ -72,26 +84,11 @@ export function ContentDetail({
     return updatedDate.getTime() !== createdDate.getTime();
   };
 
-  const getFileExtension = (filename) => {
-    return filename?.toLowerCase().split(".").pop();
-  };
-
-  const isVideoFile = (filename, contentType, url) => {
-    const videoExtensions = ["mp4", "avi", "mov", "webm", "mkv", "flv"];
-    const extension = getFileExtension(filename) || getFileExtension(url);
-
-    return (
-      contentType?.includes("video") ||
-      videoExtensions.includes(extension) ||
-      content.type === "video" ||
-      content.type === "content"
-    );
-  };
-
   const isVideo = isVideoFile(
     content.originalName,
     content.contentType,
-    content.url
+    content.url,
+    content.type
   );
 
   return (
@@ -100,7 +97,7 @@ export function ContentDetail({
         {/* 헤더 */}
         <div className="flex justify-between items-center p-4 border-b border-gray-300">
           <div className="flex items-center gap-3">
-            {getContentTypeIcon(content.type)}
+            {getContentTypeIcon(content)}
             <span className="text-lg font-semibold text-gray-900">
               콘텐츠 상세보기
             </span>
