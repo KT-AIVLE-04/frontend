@@ -93,7 +93,7 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
   const sentimentData = getSentimentData();
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white rounded-lg p-6 shadow-sm border">
       <h2 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
         <BarChart3 size={18} className="mr-2 text-purple-600" />
         댓글 감정분석
@@ -188,22 +188,6 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
           )}
         </div>
       )}
-
-      {/* 요약 정보 */}
-      <div className="mt-4 p-3 bg-purple-50 rounded-lg">
-        <div className="text-sm text-purple-900">
-          <div className="font-medium mb-1">분석 요약</div>
-          <div className="text-xs">
-            총 {total}개의 댓글을 분석한 결과, 
-            {emotionSummary.positiveCount > emotionSummary.negativeCount ? 
-              '전반적으로 긍정적인 반응' : 
-              emotionSummary.negativeCount > emotionSummary.positiveCount ? 
-              '전반적으로 부정적인 반응' : 
-              '중립적인 반응'
-            }을 보이고 있습니다.
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
