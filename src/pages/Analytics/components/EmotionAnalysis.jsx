@@ -5,7 +5,7 @@ import { Card } from "../../../components/molecules/Card";
 export const EmotionAnalysis = ({ emotionAnalysis }) => {
   if (!emotionAnalysis || !emotionAnalysis.emotionSummary) {
     return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
           <BarChart3 size={18} className="mr-2 text-purple-600" />
           댓글 감정분석
@@ -17,7 +17,7 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
             게시물을 선택하면 감정분석 결과를 확인할 수 있습니다.
           </p>
         </div>
-      </div>
+      </Card>
     );
   }
 

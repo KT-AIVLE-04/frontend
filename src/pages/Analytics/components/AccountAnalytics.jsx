@@ -44,32 +44,32 @@ export function AccountAnalytics({ selectedSnsType }) {
 
   if (!selectedSnsType) {
     return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">계정 분석</h2>
         <div className="text-center py-8 text-gray-500">
           SNS 계정을 연결해주세요
         </div>
-      </div>
+      </Card>
     );
   }
 
   if (realtimeLoading || historyLoading) {
     return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">계정 분석</h2>
         <LoadingSpinner message="계정 데이터를 불러오는 중..." />
-      </div>
+      </Card>
     );
   }
 
   if (realtimeError || historyError) {
     return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">계정 분석</h2>
         <div className="text-center py-8 text-red-500">
           계정 데이터를 불러오는데 실패했습니다
         </div>
-      </div>
+      </Card>
     );
   }
 
