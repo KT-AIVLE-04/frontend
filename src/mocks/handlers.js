@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5173/api"
@@ -18,9 +18,43 @@ export const handlers = [
   // http.all('*', async () => {
   //   await delay(2000);
   // }),
-
-  // 회원가입 (기존 호환성)
-  http.post(`${API_BASE_URL}/api/auth/new`, async ({ request }) => {
+  // 모든 HTTP 메서드에 대해 passthrough 조건 적용
+  // http.all("*", ({ request }) => {
+  //
+  //   if(request?.url) {
+  //     const url = new URL(request.url);
+  //     const workingEndpoints = [
+  //       // "/api/auth",
+  //       // "/api/stores",
+  //       // "/api/shorts",
+  //       // "/api/contents",
+  //       // "/api/sns",
+  //       // "/api/content",
+  //       // '/api/analytics', // analytics API 활성화
+  //     ];
+  //
+  //     // msw 작동 안하는 조건들
+  //     const isStaticFile = /\.(css|js|png|jpg|svg|ico|woff|woff2|ttf|eot)$/.test(
+  //       url.pathname
+  //     );
+  //     const isNotHost = url.origin !== API_BASE_URL;
+  //     const isWorkingEndpoint = workingEndpoints.some((endpoint) =>
+  //       url.pathname.includes(endpoint)
+  //     );
+  //     const isLocalHost = url.origin === "http://localhost:8080";
+  //     if (isStaticFile || isNotHost || isWorkingEndpoint || isLocalHost) {
+  //       console.log("🛳️ passthrough", url.pathname, {
+  //         isStaticFile,
+  //         isNotHost,
+  //         isWorkingEndpoint,
+  //         isLocalHost,
+  //       });
+  //       return passthrough();
+  //     }
+  //     console.log("🍪 MSW", url.pathname);
+  //   }
+  // }),
+  http.post(`${API_BASE_URL}/api/auth/signup`, async ({ request }) => {
     const { email, password, name, phoneNumber } = await request.json();
 
     if (!email || !password || !name || !phoneNumber) {
@@ -503,7 +537,64 @@ export const handlers = [
     });
   }),
 
+  // 댓글 감성 분석
+  http.get(`${API_BASE_URL}/api/analytics/comment-sentiment`, () => {
+    const sentiment = [
+      {
+        sentiment: "positive",
+        count: 245,
+        percentage: 65,
+      },
+      {
+        sentiment: "neutral",
+        count: 87,
+        percentage: 23,
+      },
+      {
+        sentiment: "negative",
+        count: 45,
+        percentage: 12,
+      },
+    ];
 
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "성공입니다.",
+      result: sentiment,
+    });
+  }),
+
+  // 팔로워 트렌드
+  http.get(`${API_BASE_URL}/api/analytics/follower-trend`, () => {
+    const trend = {
+      totalFollowers: 2145,
+      newFollowers: 156,
+      unfollowers: 32,
+      netGrowth: 124,
+      weeklyData: [35, 42, 38, 45, 40, 48, 52],
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "성공입니다.",
+      result: trend,
+    });
+  }),
+
+  // 최적 게시 시간
+  http.get(`${API_BASE_URL}/api/analytics/optimal-posting-time`, () => {
+    const optimalTimes = {
+      instagram: ["18-20시", "12-14시", "21-23시"],
+      facebook: ["10-12시", "15-17시", "19-21시"],
+      recommendation: "월요일 오후 6시",
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "성공입니다.",
+      result: optimalTimes,
+    });
+  }),
 
   // ===== SNS API =====
   
@@ -1157,18 +1248,18 @@ export const handlers = [
 
   // ===== 실시간 API =====
 
-  // 실시간 계정 메트릭 조회 (API 명세서에 맞게 수정)
+  // 실시간 계정 메트릭 조회
   http.get(
     `${API_BASE_URL}/api/analytics/realtime/accounts/metrics`,
     ({ request }) => {
       const url = new URL(request.url);
-      const accountId = url.searchParams.get("accountId");
+      const snsType = url.searchParams.get("snsType");
 
-      if (!accountId) {
+      if (!snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "accountId 파라미터가 필요합니다.",
+            message: "snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1179,29 +1270,31 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
-          accountId: parseInt(accountId),
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
+          accountId: 123,
           followers: 43400,
           views: 13739858,
           fetchedAt: new Date().toISOString(),
-          snsType: "youtube",
+          snsType: snsType.toUpperCase(),
         },
       });
     }
   ),
 
-  // 실시간 게시물 메트릭 조회 (API 명세서에 맞게 수정)
+  // 실시간 게시물 메트릭 조회
   http.get(
     `${API_BASE_URL}/api/analytics/realtime/posts/metrics`,
     ({ request }) => {
       const url = new URL(request.url);
-      const accountId = url.searchParams.get("accountId");
+      const snsType = url.searchParams.get("snsType");
       const postId = url.searchParams.get("postId");
 
-      if (!accountId) {
+      if (!snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "accountId 파라미터가 필요합니다.",
+            message: "snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1230,35 +1323,37 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
           postId: postId ? parseInt(postId) : 1,
-          accountId: parseInt(accountId),
+          accountId: 123,
           likes: data.likes,
           dislikes: 10,
           comments: data.comments,
           shares: data.shares,
           views: data.views,
           fetchedAt: new Date().toISOString(),
-          snsType: "youtube",
+          snsType: snsType.toUpperCase(),
         },
       });
     }
   ),
 
-  // 실시간 게시물 댓글 조회 (API 명세서에 맞게 수정)
+  // 실시간 게시물 댓글 조회
   http.get(
     `${API_BASE_URL}/api/analytics/realtime/posts/comments`,
     ({ request }) => {
       const url = new URL(request.url);
-      const accountId = url.searchParams.get("accountId");
+      const snsType = url.searchParams.get("snsType");
       const postId = url.searchParams.get("postId");
       const page = parseInt(url.searchParams.get("page")) || 0;
       const size = parseInt(url.searchParams.get("size")) || 20;
 
-      if (!accountId) {
+      if (!snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "accountId 파라미터가 필요합니다.",
+            message: "snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1267,35 +1362,45 @@ export const handlers = [
 
       const comments = [
         {
-          commentId: "UgzDE8pqJ_c_1",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_1`,
           authorId: "user123456789",
           text: "정말 맛있어 보여요! 다음에 꼭 가보고 싶습니다 😋",
           likeCount: 15,
           publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_2",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_2`,
           authorId: "user987654321",
           text: "인테리어가 너무 예쁘네요. 분위기 좋아 보여요!",
           likeCount: 8,
           publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_3",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_3`,
           authorId: "user456789123",
           text: "가격대비 퀄리티가 정말 좋은 것 같아요 👍",
           likeCount: 12,
           publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_4",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_4`,
           authorId: "user789123456",
           text: "주차는 어떻게 되나요?",
           likeCount: 3,
           publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_5",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_5`,
           authorId: "user321654987",
           text: "사진이 너무 잘 나와요! 카메라 앵글 대박 👏",
           likeCount: 20,
@@ -1305,7 +1410,7 @@ export const handlers = [
 
       return HttpResponse.json({
         isSuccess: true,
-        message: "요청이 성공적으로 처리되었습니다.",
+        message: "실시간 댓글 조회 성공",
         result: comments,
       });
     }
@@ -1313,19 +1418,19 @@ export const handlers = [
 
   // ===== 히스토리 API =====
 
-  // 히스토리 계정 메트릭 조회 (API 명세서에 맞게 수정)
+  // 히스토리 계정 메트릭 조회
   http.get(
     `${API_BASE_URL}/api/analytics/history/accounts/metrics`,
     ({ request }) => {
       const url = new URL(request.url);
       const date = url.searchParams.get("date");
-      const accountId = url.searchParams.get("accountId");
+      const snsType = url.searchParams.get("snsType");
 
-      if (!date || !accountId) {
+      if (!date || !snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "date와 accountId 파라미터가 필요합니다.",
+            message: "date와 snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1336,30 +1441,32 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
-          accountId: parseInt(accountId),
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.AccountMetricsResponse",
+          accountId: 123,
           followers: 43300, // 어제 팔로워 수 (실시간보다 적음)
           views: 13726084, // 어제 총 조회 수
           fetchedAt: `${date}T12:00:00`,
-          snsType: "youtube",
+          snsType: snsType.toUpperCase(),
         },
       });
     }
   ),
 
-  // 히스토리 게시물 메트릭 조회 (API 명세서에 맞게 수정)
+  // 히스토리 게시물 메트릭 조회
   http.get(
     `${API_BASE_URL}/api/analytics/history/posts/metrics`,
     ({ request }) => {
       const url = new URL(request.url);
       const date = url.searchParams.get("date");
-      const accountId = url.searchParams.get("accountId");
+      const snsType = url.searchParams.get("snsType");
       const postId = url.searchParams.get("postId");
 
-      if (!date || !accountId) {
+      if (!date || !snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "date와 accountId 파라미터가 필요합니다.",
+            message: "date와 snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1388,36 +1495,37 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostMetricsResponse",
           postId: postId ? parseInt(postId) : 1,
-          accountId: parseInt(accountId),
+          accountId: 123,
           likes: data.likes,
           dislikes: 8,
           comments: data.comments,
           shares: data.shares,
           views: data.views,
           fetchedAt: `${date}T12:00:00`,
-          snsType: "youtube",
+          snsType: snsType.toUpperCase(),
         },
       });
     }
   ),
 
-  // 히스토리 게시물 댓글 조회 (API 명세서에 맞게 수정)
+  // 히스토리 게시물 댓글 조회
   http.get(
     `${API_BASE_URL}/api/analytics/history/posts/comments`,
     ({ request }) => {
       const url = new URL(request.url);
-      const date = url.searchParams.get("date");
-      const accountId = url.searchParams.get("accountId");
+      const snsType = url.searchParams.get("snsType");
       const postId = url.searchParams.get("postId");
       const page = parseInt(url.searchParams.get("page")) || 0;
       const size = parseInt(url.searchParams.get("size")) || 20;
 
-      if (!date || !accountId) {
+      if (!snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "date와 accountId 파라미터가 필요합니다.",
+            message: "snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1426,35 +1534,45 @@ export const handlers = [
 
       const comments = [
         {
-          commentId: "UgzDE8pqJ_c_1",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_1`,
           authorId: "user123456789",
           text: "어제 갔는데 정말 맛있었어요! 추천합니다 😊",
           likeCount: 12,
           publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_2",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_2`,
           authorId: "user987654321",
           text: "분위기가 너무 좋아서 오래 앉아있었어요",
           likeCount: 6,
           publishedAt: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_3",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_3`,
           authorId: "user456789123",
           text: "가격이 조금 비싸지만 퀄리티가 좋아요",
           likeCount: 9,
           publishedAt: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_4",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_4`,
           authorId: "user789123456",
           text: "직원분들이 친절하시네요 👍",
           likeCount: 4,
           publishedAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
         },
         {
-          commentId: "UgzDE8pqJ_c_5",
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.PostCommentsResponse",
+          commentId: `UgzDE8pqJ_c_${postId || "1"}_${page}_5`,
           authorId: "user321654987",
           text: "다음에 친구들이랑 같이 가려고 해요!",
           likeCount: 7,
@@ -1464,26 +1582,26 @@ export const handlers = [
 
       return HttpResponse.json({
         isSuccess: true,
-        message: "요청이 성공적으로 처리되었습니다.",
+        message: "히스토리 댓글 조회 성공",
         result: comments,
       });
     }
   ),
 
-  // 히스토리 게시물 감정분석 조회 (API 명세서에 맞게 수정)
+  // 히스토리 게시물 감정분석 조회
   http.get(
     `${API_BASE_URL}/api/analytics/history/posts/emotion-analysis`,
     ({ request }) => {
       const url = new URL(request.url);
       const date = url.searchParams.get("date");
-      const accountId = url.searchParams.get("accountId");
+      const snsType = url.searchParams.get("snsType");
       const postId = url.searchParams.get("postId");
 
-      if (!date || !accountId) {
+      if (!date || !snsType) {
         return HttpResponse.json(
           {
             isSuccess: false,
-            message: "date와 accountId 파라미터가 필요합니다.",
+            message: "date와 snsType 파라미터가 필요합니다.",
             result: null,
           },
           { status: 400 }
@@ -1494,8 +1612,12 @@ export const handlers = [
         isSuccess: true,
         message: "요청이 성공적으로 처리되었습니다.",
         result: {
+          "@class":
+            "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse",
           postId: postId ? parseInt(postId) : 1,
           emotionSummary: {
+            "@class":
+              "kt.aivle.analytics.adapter.in.web.dto.response.EmotionAnalysisResponse$EmotionSummary",
             positiveCount: 150,
             neutralCount: 30,
             negativeCount: 20,
@@ -1510,9 +1632,103 @@ export const handlers = [
     }
   ),
 
+  // ===== 배치 API =====
 
+  // 계정 메트릭 수집
+  http.post(`${API_BASE_URL}/api/analytics/batch/accounts/metrics`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "요청이 성공적으로 처리되었습니다.",
+      result: {
+        operationName: "account metrics collection",
+        status: "SUCCESS",
+        executedAt: new Date().toISOString(),
+        message: "account metrics collection completed successfully",
+        processedCount: 3,
+        failedCount: 0,
+      },
+    });
+  }),
 
+  // 특정 계정 메트릭 수집
+  http.post(
+    `${API_BASE_URL}/api/analytics/batch/accounts/:accountId/metrics`,
+    ({ params }) => {
+      const accountId = params.accountId;
 
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          operationName: `account ${accountId} metrics collection`,
+          status: "SUCCESS",
+          executedAt: new Date().toISOString(),
+          message: `account ${accountId} metrics collection completed successfully`,
+          processedCount: 1,
+          failedCount: 0,
+        },
+      });
+    }
+  ),
+
+  // 게시물 메트릭 수집
+  http.post(`${API_BASE_URL}/api/analytics/batch/posts/metrics`, () => {
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "요청이 성공적으로 처리되었습니다.",
+      result: {
+        operationName: "post metrics collection",
+        status: "SUCCESS",
+        executedAt: new Date().toISOString(),
+        message: "post metrics collection completed successfully",
+        processedCount: 15,
+        failedCount: 0,
+      },
+    });
+  }),
+
+  // 특정 게시물 메트릭 수집
+  http.post(
+    `${API_BASE_URL}/api/analytics/batch/posts/:postId/metrics`,
+    ({ params }) => {
+      const postId = params.postId;
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          operationName: `post ${postId} metrics collection`,
+          status: "SUCCESS",
+          executedAt: new Date().toISOString(),
+          message: `post ${postId} metrics collection completed successfully`,
+          processedCount: 1,
+          failedCount: 0,
+        },
+      });
+    }
+  ),
+
+  // 배치 작업 상태 조회
+  http.get(
+    `${API_BASE_URL}/api/analytics/batch/status/:jobName`,
+    ({ params }) => {
+      const jobName = params.jobName;
+
+      return HttpResponse.json({
+        isSuccess: true,
+        message: "요청이 성공적으로 처리되었습니다.",
+        result: {
+          jobName: jobName,
+          status: "COMPLETED",
+          startTime: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          endTime: new Date().toISOString(),
+          progress: 100,
+          totalItems: 15,
+          errorMessage: null,
+        },
+      });
+    }
+  ),
 
   // 대시보드 통계 (기존 호환성)
   http.get(`${API_BASE_URL}/api/analytics/dashboard`, ({ request }) => {
@@ -1743,411 +1959,172 @@ export const handlers = [
     });
   }),
 
+  // ===== 새로운 Analytics API =====
 
+  // 실시간 계정 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/accounts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
 
-  // ===== 새로운 API 핸들러들 추가 =====
-
-  // 회원가입 (API 명세서에 맞게 수정)
-  http.post(`${API_BASE_URL}/api/auth/signup`, async ({ request }) => {
-    const { email, password, name, phoneNumber } = await request.json();
-
-    if (!email || !password) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "이메일과 비밀번호는 필수입니다.",
-          result: null,
-          errors: [
-            {
-              field: "email",
-              message: "이메일을 입력해주세요.",
-            },
-          ],
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "자원이 성공적으로 생성되었습니다.",
-      result: {
-        type: "USER",
-        accessToken: "mock-access-token",
-        accessTokenExpiration: Date.now() + 3600000,
-        refreshToken: "mock-refresh-token",
-        refreshTokenExpiration: Date.now() + 2592000000,
-      },
-    });
-  }),
-
-  // OAuth 로그인 (API 명세서에 맞게 추가)
-  http.get(`${API_BASE_URL}/api/auth/:provider/login`, ({ params }) => {
-    const { provider } = params;
-    
-    const redirectUrls = {
-      google: "https://accounts.google.com/oauth/authorize?client_id=mock&redirect_uri=http://localhost:3000/auth/google/callback",
-      kakao: "https://kauth.kakao.com/oauth/authorize?client_id=mock&redirect_uri=http://localhost:3000/auth/kakao/callback",
-      naver: "https://nid.naver.com/oauth2.0/authorize?client_id=mock&redirect_uri=http://localhost:3000/auth/naver/callback"
-    };
-
-    return HttpResponse.redirect(redirectUrls[provider] || redirectUrls.google, 302);
-  }),
-
-  // 스토어 상세 조회 (API 명세서에 맞게 추가)
-  http.get(`${API_BASE_URL}/api/stores/:storeId`, ({ params }) => {
-    const storeId = params.storeId;
-    
-    const store = {
-      id: parseInt(storeId),
-      userId: 1,
-      name: "카페 달콤",
-      address: "서울시 강남구 테헤란로 123",
-      phoneNumber: "02-1234-5678",
-      businessNumber: "123-45-67890",
-      latitude: 37.5665,
-      longitude: 126.978,
-      industry: "FOOD",
+    const accountMetrics = {
+      accountId: 123,
+      followers: 10000 + Math.floor(Math.random() * 1000),
+      views: 500000 + Math.floor(Math.random() * 50000),
+      fetchedAt: new Date().toISOString(),
+      snsType: snsType
     };
 
     return HttpResponse.json({
       isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: store,
+      message: "실시간 계정 메트릭 조회 성공",
+      result: accountMetrics,
     });
   }),
 
-  // 콘텐츠 업로드 (API 명세서에 맞게 수정)
-  http.post(`${API_BASE_URL}/api/contents`, async ({ request }) => {
-    const formData = await request.formData();
-    const file = formData.get("file");
+  // 실시간 게시물 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
 
-    if (!file) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "업로드할 파일이 없습니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "자원이 성공적으로 생성되었습니다.",
-      result: {
-        id: Math.floor(Math.random() * 1000) + 1,
-        url: `https://example.com/uploads/${file.name}`,
-        title: file.name,
-        originalName: file.name,
-        objectKey: `uploads/${Date.now()}_${file.name}`,
-        contentType: file.type,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    });
-  }),
-
-  // 콘텐츠 상세 조회 (API 명세서에 맞게 수정)
-  http.get(`${API_BASE_URL}/api/contents/:id`, ({ params }) => {
-    const contentId = params.id;
-    
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        id: parseInt(contentId),
-        url: `https://example.com/uploads/content_${contentId}.mp4`,
-        title: `콘텐츠 ${contentId}`,
-        originalName: `content_${contentId}.mp4`,
-        objectKey: `uploads/content_${contentId}.mp4`,
-        contentType: "video/mp4",
-        width: 1920,
-        height: 1080,
-        durationSeconds: 30,
-        bytes: 1024000,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    });
-  }),
-
-  // 콘텐츠 제목 수정 (API 명세서에 맞게 수정)
-  http.patch(`${API_BASE_URL}/api/contents/:id`, async ({ params, request }) => {
-    const contentId = params.id;
-    const { title } = await request.json();
-
-    if (!title) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "제목은 필수입니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        id: parseInt(contentId),
-        url: `https://example.com/uploads/content_${contentId}.mp4`,
-        title: title,
-        originalName: `content_${contentId}.mp4`,
-        objectKey: `uploads/content_${contentId}.mp4`,
-        contentType: "video/mp4",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    });
-  }),
-
-  // SNS 게시물 업로드 (API 명세서에 맞게 추가)
-  http.post(`${API_BASE_URL}/api/sns/posts`, async ({ request }) => {
-    const data = await request.json();
-    
-    if (!data.snsType || !data.originalName || !data.objectKey) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "필수 필드가 누락되었습니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        id: Math.floor(Math.random() * 1000) + 1,
-        snsPostId: `post_${Date.now()}`,
-        title: data.title || "새 게시물",
-        description: data.description || "",
-        snsType: data.snsType.toUpperCase(),
-        originalName: data.originalName,
-        objectKey: data.objectKey,
-        url: `https://example.com/sns/${data.objectKey}`,
-        tags: data.tags || [],
-        categoryId: null,
-        publishAt: data.isNow ? new Date().toISOString() : data.publishAt,
-        notifySubscribers: true,
-      },
-    });
-  }),
-
-  // SNS 게시물 삭제 (API 명세서에 맞게 수정)
-  http.delete(`${API_BASE_URL}/api/sns/posts/:id`, async ({ params, request }) => {
-    const postId = params.id;
-    const { snsType } = await request.json();
-
-    if (!snsType) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "SNS 타입이 필요합니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: null,
-    });
-  }),
-
-  // SNS 게시물 상세 조회 (API 명세서에 맞게 추가)
-  http.get(`${API_BASE_URL}/api/sns/posts/:id`, ({ params }) => {
-    const postId = params.id;
-    
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        id: parseInt(postId),
-        snsPostId: `post_${postId}`,
-        title: "샘플 게시물",
-        description: "샘플 게시물 설명",
-        snsType: "YOUTUBE",
-        originalName: "sample_video.mp4",
-        objectKey: "uploads/sample_video.mp4",
-        url: "https://example.com/sns/sample_video.mp4",
-        tags: ["샘플", "테스트"],
-        categoryId: null,
-        publishAt: new Date().toISOString(),
-        notifySubscribers: true,
-      },
-    });
-  }),
-
-  // SNS 계정 정보 조회 (API 명세서에 맞게 수정)
-  http.get(`${API_BASE_URL}/api/sns/account/:snsType`, ({ params }) => {
-    const snsType = params.snsType;
-    
-    const accountData = {
-      id: Math.floor(Math.random() * 1000) + 1,
-      userId: 1,
-      storeId: 1,
-      snsType: snsType.toUpperCase(),
-      snsAccountId: `account_${snsType}_${Date.now()}`,
-      snsAccountName: `${snsType} 계정`,
-      snsAccountDescription: `${snsType} 계정 설명`,
-      snsAccountUrl: `https://${snsType}.com/account`,
-      follower: Math.floor(Math.random() * 10000) + 1000,
-      postCount: Math.floor(Math.random() * 100) + 10,
-      viewCount: Math.floor(Math.random() * 100000) + 10000,
-      keyword: ["키워드1", "키워드2", "키워드3"],
+    const postMetrics = {
+      postId: postId ? parseInt(postId) : 456,
+      accountId: 123,
+      likes: 1500 + Math.floor(Math.random() * 200),
+      dislikes: 10 + Math.floor(Math.random() * 5),
+      comments: 200 + Math.floor(Math.random() * 50),
+      shares: 50 + Math.floor(Math.random() * 20),
+      views: 25000 + Math.floor(Math.random() * 5000),
+      fetchedAt: new Date().toISOString(),
+      snsType: snsType
     };
 
     return HttpResponse.json({
       isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: accountData,
+      message: "실시간 게시물 메트릭 조회 성공",
+      result: postMetrics,
     });
   }),
 
-  // SNS 계정 정보 수정 (API 명세서에 맞게 추가)
-  http.put(`${API_BASE_URL}/api/sns/account/:snsType`, async ({ params, request }) => {
-    const snsType = params.snsType;
-    const data = await request.json();
+  // 실시간 게시물 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/realtime/posts/comments`, ({ request }) => {
+    const url = new URL(request.url);
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+    const page = parseInt(url.searchParams.get("page")) || 0;
+    const size = parseInt(url.searchParams.get("size")) || 20;
+
+    const comments = Array.from({ length: size }, (_, i) => ({
+      commentId: `comment_${page * size + i + 1}`,
+      authorId: `user_${Math.floor(Math.random() * 1000)}`,
+      text: `정말 좋은 영상이네요! ${i + 1}`,
+      likeCount: Math.floor(Math.random() * 50),
+      publishedAt: new Date(Date.now() - Math.random() * 86400000).toISOString()
+    }));
 
     return HttpResponse.json({
       isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: null,
+      message: "실시간 게시물 댓글 조회 성공",
+      result: comments,
     });
   }),
 
-  // 쇼츠 시나리오 생성 (API 명세서에 맞게 추가)
-  http.post(`${API_BASE_URL}/api/shorts/scenario`, async ({ request }) => {
-    const data = await request.json();
-    
-    if (!data.prompt || !data.platform || !data.target || !data.adType || !data.brandConcepts) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "필수 필드가 누락되었습니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        sessionId: `session_${Date.now()}`,
-        scenarios: [
-          {
-            title: "시나리오 1",
-            content: "첫 번째 시나리오 내용입니다.",
-          },
-          {
-            title: "시나리오 2", 
-            content: "두 번째 시나리오 내용입니다.",
-          },
-          {
-            title: "시나리오 3",
-            content: "세 번째 시나리오 내용입니다.",
-          },
-        ],
-      },
-    });
-  }),
-
-  // 쇼츠 생성 (API 명세서에 맞게 추가)
-  http.post(`${API_BASE_URL}/api/shorts`, async ({ request }) => {
-    const formData = await request.formData();
-    const requestData = JSON.parse(formData.get("request"));
-    const images = formData.getAll("images");
-
-    if (!requestData || images.length === 0) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "요청 데이터와 이미지가 필요합니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        id: `shorts_${Date.now()}`,
-        url: "https://example.com/shorts/generated_video.mp4",
-        title: "생성된 쇼츠",
-        description: "AI로 생성된 쇼츠입니다.",
-        createdAt: new Date().toISOString(),
-      },
-    });
-  }),
-
-  // 쇼츠 저장 (API 명세서에 맞게 수정)
-  http.post(`${API_BASE_URL}/api/shorts/save`, async ({ request }) => {
-    const { sessionId, selectedScenario } = await request.json();
-
-    if (!sessionId || selectedScenario === undefined) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "세션 ID와 선택된 시나리오가 필요합니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json({
-      isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: null,
-    });
-  }),
-
-  // 감정 분석 조회 (API 명세서에 맞게 추가)
-  http.get(`${API_BASE_URL}/api/analytics/history/emotion-analysis`, ({ request }) => {
+  // 히스토리 계정 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/accounts/metrics`, ({ request }) => {
     const url = new URL(request.url);
     const date = url.searchParams.get("date");
-    const accountId = url.searchParams.get("accountId");
+    const snsType = url.searchParams.get("snsType") || "youtube";
 
-    if (!date || !accountId) {
-      return HttpResponse.json(
-        {
-          isSuccess: false,
-          message: "날짜와 계정 ID가 필요합니다.",
-          result: null,
-        },
-        { status: 400 }
-      );
-    }
+    const accountMetrics = {
+      accountId: 123,
+      followers: 9500 + Math.floor(Math.random() * 1000),
+      views: 480000 + Math.floor(Math.random() * 50000),
+      fetchedAt: `${date}T10:30:00`,
+      snsType: snsType
+    };
 
     return HttpResponse.json({
       isSuccess: true,
-      message: "요청이 성공적으로 처리되었습니다.",
-      result: {
-        accountId: parseInt(accountId),
-        positiveKeywords: ["좋아요", "최고", "대박", "맛있어요", "추천"],
-        negativeKeywords: ["별로", "실망", "아쉽다", "비싸다", "불친절"],
-        sentimentDistribution: {
-          positive: 150,
-          neutral: 30,
-          negative: 20,
-        },
-        analyzedAt: new Date().toISOString(),
-      },
+      message: "히스토리 계정 메트릭 조회 성공",
+      result: accountMetrics,
     });
   }),
 
+  // 히스토리 게시물 메트릭 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/metrics`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
 
+    const postMetrics = {
+      postId: postId ? parseInt(postId) : 456,
+      accountId: 123,
+      likes: 1400 + Math.floor(Math.random() * 200),
+      dislikes: 8 + Math.floor(Math.random() * 5),
+      comments: 180 + Math.floor(Math.random() * 50),
+      shares: 45 + Math.floor(Math.random() * 20),
+      views: 23000 + Math.floor(Math.random() * 5000),
+      fetchedAt: `${date}T10:30:00`,
+      snsType: snsType
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 메트릭 조회 성공",
+      result: postMetrics,
+    });
+  }),
+
+  // 히스토리 게시물 댓글 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/comments`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+    const page = parseInt(url.searchParams.get("page")) || 0;
+    const size = parseInt(url.searchParams.get("size")) || 20;
+
+    const comments = Array.from({ length: size }, (_, i) => ({
+      commentId: `comment_${page * size + i + 1}`,
+      authorId: `user_${Math.floor(Math.random() * 1000)}`,
+      text: `히스토리 댓글 ${i + 1}`,
+      likeCount: Math.floor(Math.random() * 50),
+      publishedAt: `${date}T${10 + Math.floor(Math.random() * 12)}:${Math.floor(Math.random() * 60)}:00`
+    }));
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 댓글 조회 성공",
+      result: comments,
+    });
+  }),
+
+  // 히스토리 게시물 감정분석 조회
+  http.get(`${API_BASE_URL}/api/analytics/history/posts/emotion-analysis`, ({ request }) => {
+    const url = new URL(request.url);
+    const date = url.searchParams.get("date");
+    const snsType = url.searchParams.get("snsType") || "youtube";
+    const postId = url.searchParams.get("postId");
+
+    const emotionAnalysis = {
+      postId: postId ? parseInt(postId) : 456,
+      emotionSummary: {
+        positiveCount: 150 + Math.floor(Math.random() * 50),
+        neutralCount: 30 + Math.floor(Math.random() * 20),
+        negativeCount: 20 + Math.floor(Math.random() * 15),
+        totalCount: 200 + Math.floor(Math.random() * 50)
+      },
+      keywords: {
+        positive: ["좋아요", "최고", "대박", "훌륭", "추천"],
+        negative: ["별로", "실망", "아쉽다", "부족", "개선"]
+      }
+    };
+
+    return HttpResponse.json({
+      isSuccess: true,
+      message: "히스토리 게시물 감정분석 조회 성공",
+      result: emotionAnalysis,
+    });
+  }),
 ];
