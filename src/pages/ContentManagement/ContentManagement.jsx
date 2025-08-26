@@ -1,10 +1,10 @@
 import { Upload, Video } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { contentApi } from "../../api/content";
-import { EmptyStateBox, ErrorPage, LoadingSpinner } from "../../components";
+import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
 import { Content } from "../../models";
 import { SearchFilter, ContentCard } from "./components";
-import { VideoDetail } from "./components/VideoDetail";
+import { ContentDetail } from "./components/ContentDetail";
 
 export function ContentManagement() {
   const [contents, setContents] = useState([]);
@@ -14,10 +14,10 @@ export function ContentManagement() {
   const [sortBy, setSortBy] = useState("recent");
   const [selectedContent, setSelectedContent] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [contentTypeFilter, setContentTypeFilter] = useState({
-    videos: true,
-    images: true,
-  });
+  // const [contentTypeFilter, setContentTypeFilter] = useState({
+  //   videos: true,
+  //   images: true,
+  // });
 
   useEffect(() => {
     fetchContents();
@@ -30,6 +30,7 @@ export function ContentManagement() {
 
       const getContentsResponse = await contentApi.getContents();
       const getContentsResponseData = getContentsResponse.data?.result || [];
+
       //   "result": [
       //   {
       //     "id": 0,
@@ -59,12 +60,9 @@ export function ContentManagement() {
     try {
       setUploading(true);
       const uploadContentResponse = await contentApi.uploadContent(file);
-      console.log("uploadContent-response", uploadContentResponse);
-      const newContent = Content.fromResponse(
-        uploadContentResponse.data.result
-      );
-
-      setContents((prev) => [newContent, ...prev]);
+      const uploadContentResponseData = uploadContentResponse.data.result;
+      const newContentModel = Content.fromResponse(uploadContentResponseData);
+      setContents((prev) => [newContentModel, ...prev]);
       alert("파일이 성공적으로 업로드되었습니다.");
     } catch (error) {
       console.error("파일 업로드 실패:", error);
@@ -86,10 +84,10 @@ export function ContentManagement() {
       //   "originalName": "string",
       //   "objectKey": "string",
       //   "contentType": "string",
-      //   "width": 0,
-      //   "height": 0,
-      //   "durationSeconds": 0,
-      //   "bytes": 0,
+      //   "width": 0,                //getContents는 없음
+      //   "height": 0,               //getContents는 없음
+      //   "durationSeconds": 0,      //getContents는 없음
+      //   "bytes": 0,                //getContents는 없음
       //   "createdAt": "2025-08-22T07:04:57.455Z",
       //   "updatedAt": "2025-08-22T07:04:57.455Z"
       // },
@@ -121,50 +119,52 @@ export function ContentManagement() {
     }
   };
 
-  const handleEditTitle = async (contentId, newTitle) => {
-    try {
-      const updateContentTitleResponse = await contentApi.updateContentTitle(
-        contentId,
-        newTitle
-      );
-      const updatedContent = Content.fromResponse(
-        updateContentTitleResponse.data.result
-      );
+  const handleEdit = async (content) => {
+    const newTitle = prompt("새 제목을 입력하세요:", content.title);
+    if (newTitle && newTitle !== content.title) {
+      try {
+        const updateContentTitleResponse = await contentApi.updateContentTitle(
+          content.id,
+          newTitle
+        );
+        const updateContentTitleResponseData =
+          updateContentTitleResponse.data.result;
+        const updatedContentModel = Content.fromResponse(
+          updateContentTitleResponseData
+        );
 
-      setContents((prev) =>
-        prev.map((c) => (c.id === contentId ? updatedContent : c))
-      );
+        setContents((prev) =>
+          prev.map((c) => (c.id === content.id ? updatedContentModel : c))
+        );
 
-      if (selectedContent && selectedContent.id === contentId) {
-        setSelectedContent(updatedContent);
+        if (selectedContent && selectedContent.id === content.id) {
+          setSelectedContent(updatedContentModel);
+        }
+
+        alert("제목이 수정되었습니다.");
+      } catch (error) {
+        console.error("제목 수정 실패:", error);
+        alert("제목 수정에 실패했습니다.");
       }
-
-      alert("제목이 수정되었습니다.");
-    } catch (error) {
-      console.error("제목 수정 실패:", error);
-      alert("제목 수정에 실패했습니다.");
     }
+  };
+
+  const handleDownload = (content) => {
+    window.open(content.url, "_blank");
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchContents();
+    let filtered = contents;
+
+    if (searchTerm) {
+      filtered = filtered.filter((c) =>
+        c.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setContents(filtered);
   };
-
-  const filteredContents = contents.filter((content) => {
-    const isVideo = content.isVideo();
-    const isImage = content.isImage();
-
-    if (isVideo && contentTypeFilter.videos) return true;
-    if (isImage && contentTypeFilter.images) return true;
-
-    return false;
-  });
-
-  // 탭별 카운트 계산
-  // const videoCount = contents.filter((content) => content.isVideo()).length;
-  // const imageCount = contents.filter((content) => content.isImage()).length;
-  // const postCount = contents.length; // 전체 콘텐츠 수
 
   if (error) {
     return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error} />;
@@ -201,12 +201,10 @@ export function ContentManagement() {
         sortBy={sortBy}
         setSortBy={setSortBy}
         onSearch={handleSearch}
-        contentTypeFilter={contentTypeFilter}
-        setContentTypeFilter={setContentTypeFilter}
       />
 
-      {filteredContents.length === 0 ? (
-        <EmptyStateBox
+      {contents.length === 0 ? (
+        <EmptyState
           icon={Video}
           title="콘텐츠가 없습니다"
           description="생성된 콘텐츠가 여기에 표시됩니다."
@@ -215,27 +213,12 @@ export function ContentManagement() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredContents.map((content) => (
+          {contents.map((content) => (
             <ContentCard
-              key={content.id}
-              content={{
-                id: content.id,
-                url: content.url,
-                title: content.title,
-                originalName: content.originalName,
-                objectKey: content.objectKey,
-                contentType: content.contentType,
-                createdAt: content.createdAt,
-                updatedAt: content.updatedAt,
-              }}
+              content={content}
               onClick={() => handleCardClick(content.id)}
-              onDownload={() => window.open(content.url, "_blank")}
-              onEdit={() => {
-                const newTitle = prompt("새 제목을 입력하세요:", content.title);
-                if (newTitle && newTitle !== content.title) {
-                  handleEditTitle(content.id, newTitle);
-                }
-              }}
+              onDownload={() => handleDownload(content)}
+              onEdit={() => handleEdit(content)}
               onDelete={() => handleDelete(content.id)}
             />
           ))}
@@ -244,30 +227,12 @@ export function ContentManagement() {
 
       {/* 상세보기 컴포넌트 */}
       {selectedContent && (
-        <VideoDetail
-          video={{
-            ...selectedContent,
-            type: selectedContent.isVideo() ? "video" : "image",
-            thumbnailUrl: selectedContent.url,
-            author: "나",
-            views: 0,
-            createdAt: selectedContent.getFormattedCreatedAt(),
-            description: `${selectedContent.getFormattedSize()} • ${selectedContent.getResolution()}`,
-            likes: 0,
-            comments: 0,
-          }}
+        <ContentDetail
+          content={selectedContent}
           onClose={handleCloseDetail}
-          handleDownload={() => window.open(selectedContent.url, "_blank")}
-          handleEdit={() => {
-            const newTitle = prompt(
-              "새 제목을 입력하세요:",
-              selectedContent.title
-            );
-            if (newTitle && newTitle !== selectedContent.title) {
-              handleEditTitle(selectedContent.id, newTitle);
-            }
-          }}
-          handleDelete={() => handleDelete(selectedContent.id)}
+          onDownload={() => handleDownload(selectedContent)}
+          onEdit={() => handleEdit(selectedContent)}
+          onDelete={() => handleDelete(selectedContent.id)}
         />
       )}
     </div>

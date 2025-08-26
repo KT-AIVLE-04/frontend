@@ -1,52 +1,80 @@
 import { ArrowLeft } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/auth';
-import { Button, Container, FormField } from '../../components';
-import { ageOptions } from './components';
+import { Alert, Button, Card } from '../../components';
+import { useApi, useForm } from '../../hooks';
+import { REGISTER_VALIDATION_SCHEMA } from '../../utils/validations';
+import { FieldsContainer } from './components';
 
 export function Register({ onRegister, onLoginClick }) {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  
+  // useForm 훅 사용
+  const {
+    values: formData,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    validateForm,
+    setAllErrors,
+    resetForm
+  } = useForm({
     name: '',
     email: '',
     phone: '',
     age: '',
     password: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  // useApi 훅 사용
+  const { loading, error, execute: registerUser } = useApi(
+    authApi.register,
+    {
+      onSuccess: (data, message) => {
+        console.log('회원가입 성공:', data, message);
+        if (onRegister) {
+          onRegister();
+        }
+      },
+      onError: (error) => {
+        console.error('회원가입 실패:', error);
+        // 서버 에러를 폼 에러로 변환
+        if (error.response?.data?.message) {
+          setAllErrors({
+            email: error.response.data.message.includes('이메일') ? error.response.data.message : '',
+            password: error.response.data.message.includes('비밀번호') ? error.response.data.message : '',
+            name: error.response.data.message.includes('이름') ? error.response.data.message : '',
+            phone: error.response.data.message.includes('전화번호') ? error.response.data.message : '',
+            age: error.response.data.message.includes('연령대') ? error.response.data.message : ''
+          });
+        }
+      }
+    }
+  );
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    
+    // 클라이언트 사이드 검증
+    const isValid = validateForm(REGISTER_VALIDATION_SCHEMA);
+    if (!isValid) {
+      return;
+    }
+    
     try {
-      await authApi.register(formData);
-      
-      if (onRegister) {
-        onRegister();
-      }
+      await registerUser(formData);
+      // onSuccess에서 자동으로 처리됨
     } catch (error) {
       console.error('회원가입 실패:', error);
-      const errorMessage = error.response?.data?.message || '회원가입에 실패했습니다. 입력 정보를 확인해주세요.';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+      // onError에서 자동으로 처리됨
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (error) {
-      setError('');
-    }
-  };
+
 
   const handleCancel = () => {
     navigate(-1);
@@ -64,58 +92,22 @@ export function Register({ onRegister, onLoginClick }) {
         <h1 className="text-2xl font-bold">회원가입</h1>
       </div>
 
-      <Container className="p-8">
+      <Card className="p-8">
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
+          <Alert
+            type="error"
+            title="회원가입 실패"
+            message={error.response?.data?.message || '회원가입에 실패했습니다. 입력 정보를 확인해주세요.'}
+          />
         )}
         <form onSubmit={handleSubmit}>
-          <FormField
-            label="이름"
-            name="name"
-            type="text"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="이름을 입력하세요"
-            required
-          />
-          <FormField
-            label="이메일"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            placeholder="이메일 주소를 입력하세요"
-            required
-          />
-          <FormField
-            label="전화번호"
-            name="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleInputChange}
-            placeholder="전화번호를 입력하세요"
-            required
-          />
-          <FormField
-            label="연령대"
-            name="age"
-            type="select"
-            value={formData.age}
-            onChange={handleInputChange}
-            placeholder="연령대를 선택하세요"
-            required
-            options={ageOptions}
-          />
-          <FormField
-            label="비밀번호"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            placeholder="비밀번호를 입력하세요"
-            required
+          <FieldsContainer
+            formData={formData}
+            handleChange={handleChange}
+            handleBlur={handleBlur}
+            touched={touched}
+            errors={errors}
+            validationSchema={REGISTER_VALIDATION_SCHEMA}
           />
           <Button 
             type="submit" 
@@ -136,7 +128,7 @@ export function Register({ onRegister, onLoginClick }) {
             </button>
           </div>
         </div>
-      </Container>
+      </Card>
     </div>
   );
 } 

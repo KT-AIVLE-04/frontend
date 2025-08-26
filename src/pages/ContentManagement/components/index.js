@@ -1,3 +1,3 @@
 export { SearchFilter } from "./SearchFilter";
-export { VideoDetail } from "./VideoDetail";
+export { ContentDetail } from "./ContentDetail";
 export { ContentCard } from "./ContentCard";

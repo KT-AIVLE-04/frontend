@@ -34,8 +34,11 @@ export const shortApi = {
     });
   },
 
-  // 숏폼 저장 요청
-  saveShorts: (key) => api.post('/shorts/save', { key }, {
+  // 숏폼 저장 요청 (API 명세서에 맞게 수정)
+  saveShorts: (sessionId, selectedScenario) => api.post('/shorts/save', { 
+    sessionId, 
+    selectedScenario 
+  }, {
     storeId: true,
   })
 }
