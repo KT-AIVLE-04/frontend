@@ -1,91 +1,65 @@
+import { Eye, Heart, MessageCircle, Share2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { analyticsApi } from '../../../api/analytics';
-import { snsApi } from '../../../api/sns';
 import { LoadingSpinner } from '../../../components';
-import { useApi, useMultipleApi } from '../../../hooks';
+import { useMultipleApi } from '../../../hooks';
+import { getDateFromRange } from '../../../utils';
 import { CommentsDisplay, EmotionAnalysis } from './';
 
-export function PostAnalytics({ selectedSnsType, dateRange }) {
-  const { connections } = useSelector((state) => state.sns);
-  const currentConnection = connections[selectedSnsType];
-  const accountId = currentConnection?.accountInfo?.id;
-  
-  const [posts, setPosts] = useState([]);
-  const [selectedPostId, setSelectedPostId] = useState(null);
-  const [comparisonPeriod, setComparisonPeriod] = useState("yesterday");
+export function PostAnalytics({ selectedSnsType }) {
+  const [dateRange, setDateRange] = useState("last7");
 
-  // 날짜 계산 헬퍼
-  const getDateString = (daysAgo) => {
-    const date = new Date();
-    date.setDate(date.getDate() - daysAgo);
-    return date.toISOString().split('T')[0];
-  };
 
-  // 포스트 목록 가져오기
+  // 실시간 메트릭들
   const { 
-    data: postsData, 
-    loading: postsLoading, 
-    error: postsError,
-    execute: executePosts 
-  } = useApi(snsApi.post.getPosts);
-
-  // 포스트 메트릭들
-  const { 
-    loading: metricsLoading, 
-    error: metricsError, 
-    results: metricsResults, 
-    executeMultiple: executeMetrics 
+    loading: realtimeLoading, 
+    error: realtimeError, 
+    results: realtimeResults, 
+    executeMultiple: executeRealtime 
   } = useMultipleApi({});
 
-  // 포스트 목록 로드
-  useEffect(() => {
-    if (!accountId) return;
-    executePosts();
-  }, [accountId, executePosts]);
+  // 히스토리 메트릭들
+  const { 
+    loading: historyLoading, 
+    error: historyError, 
+    results: historyResults, 
+    executeMultiple: executeHistory 
+  } = useMultipleApi({});
 
-  // 포스트 목록 처리
+  // 실시간 메트릭 로드
   useEffect(() => {
-    if (postsData?.result) {
-      const filteredPosts = postsData.result.filter(post => post.snsType === selectedSnsType);
-      setPosts(filteredPosts);
-      
-      // 첫 번째 포스트를 기본 선택
-      if (filteredPosts.length > 0 && !selectedPostId) {
-        setSelectedPostId(filteredPosts[0].id || filteredPosts[0].postId);
-      }
-    }
-  }, [postsData, selectedSnsType, selectedPostId]);
-
-  // 선택된 포스트의 메트릭 로드
-  useEffect(() => {
-    if (!accountId || !selectedPostId) return;
-
-    const yesterday = getDateString(1);
-    const weekAgo = getDateString(7);
-    const monthAgo = getDateString(30);
+    if (!selectedSnsType) return;
 
     const apiCalls = {
-      // 실시간 포스트 메트릭
-      realtimePost: () => analyticsApi.getRealtimePostMetrics(accountId, selectedPostId),
-      
-      // 히스토리 포스트 메트릭들
-      historyPostYesterday: () => analyticsApi.getHistoryPostMetrics(yesterday, accountId, selectedPostId),
-      historyPostWeek: () => analyticsApi.getHistoryPostMetrics(weekAgo, accountId, selectedPostId),
-      historyPostMonth: () => analyticsApi.getHistoryPostMetrics(monthAgo, accountId, selectedPostId),
-      
-      // 댓글
-      realtimeComments: () => analyticsApi.getRealtimeComments(accountId, selectedPostId, 0, 5),
-      historyComments: () => analyticsApi.getHistoryComments(yesterday, accountId, selectedPostId, 0, 5),
-      
-      // 감정분석
-      emotionAnalysis: () => analyticsApi.getHistoryEmotionAnalysis(yesterday, accountId, selectedPostId)
+      // 실시간 포스트 메트릭 (postId 없으면 최근 게시물 자동 선택)
+      realtimePost: () => analyticsApi.getRealtimePostMetrics(selectedSnsType),
+      // 실시간 댓글 (postId 없으면 최근 게시물 자동 선택)
+      realtimeComments: () => analyticsApi.getRealtimeComments(selectedSnsType, null, 0, 5)
     };
 
-    executeMetrics(apiCalls);
-  }, [accountId, selectedPostId, executeMetrics]);
+    executeRealtime(apiCalls);
+  }, [selectedSnsType]);
 
-  if (!accountId) {
+  // 히스토리 메트릭 로드 (dateRange 변경시)
+  useEffect(() => {
+    if (!selectedSnsType) return;
+
+    // dateRange에 따른 날짜 계산
+    const targetDate = getDateFromRange(dateRange);
+
+    const apiCalls = {
+      // 히스토리 포스트 메트릭 (postId 없으면 최근 게시물 자동 선택)
+      historyPost: () => analyticsApi.getHistoryPostMetrics(targetDate, selectedSnsType),
+      // 히스토리 댓글 (postId 없으면 최근 게시물 자동 선택)
+      historyComments: () => analyticsApi.getHistoryComments(targetDate, selectedSnsType, null, 0, 5),
+      // 감정분석 (postId 없으면 최근 게시물 자동 선택)
+      emotionAnalysis: () => analyticsApi.getHistoryEmotionAnalysis(targetDate, selectedSnsType)
+    };
+
+    executeHistory(apiCalls);
+  }, [selectedSnsType, dateRange]);
+
+  if (!selectedSnsType) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm border">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">포스트 분석</h2>
@@ -96,99 +70,47 @@ export function PostAnalytics({ selectedSnsType, dateRange }) {
     );
   }
 
-  if (postsLoading) {
-    return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">포스트 분석</h2>
-        <LoadingSpinner message="포스트 목록을 불러오는 중..." />
-      </div>
-    );
-  }
 
-  if (postsError) {
-    return (
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">포스트 분석</h2>
-        <div className="text-center py-8 text-red-500">
-          포스트 목록을 불러오는데 실패했습니다
-        </div>
-      </div>
-    );
-  }
-
-  const selectedPost = posts.find(post => (post.id || post.postId) === selectedPostId);
-  const realtimeData = metricsResults.realtimePost;
-  const historyData = metricsResults[`historyPost${comparisonPeriod.charAt(0).toUpperCase() + comparisonPeriod.slice(1)}`];
+  const realtimeData = realtimeResults.realtimePost?.result;
+  const historyData = historyResults.historyPost?.result;
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">포스트 분석</h2>
-      
-      {/* 포스트 선택 */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          분석할 포스트 선택
-        </label>
-        <select
-          value={selectedPostId || ''}
-          onChange={(e) => setSelectedPostId(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          {posts.map((post) => (
-            <option key={post.id || post.postId} value={post.id || post.postId}>
-              {post.title || `포스트 ${post.id || post.postId}`}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* 비교 기간 선택 */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          비교 기간
-        </label>
-        <div className="flex gap-2">
-          {[
-            { value: 'yesterday', label: '어제' },
-            { value: 'week', label: '1주 전' },
-            { value: 'month', label: '1달 전' }
-          ].map((period) => (
-            <button
-              key={period.value}
-              onClick={() => setComparisonPeriod(period.value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                comparisonPeriod === period.value
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {period.label}
-            </button>
-          ))}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-800">최근 게시물 분석</h2>
+        
+        {/* 날짜 범위 선택 */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">기간:</span>
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            {[
+              { value: 'today', label: '오늘' },
+              { value: 'yesterday', label: '어제' },
+              { value: 'last7', label: '7일' },
+              { value: 'last30', label: '30일' }
+            ].map((period) => (
+              <button
+                key={period.value}
+                onClick={() => setDateRange(period.value)}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+                  dateRange === period.value
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                {period.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {selectedPost && (
-        <>
-          {/* 선택된 포스트 정보 */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-medium text-gray-800 mb-2">선택된 포스트</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600">제목:</span>
-                <span className="ml-2 font-medium">{selectedPost.title}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">게시일:</span>
-                <span className="ml-2">{new Date(selectedPost.publishAt || selectedPost.createdAt).toLocaleDateString()}</span>
-              </div>
-            </div>
-          </div>
-
+      {/* 최근 게시물 분석 */}
+      <>
           {/* 포스트 메트릭 */}
-          {metricsLoading ? (
+          {realtimeLoading || historyLoading ? (
             <LoadingSpinner message="포스트 메트릭을 불러오는 중..." />
-          ) : metricsError ? (
+          ) : realtimeError || historyError ? (
             <div className="text-center py-8 text-red-500">
               포스트 메트릭을 불러오는데 실패했습니다
             </div>
@@ -202,14 +124,16 @@ export function PostAnalytics({ selectedSnsType, dateRange }) {
                     <div>
                       <p className="text-sm text-green-600 font-medium">조회수</p>
                       <p className="text-2xl font-bold text-green-800">
-                        {realtimeData?.viewCount?.toLocaleString() || '0'}
+                        {realtimeData?.views?.toLocaleString() || '0'}
                       </p>
                     </div>
-                    <div className="text-green-500 text-2xl">👁️</div>
+                    <div className="text-green-500">
+                      <Eye size={24} />
+                    </div>
                   </div>
-                  {historyData?.viewCount && (
+                  {historyData?.views && (
                     <p className="text-xs text-green-600 mt-1">
-                      비교: {historyData.viewCount.toLocaleString()}
+                      비교: {historyData.views.toLocaleString()}
                     </p>
                   )}
                 </div>
@@ -220,14 +144,16 @@ export function PostAnalytics({ selectedSnsType, dateRange }) {
                     <div>
                       <p className="text-sm text-red-600 font-medium">좋아요</p>
                       <p className="text-2xl font-bold text-red-800">
-                        {realtimeData?.likeCount?.toLocaleString() || '0'}
+                        {realtimeData?.likes?.toLocaleString() || '0'}
                       </p>
                     </div>
-                    <div className="text-red-500 text-2xl">❤️</div>
+                    <div className="text-red-500">
+                      <Heart size={24} />
+                    </div>
                   </div>
-                  {historyData?.likeCount && (
+                  {historyData?.likes && (
                     <p className="text-xs text-red-600 mt-1">
-                      비교: {historyData.likeCount.toLocaleString()}
+                      비교: {historyData.likes.toLocaleString()}
                     </p>
                   )}
                 </div>
@@ -238,14 +164,16 @@ export function PostAnalytics({ selectedSnsType, dateRange }) {
                     <div>
                       <p className="text-sm text-purple-600 font-medium">댓글</p>
                       <p className="text-2xl font-bold text-purple-800">
-                        {realtimeData?.commentCount?.toLocaleString() || '0'}
+                        {realtimeData?.comments?.toLocaleString() || '0'}
                       </p>
                     </div>
-                    <div className="text-purple-500 text-2xl">💬</div>
+                    <div className="text-purple-500">
+                      <MessageCircle size={24} />
+                    </div>
                   </div>
-                  {historyData?.commentCount && (
+                  {historyData?.comments && (
                     <p className="text-xs text-purple-600 mt-1">
-                      비교: {historyData.commentCount.toLocaleString()}
+                      비교: {historyData.comments.toLocaleString()}
                     </p>
                   )}
                 </div>
@@ -256,14 +184,16 @@ export function PostAnalytics({ selectedSnsType, dateRange }) {
                     <div>
                       <p className="text-sm text-orange-600 font-medium">공유</p>
                       <p className="text-2xl font-bold text-orange-800">
-                        {realtimeData?.shareCount?.toLocaleString() || '0'}
+                        {realtimeData?.shares?.toLocaleString() || '0'}
                       </p>
                     </div>
-                    <div className="text-orange-500 text-2xl">📤</div>
+                    <div className="text-orange-500">
+                      <Share2 size={24} />
+                    </div>
                   </div>
-                  {historyData?.shareCount && (
+                  {historyData?.shares && (
                     <p className="text-xs text-orange-600 mt-1">
-                      비교: {historyData.shareCount.toLocaleString()}
+                      비교: {historyData.shares.toLocaleString()}
                     </p>
                   )}
                 </div>
@@ -271,23 +201,17 @@ export function PostAnalytics({ selectedSnsType, dateRange }) {
 
               {/* 감정분석 및 댓글 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <EmotionAnalysis emotionAnalysis={metricsResults.emotionAnalysis} />
+                <EmotionAnalysis emotionAnalysis={historyResults.emotionAnalysis?.result} />
                 <CommentsDisplay
-                  realtimeComments={metricsResults.realtimeComments}
-                  historyComments={metricsResults.historyComments}
-                  comparisonPeriod={comparisonPeriod}
+                  realtimeComments={realtimeResults.realtimeComments?.result}
+                  historyComments={historyResults.historyComments?.result}
+                  comparisonPeriod={dateRange}
                 />
               </div>
             </>
           )}
-        </>
-      )}
-
-      {posts.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          분석할 포스트가 없습니다
-        </div>
-      )}
+      </>
+      
     </div>
   );
 }

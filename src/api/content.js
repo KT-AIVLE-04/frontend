@@ -27,19 +27,15 @@ export const contentApi = {
       storeId: true,
     }),
 
+  // 콘텐츠 제목 수정 (PATCH, API 명세서에 맞게 수정)
+  updateContentTitle: (contentId, title) =>
+    api.patch(`/contents/${contentId}`, { title }, {
+      storeId: true,
+    }),
+
   // 콘텐츠 삭제
   deleteContent: (contentId) =>
     api.delete(`/contents/${contentId}`, {
       storeId: true,
     }),
-
-  // 콘텐츠 제목 수정 (PATCH)
-  updateContentTitle: (contentId, title) =>
-    api.patch(
-      `/contents/${contentId}?title=${encodeURIComponent(title)}`,
-      null,
-      {
-        storeId: true,
-      }
-    ),
 };
