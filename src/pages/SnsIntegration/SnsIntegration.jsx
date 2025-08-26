@@ -267,7 +267,7 @@ export function SnsIntegration() {
 
                 {/* 연결된 계정 정보는 연동된 경우에만 표시 */}
                 {isConnected && connection?.accountInfo && (
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg border overflow-hidden">
                     <h4 className="text-sm font-semibold text-gray-900 mb-3">
                       연결된 계정
                     </h4>
