@@ -1,8 +1,12 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { analyticsApi } from '../../../api/analytics';
 import { useApi } from '../../../hooks';
+import { ROUTES } from '../../../routes/routes';
 
 export function PostTableRow({ post, index, selectedSnsType }) {
+  const navigate = useNavigate();
+  
   // 해당 포스트의 실시간 메트릭 데이터 불러오기
   const { 
     data: metricsData, 
@@ -74,14 +78,16 @@ export function PostTableRow({ post, index, selectedSnsType }) {
       </td>
       <td className="text-center py-4 px-4">
         <button 
-          className="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-all transform hover:scale-105 shadow-sm"
           onClick={() => {
-            // TODO: 분석보고서 페이지로 이동
-            console.log('분석보고서 보기:', post.id);
+            // AI 분석 보고서 페이지로 이동
+            const reportUrl = ROUTES.AI_REPORT.route
+              .replace(':snsType', selectedSnsType)
+              .replace(':postId', post.id);
+            navigate(reportUrl);
           }}
         >
-          <span className="mr-1">📊</span>
-          보고서 보기
+          AI 분석
         </button>
       </td>
     </tr>
