@@ -95,7 +95,7 @@ export function AccountAnalytics({selectedSnsType}) {
                    {realtimeData?.followers?.toLocaleString() || "0"}
                  </p>
                  {(() => {
-                   const { diff, percentChange } = calculateChange(realtimeData?.followers, historyData.followers);
+                   const { diff, percentChange } = calculateChange(realtimeData?.followers, historyData?.followers);
                    return (
                      <span className="text-sm text-blue-800">
                        {diff > 0 ? '+' : ''}{diff.toLocaleString()} ({diff > 0 ? '+' : ''}{percentChange}%)
@@ -111,7 +111,7 @@ export function AccountAnalytics({selectedSnsType}) {
            {(
              <div className="mt-2">
                <p className="text-xs text-blue-600">
-                 전날: {historyData.followers.toLocaleString()}
+                  전날: {historyData?.followers?.toLocaleString()?? '--' }
                </p>
              </div>
            )}
@@ -127,7 +127,7 @@ export function AccountAnalytics({selectedSnsType}) {
                    {realtimeData?.views?.toLocaleString() || "0"}
                  </p>
                  {(() => {
-                   const { diff, percentChange } = calculateChange(realtimeData?.views, historyData.views);
+                   const { diff, percentChange } = calculateChange(realtimeData?.views, historyData?.views);
                    return (
                      <span className="text-sm text-green-800">
                        {diff > 0 ? '+' : ''}{diff.toLocaleString()} ({diff > 0 ? '+' : ''}{percentChange}%)
@@ -143,7 +143,7 @@ export function AccountAnalytics({selectedSnsType}) {
            {(
              <div className="mt-2">
                <p className="text-xs text-green-600">
-                 전날: {historyData.views.toLocaleString()}
+                 전날: {historyData?.views?.toLocaleString()?? '--' }
                </p>
              </div>
            )}
@@ -162,17 +162,19 @@ export function AccountAnalytics({selectedSnsType}) {
                   {currentConnection.accountInfo.snsAccountName}
                 </span>
               </div>
-              <div>
+              <div className="flex">
                 <span className="text-gray-600">키워드:</span>
-                <div className=" flex flex-wrap gap-1 mt-2">
-                  {currentConnection.accountInfo.keyword?.map((kw, index) => (
+                <div className=" flex flex-wrap gap-1 ml-2">
+                  {currentConnection.accountInfo.keyword?.map((kw, index) => 
+                  (kw
+                    ?
                     <span
                       key={index}
                       className="px-2 py-1 bg-primary-20 text-shadow-purple-700 text-xs rounded-full font-medium"
                     >
                       #{kw}
                     </span>
-                  )) || <span className="text-gray-500">키워드 없음</span>}
+                   : <span className="text-gray-500">키워드 없음</span>))}
                 </div>
               </div>
               {currentConnection.accountInfo.snsAccountDescription && (
