@@ -4,6 +4,11 @@ export const ROUTES = {
     krName: "성과 분석",
     inMenu: true,
   },
+  AI_REPORT: {
+    route: "/analytics/ai-report/:snsType/:postId",
+    krName: "AI 분석 보고서",
+    inMenu: false,
+  },
   CONTENT_CREATION: {
     route: "/content-creation",
     krName: "콘텐츠 제작",
