@@ -43,7 +43,13 @@ export const useApi = (apiFunction, options = {}) => {
       apiError.response = response;
       throw apiError;
     } catch (err) {
-      setError(err);
+      console.log("useApierr", err);
+      if (err.response?.data?.isSuccess === false) {
+        const apiError = new Error(err.response.data.message??'요청이 실패했습니다.');
+        setError(apiError);
+      }else{
+        setError(err);
+      }
       if (onError) onError(err);
       throw err;
     } finally {

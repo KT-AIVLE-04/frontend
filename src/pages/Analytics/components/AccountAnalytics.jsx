@@ -1,13 +1,13 @@
-import { Eye, Users } from "lucide-react";
-import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
-import { analyticsApi } from "../../../api/analytics";
-import { LoadingSpinner } from "../../../components";
-import { useApi } from "../../../hooks";
-import { Card } from "../../../components/molecules/Card";
+import {Eye, Users} from "lucide-react";
+import React, {useEffect} from "react";
+import {useSelector} from "react-redux";
+import {analyticsApi} from "../../../api/analytics";
+import {LoadingSpinner} from "../../../components";
+import {useApi} from "../../../hooks";
+import {Card} from "../../../components/molecules/Card";
 
-export function AccountAnalytics({ selectedSnsType }) {
-  const { connections } = useSelector((state) => state.sns);
+export function AccountAnalytics({selectedSnsType}) {
+  const {connections} = useSelector((state) => state.sns);
   const currentConnection = connections[selectedSnsType];
 
   // 날짜 계산 헬퍼
@@ -40,7 +40,7 @@ export function AccountAnalytics({ selectedSnsType }) {
     const yesterday = getDateString(1);
     executeRealtime(selectedSnsType);
     executeHistory(yesterday, selectedSnsType);
-  }, [selectedSnsType, executeRealtime, executeHistory]);
+  }, [selectedSnsType]);
 
   if (!selectedSnsType) {
     return (
@@ -57,7 +57,7 @@ export function AccountAnalytics({ selectedSnsType }) {
     return (
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">계정 분석</h2>
-        <LoadingSpinner message="계정 데이터를 불러오는 중..." />
+        <LoadingSpinner message="계정 데이터를 불러오는 중..."/>
       </Card>
     );
   }
@@ -88,7 +88,7 @@ export function AccountAnalytics({ selectedSnsType }) {
               </p>
             </div>
             <div className="text-blue-500">
-              <Users size={24} />
+              <Users size={24}/>
             </div>
           </div>
           {historyData?.followers && (
@@ -108,7 +108,7 @@ export function AccountAnalytics({ selectedSnsType }) {
               </p>
             </div>
             <div className="text-green-500">
-              <Eye size={24} />
+              <Eye size={24}/>
             </div>
           </div>
           {historyData?.views && (

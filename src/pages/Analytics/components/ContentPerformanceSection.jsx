@@ -1,24 +1,36 @@
-import React, { useEffect } from "react";
-import { snsApi } from "../../../api/sns";
+import React, { useEffect, useState } from "react";
 import { LoadingSpinner } from "../../../components";
-import { useApi } from "../../../hooks";
-import { PostTableRow } from "./";
 import { Card } from "../../../components/molecules/Card";
+import { PostTableRow } from "./";
 
-export function ContentPerformanceSection({ selectedSnsType }) {
-  // 포스트 목록 가져오기
-  const {
-    data: postsData,
-    loading: postsLoading,
-    error: postsError,
-    execute: executePosts,
-  } = useApi(snsApi.post.getPosts);
+export function ContentPerformanceSection({ 
+  selectedSnsType, 
+  postsData, 
+  postsLoading, 
+  postsError,
+  onPostSelect
+}) {
+  // 선택된 포스트 ID 상태 관리
+  const [selectedPostId, setSelectedPostId] = useState(null);
 
-  // 데이터 로드
+  // 포스트 목록에서 선택된 SNS 타입의 포스트만 필터링
+  const filteredPosts =
+    postsData?.filter((post) => post.snsType === selectedSnsType) || [];
+
+  // 첫 번째 포스트를 기본 선택으로 설정
   useEffect(() => {
-    if (!selectedSnsType) return;
-    executePosts();
-  }, [selectedSnsType]);
+    if (filteredPosts.length > 0 && !selectedPostId) {
+      const firstPostId = filteredPosts[0].id;
+      setSelectedPostId(firstPostId);
+      onPostSelect(firstPostId);
+    }
+  }, [filteredPosts, selectedPostId, onPostSelect]);
+
+  // 포스트 선택 핸들러
+  const handlePostSelect = (postId) => {
+    setSelectedPostId(postId);
+    onPostSelect(postId);
+  };
 
   if (!selectedSnsType) {
     return (
@@ -56,16 +68,18 @@ export function ContentPerformanceSection({ selectedSnsType }) {
       </div>
     );
   }
-  // 포스트 목록에서 선택된 SNS 타입의 포스트만 필터링
-  const filteredPosts =
-    postsData?.filter((post) => post.snsType === selectedSnsType) || [];
 
   return (
     <Card variant="default" className="p-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">
-        최근 게시물 실시간 현황
-      </h2>
-
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-gray-800 m-0!">
+          게시물 실시간 현황
+        </h2>
+        <p className="text-sm text-gray-500">
+          표에서 게시물을 선택 시 분석데이터를 확인하실 수 있습니다
+        </p>
+      </div>
+      
       {/* 최근 5개 게시물 테이블 */}
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -98,6 +112,8 @@ export function ContentPerformanceSection({ selectedSnsType }) {
                 post={post}
                 index={index}
                 selectedSnsType={selectedSnsType}
+                isSelected={selectedPostId === post.id}
+                onSelect={handlePostSelect}
               />
             ))}
           </tbody>

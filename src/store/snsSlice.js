@@ -172,6 +172,15 @@ const snsSlice = createSlice({
       .addCase(fetchAllSnsAccounts.pending, (state) => {
         state.loading = true;
         state.error = null;
+        // 모든 플랫폼을 connecting 상태로 설정
+        Object.keys(state.connections).forEach((platform) => {
+          state.connections[platform] = {
+            ...state.connections[platform],
+            status: "connecting",
+            loading: true,
+            error: null,
+          };
+        });
       })
       .addCase(fetchAllSnsAccounts.fulfilled, (state, action) => {
         state.loading = false;

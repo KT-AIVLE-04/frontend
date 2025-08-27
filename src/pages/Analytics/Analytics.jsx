@@ -4,11 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Alert } from "../../components";
 import { SNS_TYPES, SNS_TYPE_LABELS } from "../../models/SnsAccount";
 import { ROUTES } from "../../routes/routes";
-import {
-  AccountAnalytics,
-  ContentPerformanceSection,
-  PostAnalytics,
-} from "./components";
+import { AnalyticsSections } from "./components";
 
 export function Analytics() {
   const navigate = useNavigate();
@@ -50,6 +46,31 @@ export function Analytics() {
 
   // 현재 선택된 SNS 계정 정보
   const currentConnection = connections[selectedSnsType];
+
+  // SNS 계정 연결 중 상태 확인
+  if (currentConnection?.status === "connecting") {
+    return (
+      <div className="flex-1 w-full p-6">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8 shadow-lg">
+            <div className="text-blue-600 text-6xl mb-4 animate-spin">
+              ⚡
+            </div>
+            <h2 className="text-2xl font-bold text-blue-800 mb-4">
+              SNS 계정 정보를 불러오는 중입니다
+            </h2>
+            <p className="text-blue-700 mb-6 text-lg">
+              {SNS_TYPE_LABELS[selectedSnsType]} 계정 정보를 확인하고 있습니다.
+              잠시만 기다려주세요.
+            </p>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // SNS 계정 연결 상태 확인
   if (currentConnection?.status === "disconnected") {
@@ -156,16 +177,7 @@ export function Analytics() {
       </div>
 
       {/* 3개 섹션으로 나누어진 분석 */}
-      <div className="space-y-6">
-        {/* 1. 계정 분석 섹션 */}
-        <AccountAnalytics selectedSnsType={selectedSnsType} />
-
-        {/* 2. 포스트 분석 섹션 */}
-        <PostAnalytics selectedSnsType={selectedSnsType} />
-
-        {/* 3. 콘텐츠 성과 분석 섹션 */}
-        <ContentPerformanceSection selectedSnsType={selectedSnsType} />
-      </div>
+      <AnalyticsSections selectedSnsType={selectedSnsType} />
     </div>
   );
 }

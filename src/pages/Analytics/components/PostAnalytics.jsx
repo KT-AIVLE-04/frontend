@@ -2,12 +2,12 @@ import { Eye, Heart, MessageCircle, Share2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { analyticsApi } from "../../../api/analytics";
 import { LoadingSpinner } from "../../../components";
+import { Card } from "../../../components/molecules/Card";
 import { useMultipleApi } from "../../../hooks";
 import { getDateFromRange } from "../../../utils";
 import { CommentsDisplay, EmotionAnalysis } from "./";
-import { Card } from "../../../components/molecules/Card";
 
-export function PostAnalytics({ selectedSnsType }) {
+export function PostAnalytics({ selectedSnsType, selectedPostId }) {
   const [dateRange, setDateRange] = useState("last7");
 
   // 실시간 메트릭들
@@ -28,46 +28,46 @@ export function PostAnalytics({ selectedSnsType }) {
 
   // 실시간 메트릭 로드
   useEffect(() => {
-    if (!selectedSnsType) return;
+    if (!selectedSnsType || !selectedPostId) return;
 
     const apiCalls = {
-      // 실시간 포스트 메트릭 (postId 없으면 최근 게시물 자동 선택)
-      realtimePost: () => analyticsApi.getRealtimePostMetrics(selectedSnsType),
-      // 실시간 댓글 (postId 없으면 최근 게시물 자동 선택)
+      // 선택된 포스트의 실시간 메트릭
+      realtimePost: () => analyticsApi.getRealtimePostMetrics(selectedSnsType, selectedPostId),
+      // 선택된 포스트의 실시간 댓글
       realtimeComments: () =>
-        analyticsApi.getRealtimeComments(selectedSnsType, null, 0, 5),
+        analyticsApi.getRealtimeComments(selectedSnsType, selectedPostId, 0, 5),
     };
 
     executeRealtime(apiCalls);
-  }, [selectedSnsType]);
+  }, [selectedSnsType, selectedPostId]);
 
   // 히스토리 메트릭 로드 (dateRange 변경시)
   useEffect(() => {
-    if (!selectedSnsType) return;
+    if (!selectedSnsType || !selectedPostId) return;
 
     // dateRange에 따른 날짜 계산
     const targetDate = getDateFromRange(dateRange);
 
     const apiCalls = {
-      // 히스토리 포스트 메트릭 (postId 없으면 최근 게시물 자동 선택)
+      // 선택된 포스트의 히스토리 메트릭
       historyPost: () =>
-        analyticsApi.getHistoryPostMetrics(targetDate, selectedSnsType),
-      // 히스토리 댓글 (postId 없으면 최근 게시물 자동 선택)
+        analyticsApi.getHistoryPostMetrics(targetDate, selectedSnsType, selectedPostId),
+      // 선택된 포스트의 히스토리 댓글
       historyComments: () =>
         analyticsApi.getHistoryComments(
           targetDate,
           selectedSnsType,
-          null,
+          selectedPostId,
           0,
           5
         ),
-      // 감정분석 (postId 없으면 최근 게시물 자동 선택)
+      // 선택된 포스트의 감정분석
       emotionAnalysis: () =>
-        analyticsApi.getHistoryEmotionAnalysis(targetDate, selectedSnsType),
+        analyticsApi.getHistoryEmotionAnalysis(targetDate, selectedSnsType, selectedPostId),
     };
 
     executeHistory(apiCalls);
-  }, [selectedSnsType, dateRange]);
+  }, [selectedSnsType, selectedPostId, dateRange]);
 
   if (!selectedSnsType) {
     return (
@@ -82,6 +82,19 @@ export function PostAnalytics({ selectedSnsType }) {
     );
   }
 
+  if (!selectedPostId) {
+    return (
+      <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          포스트 분석
+        </h2>
+        <div className="text-center py-8 text-gray-500">
+          분석할 포스트를 선택해주세요
+        </div>
+      </div>
+    );
+  }
+
   const realtimeData = realtimeResults.realtimePost?.result;
   const historyData = historyResults.historyPost?.result;
 
@@ -89,12 +102,12 @@ export function PostAnalytics({ selectedSnsType }) {
     <Card variant="default" className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-800">
-          최근 게시물 분석
+          선택된 포스트 분석
         </h2>
 
         {/* 날짜 범위 선택 */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">기간:</span>
+          <span className="text-sm font-medium text-gray-700">비교 기간:</span>
           <div className="flex bg-gray-100 rounded-lg p-1">
             {[
               { value: "today", label: "오늘" },
