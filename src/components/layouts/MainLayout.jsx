@@ -84,7 +84,7 @@ export const MainLayout = () => {
                 </button>
               )}
 
-              <h1 className="text-2xl font-black text-gray-800">marketing</h1>
+              <h1 className="text-2xl font-black text-gray-800">다맡케팅</h1>
 
               {/* 데스크탑 메뉴들 - 60% 너비 초과에서만 표시 */}
               {!isMobileMode && (
