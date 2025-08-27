@@ -29,7 +29,8 @@ export const contentApi = {
 
   // 콘텐츠 제목 수정 (PATCH, API 명세서에 맞게 수정)
   updateContentTitle: (contentId, title) =>
-    api.patch(`/contents/${contentId}`, { title }, {
+    api.patch(`/contents/${contentId}`, null, {
+      params: { title },
       storeId: true,
     }),
 

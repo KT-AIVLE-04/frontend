@@ -1,13 +1,15 @@
-import { CheckCircle, Clock, Sparkles } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useShortformGeneration } from '../../context/ShortformGenerationContext';
-import { shortApi } from '../../../../api/short';
-import { VideoPreview } from './VideoPreview';
+import { CheckCircle, Clock, Sparkles } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useShortformGeneration } from "../../context/ShortformGenerationContext";
+import { shortApi } from "../../../../api/short";
+import { VideoPreview } from "./VideoPreview";
 
 export const ShortsGeneration = ({ setContentType }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  
+  // 카운트다운 상태 추가
+  const [timeRemaining, setTimeRemaining] = useState(10); // 10분에서 시작
+
   const {
     contentId,
     contentStatus,
@@ -15,8 +17,32 @@ export const ShortsGeneration = ({ setContentType }) => {
     videoUrl,
     videoKey,
     setActiveStep,
-    resetToInputStep
+    resetToInputStep,
   } = useShortformGeneration();
+
+  // 카운트다운 타이머
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 60000); // 60초마다 1분씩 감소
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // 시간을 포맷하는 함수
+  const formatTime = (minutes) => {
+    if (minutes === 0) return "완료 예정";
+    return `약 ${minutes}분 남음`;
+  };
+
+  // 진행률 계산 (10분 → 0분)
+  const progressPercentage = ((10 - timeRemaining) / 10) * 100;
 
   // useEffect(() => {
   //   if (contentId) {
@@ -27,7 +53,7 @@ export const ShortsGeneration = ({ setContentType }) => {
   // videoUrl 또는 videoKey가 설정되면 자동으로 VideoPreview 표시
   useEffect(() => {
     if (videoUrl) {
-      console.log('Video URL 설정됨:', { videoUrl });
+      console.log("Video URL 설정됨:", { videoUrl });
     }
   }, [videoUrl]);
 
@@ -52,9 +78,9 @@ export const ShortsGeneration = ({ setContentType }) => {
 
   const handleRegenerate = () => {
     const userConfirmed = window.confirm(
-      '정보 입력 단계로 돌아가시겠습니까?\n\n매장 정보와 광고 정보를 수정하고 시나리오를 다시 생성할 수 있습니다.'
+      "정보 입력 단계로 돌아가시겠습니까?\n\n매장 정보와 광고 정보를 수정하고 시나리오를 다시 생성할 수 있습니다."
     );
-    
+
     if (userConfirmed) {
       resetToInputStep();
     }
@@ -62,7 +88,7 @@ export const ShortsGeneration = ({ setContentType }) => {
 
   const handleSave = async () => {
     if (!videoKey) {
-      alert('저장할 비디오가 없습니다.');
+      alert("저장할 비디오가 없습니다.");
       return;
     }
 
@@ -72,23 +98,22 @@ export const ShortsGeneration = ({ setContentType }) => {
 
     try {
       setIsSaving(true);
-      console.log('숏폼 저장 시작:', videoKey);
+      console.log("숏폼 저장 시작:", videoKey);
       const response = await shortApi.saveShorts(videoKey);
-      console.log('숏폼 저장 성공:', response.data);
-      alert('숏폼이 성공적으로 저장되었습니다!');
+      console.log("숏폼 저장 성공:", response.data);
+      alert("숏폼이 성공적으로 저장되었습니다!");
       setIsSaved(true);
     } catch (error) {
-      console.error('숏폼 저장 실패:', error);
-      alert('숏폼 저장에 실패했습니다. 다시 시도해주세요.');
+      console.error("숏폼 저장 실패:", error);
+      alert("숏폼 저장에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  
   if (videoUrl) {
-  // context에 videoUrl이 있거나 contentStatus가 완료 상태인 경우 VideoPreview 렌더링
-  // if (videoUrl || (contentStatus && contentStatus.status === 'completed')) {
+    // context에 videoUrl이 있거나 contentStatus가 완료 상태인 경우 VideoPreview 렌더링
+    // if (videoUrl || (contentStatus && contentStatus.status === 'completed')) {
     const displayVideoUrl = videoUrl;
     return (
       <VideoPreview
@@ -110,13 +135,18 @@ export const ShortsGeneration = ({ setContentType }) => {
           AI가 숏폼을 생성하고 있습니다
         </h3>
         <p className="text-sm text-gray-500 mb-6">
-          선택한 시나리오를 바탕으로 고품질 숏폼을 제작 중입니다.
-          잠시만 기다려주세요.
+          선택한 시나리오를 바탕으로 고품질 숏폼을 제작 중입니다. 잠시만
+          기다려주세요.
         </p>
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2 max-w-md mx-auto">
-          <div className="bg-blue-600 h-2.5 rounded-full w-2/3"></div>
+          <div
+            className="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-linear"
+            style={{ width: `${progressPercentage}%` }}
+          ></div>
         </div>
-        <p className="text-xs text-gray-500 mb-8">약 2분 남음</p>
+        <p className="text-xs text-gray-500 mb-8">
+          {formatTime(timeRemaining)}
+        </p>
         <div className="flex flex-col items-center space-y-2 max-w-xs mx-auto">
           <div className="flex items-center w-full">
             <CheckCircle size={16} className="text-green-500 mr-2" />
