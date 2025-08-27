@@ -90,7 +90,9 @@ export const formatDateTime = (date) => {
   const d = new Date(date);
   if (isNaN(d.getTime())) return "";
 
+  // 한국 시간대(KST)로 명시적 변환
   return d.toLocaleString("ko-KR", {
+    timeZone: "Asia/Seoul",
     year: "numeric",
     month: "long",
     day: "numeric",
