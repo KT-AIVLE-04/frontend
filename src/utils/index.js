@@ -13,3 +13,6 @@ export * from './media';
 
 // Date 관련
 export * from './dateUtils';
+
+// Error 관련
+export * from './ApiError';

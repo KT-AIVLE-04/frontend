@@ -1,10 +1,10 @@
 import {
-    Eye,
-    FileText,
-    Heart,
-    Info,
-    Lightbulb,
-    Tag
+  Eye,
+  FileText,
+  Heart,
+  Info,
+  Lightbulb,
+  Tag
 } from 'lucide-react';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -119,7 +119,7 @@ export const AiReportDisplay = ({
           <Alert
             type="error"
             title="AI 분석 보고서 조회 실패"
-            message={error.message || 'AI 분석 보고서를 조회하는 중 오류가 발생했습니다.'}
+            message={error.status + ' ' + error.message || 'AI 분석 보고서를 조회하는 중 오류가 발생했습니다.'}
             className="mb-4"
           />
         )}
