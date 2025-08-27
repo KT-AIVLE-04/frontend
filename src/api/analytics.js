@@ -77,7 +77,15 @@ export const analyticsApi = {
       params: { date } 
     }),
   
-
+  // ===== AI 분석 보고서 API =====
+  
+  // AI 분석 보고서 조회 (캐시 포함)
+  getAiReport: (snsType, postId) => 
+    api.get(`${BASE_URL}/realtime/posts/report`, { 
+      snsType,
+      params: { postId },
+      storeId: true // X-STORE-ID 헤더 자동 추가
+    }),
   
   // ===== 기존 호환성 API (점진적 마이그레이션용) =====
   

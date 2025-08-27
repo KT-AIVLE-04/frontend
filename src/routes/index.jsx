@@ -13,6 +13,7 @@ import {
     StoreSelection,
     StoreUpdate,
 } from "../pages";
+import { AiReportPage } from "../pages/Analytics/AiReportPage";
 import { ROUTES } from "./routes.js";
 
 const ProtectedRoute = () => {
@@ -113,6 +114,9 @@ function AppRoutes() {
               element={<Navigate to={ROUTES.STORE_SELECTION.route} replace/>}
             />
           </Route>
+          
+          {/* AI 분석 보고서 페이지 - MainLayout 외부에 배치 */}
+          <Route path={ROUTES.AI_REPORT.route} element={<AiReportPage/>}/>
         </Route>
       </Route>
       <Route path="*" element={<NotFoundRoute/>}/>
