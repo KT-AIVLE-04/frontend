@@ -120,15 +120,15 @@ export function ContentDetail({
                     <video
                       className="w-full h-full object-contain"
                       controls
-                      preload="none"
+                      preload="auto"
                       onLoadedMetadata={() =>
-                        console.log("비디오 로드 성공:", content.url)
+                        console.log("!!!!!비디오 로드 성공:", content.url)
                       }
                       onError={(e) => {
-                        console.error("비디오 로드 실패:", content.url);
-                        console.error("Error:", e);
+                        console.error("!!!1비디오 로드 실패:", content.url);
+                        console.error("!!!!Error:", e);
                       }}
-                      onCanPlay={() => console.log("비디오 재생 준비 완료")}
+                      onCanPlay={() => console.log("!!비디오 재생 준비 완료")}
                     >
                       <source
                         src={content.url}
@@ -167,7 +167,7 @@ export function ContentDetail({
                   />
                 )}
 
-                {/* 비디오일 때만 재생 버튼 오버레이 */}
+                {/* 비디오일 때만 재생 버튼 오버레이
                 {isVideo && (
                   <div className="absolute inset-0 flex items-center justify-center z-10">
                     <button className="bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-4 transition-all duration-200">
@@ -177,7 +177,7 @@ export function ContentDetail({
                       />
                     </button>
                   </div>
-                )}
+                )} */}
               </div>
             ) : (
               <div className="w-full h-full min-h-[300px] lg:min-h-[500px] flex items-center justify-center">
