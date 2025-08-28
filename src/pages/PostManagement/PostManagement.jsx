@@ -1180,7 +1180,7 @@ const PostManagement = () => {
                 >
                   <input
                     type="radio"
-                    checked={publishOptions.snsType === snsType.id}
+                    // checked={publishOptions.snsType === snsType.id}
                     onChange={async (e) => {
                       if (e.target.checked) {
                         setPublishOptions((prev) => ({
@@ -1324,7 +1324,7 @@ const PostManagement = () => {
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500">
-                  현재 한국 시간:{" "}
+                  현재 시간:{" "}
                   {new Date().toLocaleString("ko-KR", {
                     timeZone: "Asia/Seoul",
                     year: "numeric",
