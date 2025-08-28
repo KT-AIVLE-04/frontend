@@ -156,7 +156,7 @@ export function PostCard({ post, onClick, onDelete }) {
         </h3>
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">
-            {post.tags.slice(0, 3).map((tag, index) => (
+            {post.tags.slice(0, 2).map((tag, index) => (
               <span
                 key={index}
                 className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded"
@@ -166,7 +166,7 @@ export function PostCard({ post, onClick, onDelete }) {
             ))}
             {post.tags.length > 2 && (
               <span className="text-xs text-gray-500">
-                +{post.tags.length - 3}
+                +{post.tags.length - 2}
               </span>
             )}
           </div>
@@ -193,7 +193,7 @@ export function PostCard({ post, onClick, onDelete }) {
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
           <Calendar size={12} />
-          게시일 : {formatDateKorean(post.publishAt)}
+          게시일: {formatDateKorean(post.publishAt)}
         </div>
       </div>
     </Card>
