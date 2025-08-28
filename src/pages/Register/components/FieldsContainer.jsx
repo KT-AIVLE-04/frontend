@@ -42,13 +42,13 @@ export function FieldsContainer({
 
       <FormField
         label="전화번호"
-        name="phone"
+        name="phoneNumber"
         type="tel"
-        value={formData.phone}
+        value={formData.phoneNumber}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.phone && errors.phone}
-        validate={validationSchema.phone}
+        error={touched.phoneNumber && errors.phoneNumber}
+        validate={validationSchema.phoneNumber}
         touched={touched}
         placeholder="전화번호를 입력하세요"
         required

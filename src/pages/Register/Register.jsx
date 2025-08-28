@@ -4,11 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { authApi } from "../../api/auth";
 import { Alert, Button, Card } from "../../components";
 import { useApi, useForm } from "../../hooks";
+import { formatPhoneNumber } from "../../utils/formatters";
 import { REGISTER_VALIDATION_SCHEMA } from "../../utils/validations";
 import { FieldsContainer } from "./components";
 
 export function Register({ onRegister, onLoginClick }) {
   const navigate = useNavigate();
+  const formatters = {
+    phoneNumber: formatPhoneNumber
+  };
 
   // useForm 훅 사용
   const {
@@ -26,7 +30,7 @@ export function Register({ onRegister, onLoginClick }) {
     phoneNumber: "",
     age: "",
     password: "",
-  });
+  },formatters);
 
   // useApi 훅 사용
   const {
@@ -54,7 +58,7 @@ export function Register({ onRegister, onLoginClick }) {
           name: error.response.data.message.includes("이름")
             ? error.response.data.message
             : "",
-          phone: error.response.data.message.includes("전화번호")
+          phoneNumber: error.response.data.message.includes("전화번호")
             ? error.response.data.message
             : "",
           age: error.response.data.message.includes("연령대")
@@ -76,6 +80,7 @@ export function Register({ onRegister, onLoginClick }) {
 
     try {
       await registerUser(formData);
+      navigate(ROUTES.LOGIN.route);
       // onSuccess에서 자동으로 처리됨
     } catch (error) {
       console.error("회원가입 실패:", error);
