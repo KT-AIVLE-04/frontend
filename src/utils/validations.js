@@ -93,7 +93,7 @@ export const LOGIN_VALIDATION_SCHEMA = {
 export const REGISTER_VALIDATION_SCHEMA = {
   name: validateName,
   email: validateEmail,
-  phone: validatePhone,
+  phoneNumber: validatePhone,
   age: (value) => validateRequired(value, '연령대'),
   password: validatePassword
 };

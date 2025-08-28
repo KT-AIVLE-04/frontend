@@ -1,5 +1,6 @@
 export { AccountAnalytics } from './AccountAnalytics';
 export { AiReportDisplay } from './AiReportDisplay';
+export { AnalyticsSections } from './AnalyticsSections';
 export { ApiErrorDisplay } from './ApiErrorDisplay';
 export { CommentsDisplay } from './CommentsDisplay';
 export { ContentPerformanceSection } from './ContentPerformanceSection';

@@ -14,13 +14,20 @@ export function Register({ onRegister }) {
   const { success } = useNotification();
 
   // useForm 훅 사용 (포맷터 추가)
+  const formatters = {
+    phoneNumber: formatPhoneNumber,
+  };
+
+  // useForm 훅 사용
   const {
     values: formData,
     errors,
     touched,
     handleChange,
     handleBlur,
-    setFieldError,
+    validateForm,
+    setAllErrors,
+    resetForm,
   } = useForm(
     {
       name: "",
@@ -29,9 +36,7 @@ export function Register({ onRegister }) {
       age: "",
       password: "",
     },
-    {
-      phoneNumber: formatPhoneNumber, // 전화번호 포맷터 추가
-    }
+    formatters
   );
 
   // useApi 훅 사용
@@ -126,8 +131,10 @@ export function Register({ onRegister }) {
 
     try {
       await registerUser(formData);
+      navigate(ROUTES.LOGIN.route);
       // onSuccess에서 자동으로 처리됨
     } catch (error) {
+      console.error("회원가입 실패:", error);
       console.error("회원가입 실패:", error);
       // onError에서 자동으로 처리됨
     }

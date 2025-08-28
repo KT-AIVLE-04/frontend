@@ -10,6 +10,7 @@ import {
   Eye,
 } from "lucide-react";
 import { EmptyState, ErrorPage, LoadingSpinner, Card } from "../../components";
+import { Alert } from "../../components/molecules/Alert";
 import {
   SearchFilter,
   PostCard,
@@ -1671,7 +1672,7 @@ const PostManagement = () => {
             <div className="p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                  <Alert className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">

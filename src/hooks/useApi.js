@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ApiError } from '../utils';
 
 /**
  * API 호출을 위한 커스텀 훅
@@ -11,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  * @returns {Object} API 상태와 함수들
  * @returns {any} returns.data - API 응답 데이터
  * @returns {boolean} returns.loading - 로딩 상태
- * @returns {Error|null} returns.error - 에러 객체
+ * @returns {ApiError|null} returns.error - API 에러 객체 (message, status 포함)
  * @returns {Function} returns.execute - API 실행 함수 (...args) => Promise<any>
  * @returns {Function} returns.reset - 상태 초기화 함수 () => void
  */
@@ -39,13 +40,20 @@ export const useApi = (apiFunction, options = {}) => {
         }
       }
       const errorMessage = message || '요청이 실패했습니다.';
-      const apiError = new Error(errorMessage);
-      apiError.response = response;
-      throw apiError;
+      throw new ApiError(errorMessage, 400);
     } catch (err) {
-      setError(err);
-      if (onError) onError(err);
-      throw err;
+      console.log("useApierr", err);
+      let apiError;
+      
+      if (err.response?.data?.isSuccess === false) {
+        apiError = new ApiError(err.response.data.message || '요청이 실패했습니다.', err.response.status);
+      } else if (err.response) {
+        apiError = new ApiError(err.response.data?.message || '요청이 실패했습니다.', err.response.status);
+      } else {
+        apiError = new ApiError(err.message || '요청이 실패했습니다.', err.status||500);
+      }
+      setError(apiError);
+      if (onError) onError(apiError);
     } finally {
       setLoading(false);
     }
