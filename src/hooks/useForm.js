@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react";
 
 /**
  * 폼 상태 관리를 위한 커스텀 훅
@@ -21,79 +21,85 @@ export const useForm = (initialValues = {}, formatters = {}) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  const handleChange = useCallback((nameOrEvent, value) => {
-    // 이벤트 객체인 경우
-    if (nameOrEvent && nameOrEvent.target) {
-      const { name, value: targetValue } = nameOrEvent.target;
-      
-      // 포맷터가 있으면 적용
-      const formatter = formatters[name];
-      const formattedValue = formatter ? formatter(targetValue) : targetValue;
-      
-      setValues(prev => ({
-        ...prev,
-        [name]: formattedValue
-      }));
-      
-      // 에러가 있으면 클리어
-      if (errors[name]) {
-        setErrors(prev => ({
+  const handleChange = useCallback(
+    (nameOrEvent, value) => {
+      // 이벤트 객체인 경우
+      if (nameOrEvent && nameOrEvent.target) {
+        const { name, value: targetValue } = nameOrEvent.target;
+
+        // 포맷터가 있으면 적용
+        const formatter = formatters[name];
+        const formattedValue = formatter ? formatter(targetValue) : targetValue;
+
+        setValues((prev) => ({
           ...prev,
-          [name]: ''
+          [name]: formattedValue,
         }));
-      }
-    } else {
-      // 기존 방식 (name, value) 지원
-      const formatter = formatters[nameOrEvent];
-      const formattedValue = formatter ? formatter(value) : value;
-      
-      setValues(prev => ({
-        ...prev,
-        [nameOrEvent]: formattedValue
-      }));
-      
-      // 에러가 있으면 클리어
-      if (errors[nameOrEvent]) {
-        setErrors(prev => ({
+
+        // 에러가 있으면 클리어
+        if (errors[name]) {
+          setErrors((prev) => ({
+            ...prev,
+            [name]: "",
+          }));
+        }
+      } else {
+        // 기존 방식 (name, value) 지원
+        const formatter = formatters[nameOrEvent];
+        const formattedValue = formatter ? formatter(value) : value;
+
+        setValues((prev) => ({
           ...prev,
-          [nameOrEvent]: ''
+          [nameOrEvent]: formattedValue,
         }));
+
+        // 에러가 있으면 클리어
+        if (errors[nameOrEvent]) {
+          setErrors((prev) => ({
+            ...prev,
+            [nameOrEvent]: "",
+          }));
+        }
       }
-    }
-  }, [errors, formatters]);
+    },
+    [errors, formatters]
+  );
 
   const handleBlur = useCallback((nameOrEvent) => {
     // 이벤트 객체인 경우
     if (nameOrEvent && nameOrEvent.target) {
       const { name } = nameOrEvent.target;
-      setTouched(prev => ({
+      setTouched((prev) => ({
         ...prev,
-        [name]: true
+        [name]: true,
       }));
     } else {
       // 기존 방식 (name) 지원
-      setTouched(prev => ({
+      setTouched((prev) => ({
         ...prev,
-        [nameOrEvent]: true
+        [nameOrEvent]: true,
       }));
     }
   }, []);
 
-  const setFieldValue = useCallback((name, value) => {
-    // 포맷터가 있으면 적용
-    const formatter = formatters[name];
-    const formattedValue = formatter ? formatter(value) : value;
-    
-    setValues(prev => ({
-      ...prev,
-      [name]: formattedValue
-    }));
-  }, [formatters]);
+  const setFieldValue = useCallback(
+    (name, value) => {
+      // 포맷터가 있으면 적용
+      const formatter = formatters[name];
+      const formattedValue = formatter ? formatter(value) : value;
+
+      setValues((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+    },
+    [formatters]
+  );
 
   const setFieldError = useCallback((name, error) => {
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [name]: error
+      [name]: error,
     }));
   }, []);
 
@@ -101,33 +107,39 @@ export const useForm = (initialValues = {}, formatters = {}) => {
     setErrors(newErrors);
   }, []);
 
-  const resetForm = useCallback((newValues = initialValues) => {
-    setValues(newValues);
-    setErrors({});
-    setTouched({});
-  }, [initialValues]);
+  const resetForm = useCallback(
+    (newValues = initialValues) => {
+      setValues(newValues);
+      setErrors({});
+      setTouched({});
+    },
+    [initialValues]
+  );
 
-  const validateForm = useCallback((validationSchema) => {
-    if (!validationSchema) return true;
-    
-    const newErrors = {};
-    let isValid = true;
-    
-    Object.keys(validationSchema).forEach(fieldName => {
-      const validator = validationSchema[fieldName];
-      if (typeof validator === 'function') {
-        const error = validator(values[fieldName]);
-        if (error) {
-          console.log('에러 발생:', fieldName, error);
-          newErrors[fieldName] = error;
-          isValid = false;
+  const validateForm = useCallback(
+    (validationSchema) => {
+      if (!validationSchema) return true;
+
+      const newErrors = {};
+      let isValid = true;
+
+      Object.keys(validationSchema).forEach((fieldName) => {
+        const validator = validationSchema[fieldName];
+        if (typeof validator === "function") {
+          const error = validator(values[fieldName]);
+          if (error) {
+            console.log("에러 발생:", fieldName, error);
+            newErrors[fieldName] = error;
+            isValid = false;
+          }
         }
-      }
-    });
-    
-    setErrors(newErrors);
-    return isValid;
-  }, [values]);
+      });
+
+      setErrors(newErrors);
+      return isValid;
+    },
+    [values]
+  );
 
   return {
     values,
@@ -139,6 +151,7 @@ export const useForm = (initialValues = {}, formatters = {}) => {
     setFieldError,
     setAllErrors,
     resetForm,
-    validateForm
+    validateForm,
+    setTouched, // 추가
   };
 };

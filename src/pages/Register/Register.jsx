@@ -26,6 +26,7 @@ export function Register({ onRegister }) {
     handleChange,
     handleBlur,
     setFieldError,
+    setTouched,
   } = useForm(
     {
       name: "",
@@ -44,7 +45,6 @@ export function Register({ onRegister }) {
     execute: registerUser,
   } = useApi(authApi.register, {
     onSuccess: (data, message) => {
-      handleLoginClick();
       success(
         "회원가입이 성공적으로 완료되었습니다. 지금 로그인하여 서비스를 시작하세요!"
       );
@@ -52,6 +52,8 @@ export function Register({ onRegister }) {
       if (onRegister) {
         onRegister();
       }
+      // 성공 시에만 로그인 페이지로 이동
+      navigate(ROUTES.LOGIN.route);
     },
     onError: (error) => {
       console.error("회원가입 실패:", error);
@@ -59,22 +61,50 @@ export function Register({ onRegister }) {
       if (error.response?.data?.message) {
         const errorMessage = error.response.data.message;
 
-        // 필드별로 에러 메시지 매핑
-        if (errorMessage.includes("이메일")) {
+        // 필드별로 에러 메시지 매핑 (더 구체적인 조건 추가)
+        if (
+          errorMessage.includes("이미 가입된 이메일") ||
+          errorMessage.includes("이메일이 이미 존재") ||
+          errorMessage.includes("중복된 이메일") ||
+          errorMessage.includes("이메일")
+        ) {
           setFieldError("email", errorMessage);
+        } else if (
+          errorMessage.includes("이미 가입된 전화번호") ||
+          errorMessage.includes("전화번호가 이미 존재") ||
+          errorMessage.includes("중복된 전화번호") ||
+          errorMessage.includes("전화번호")
+        ) {
+          setFieldError("phoneNumber", errorMessage);
         } else if (errorMessage.includes("비밀번호")) {
           setFieldError("password", errorMessage);
         } else if (errorMessage.includes("이름")) {
           setFieldError("name", errorMessage);
-        } else if (errorMessage.includes("전화번호")) {
-          setFieldError("phoneNumber", errorMessage);
         } else if (errorMessage.includes("연령대")) {
           setFieldError("age", errorMessage);
-        } else {
-          // 일반적인 에러는 이메일 필드에 표시
-          setFieldError("email", errorMessage);
+        }
+        // } else {
+        //   // 일반적인 에러는 이메일 필드에 표시
+        //   setFieldError("email", errorMessage);
+        // }
+      } else if (error.response?.data?.errors) {
+        // Spring Boot validation 에러 형태 처리
+        const errors = error.response.data.errors;
+        if (Array.isArray(errors)) {
+          errors.forEach((err) => {
+            if (err.field) {
+              setFieldError(err.field, err.message);
+            }
+          });
         }
       }
+      // else {
+      //   // 기본 에러 메시지
+      //   setFieldError(
+      //     "email",
+      //     "회원가입에 실패했습니다. 입력 정보를 확인해주세요."
+      //   );
+      // }
     },
   });
 
@@ -112,29 +142,44 @@ export function Register({ onRegister }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // // 모든 필드를 touched 상태로 만들기
-    // const touchedFields = Object.keys(formData).reduce((acc, key) => {
-    //   acc[key] = true;
-    //   return acc;
-    // }, {});
+    // 모든 필드를 touched 상태로 만들기
+    const touchedFields = Object.keys(formData).reduce((acc, key) => {
+      acc[key] = true;
+      return acc;
+    }, {});
+
+    // touched 상태 업데이트
+    Object.keys(touchedFields).forEach((field) => {
+      setTouched((prev) => ({ ...prev, [field]: true }));
+    });
 
     // 클라이언트 사이드 검증
-    // const isValid = validateForm(REGISTER_VALIDATION_SCHEMA);
+    let hasErrors = false;
+    const newErrors = {};
 
-    // if (!isValid) {
-    //   // 검증 실패 시 사용자에게 알림
-    //   alert("입력 정보를 확인해주세요. 빨간색으로 표시된 필드를 수정해주세요.");
-    //   return;
-    // }
+    Object.keys(REGISTER_VALIDATION_SCHEMA).forEach((fieldName) => {
+      const validator = REGISTER_VALIDATION_SCHEMA[fieldName];
+      const error = validator(formData[fieldName]);
+      if (error) {
+        newErrors[fieldName] = error;
+        hasErrors = true;
+      }
+    });
+
+    // 에러가 있으면 상태 업데이트하고 제출 중단
+    if (hasErrors) {
+      Object.keys(newErrors).forEach((field) => {
+        setFieldError(field, newErrors[field]);
+      });
+      return;
+    }
 
     try {
       await registerUser(formData);
-      navigate(ROUTES.LOGIN.route);
-      // onSuccess에서 자동으로 처리됨
+      // 성공 시에만 로그인 페이지로 이동 (onSuccess에서 처리)
     } catch (error) {
       console.error("회원가입 실패:", error);
-      console.error("회원가입 실패:", error);
-      // onError에서 자동으로 처리됨
+      // 실패 시에는 현재 페이지에 머물면서 에러 표시 (onError에서 처리)
     }
   };
 
@@ -147,9 +192,10 @@ export function Register({ onRegister }) {
     navigate(ROUTES.LOGIN.route);
   };
 
-  // 현재 에러가 있는 필드 개수 계산
-  const errorCount = Object.values(errors).filter(
-    (error) => error && error.trim() !== ""
+  // 현재 에러가 있는 필드 개수 계산 (touched된 필드만 고려)
+  const errorCount = Object.keys(errors).filter(
+    (fieldName) =>
+      touched[fieldName] && errors[fieldName] && errors[fieldName].trim() !== ""
   ).length;
 
   return (

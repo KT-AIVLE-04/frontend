@@ -19,7 +19,7 @@ export function FieldsContainer({
         value={formData.name}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={errors.name}
+        error={touched.name && errors.name}
         placeholder="이름을 입력하세요"
         required
       />
@@ -31,7 +31,7 @@ export function FieldsContainer({
         value={formData.email}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={errors.email}
+        error={touched.email && errors.email}
         placeholder="이메일 주소를 입력하세요 (예: user@example.com)"
         required
       />
@@ -44,8 +44,6 @@ export function FieldsContainer({
         onChange={handleChange}
         onBlur={handleBlur}
         error={touched.phoneNumber && errors.phoneNumber}
-        validate={validationSchema.phoneNumber}
-        touched={touched}
         placeholder="전화번호를 입력하세요 (예: 010-1234-5678)"
         required
       />
@@ -57,7 +55,7 @@ export function FieldsContainer({
         value={formData.age}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={errors.age}
+        error={touched.age && errors.age}
         placeholder="연령대를 선택하세요"
         required
         options={ageOptions}
@@ -70,7 +68,7 @@ export function FieldsContainer({
         value={formData.password}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={errors.password}
+        error={touched.password && errors.password}
         placeholder="비밀번호를 입력하세요"
         required
       />
