@@ -85,6 +85,9 @@ const PostManagement = () => {
   const [snsAccountStatus, setSnsAccountStatus] = useState({});
   const [checkingAccountStatus, setCheckingAccountStatus] = useState(false);
 
+  // 업로드 로딩 상태 추가
+  const [isUploading, setIsUploading] = useState(false);
+
   // 삭제 확인 모달 상태 추가
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
@@ -177,7 +180,6 @@ const PostManagement = () => {
       //     "notifySubscribers": true
       //   }
       // ],
-      console.log("@@ getPostsResponseData", getPostsResponseData[0]);
       let filteredPostList = getPostsResponseData;
       if (selectedSnsType.length > 0) {
         filteredPostList = getPostsResponseData.filter(
@@ -569,6 +571,8 @@ const PostManagement = () => {
    ----------------------- */
   const handleUpload = async () => {
     try {
+      setIsUploading(true); // 업로드 시작 시 로딩 상태 활성화
+
       if (!post.title || !post.description || publishOptions.snsType === "") {
         alert("필수 정보를 모두 입력해주세요.");
         return;
@@ -597,10 +601,20 @@ const PostManagement = () => {
         const getPublishAt = () => {
           if (publishOptions.isNow === false) {
             if (publishOptions.publishAt) {
-              const dateTime = new Date(publishOptions.publishAt).toISOString();
-              return dateTime;
+              const localDateTime = new Date(publishOptions.publishAt);
+              console.log("##Date.now()", Date.now());
+              console.log(
+                "##publishOptions.publishAt",
+                publishOptions.publishAt
+              );
+              console.log("##localDateTime", localDateTime);
+              console.log(
+                "##localDateTime.toISOString()",
+                localDateTime.toISOString()
+              );
+              return localDateTime.toISOString();
             }
-            // 기본값: 1시간 후
+            // 기본값: 1시간 후 (한국 시간 기준)
             const oneHourLater = new Date(Date.now() + 60 * 60 * 1000);
             return oneHourLater.toISOString();
           }
@@ -651,6 +665,8 @@ const PostManagement = () => {
       } else {
         alert("게시물 업로드에 실패했습니다. 다시 시도해주세요.");
       }
+    } finally {
+      setIsUploading(false); // 업로드 완료/실패 시 로딩 상태 비활성화
     }
   };
 
@@ -1290,36 +1306,33 @@ const PostManagement = () => {
 
             {/* 예약 옵션 */}
             {publishOptions.isNow === false && (
-              <div className="mt-3 grid grid-cols-2 gap-4">
+              <div className="mt-3 space-y-3">
                 <input
-                  type="date"
-                  value={publishOptions.publishAt?.split("T")[0] || ""}
+                  type="datetime-local"
+                  value={publishOptions.publishAt || ""}
                   onChange={(e) => {
-                    const date = e.target.value;
-                    const time =
-                      publishOptions.publishAt?.split("T")[1] || "12:00";
                     setPublishOptions((prev) => ({
                       ...prev,
-                      publishAt: `${date}T${time}`,
+                      publishAt: e.target.value,
                     }));
                   }}
-                  className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  min={(() => {
+                    const now = new Date();
+                    return now.toISOString().slice(0, 16);
+                  })()}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <input
-                  type="time"
-                  value={publishOptions.publishAt?.split("T")[1] || "12:00"}
-                  onChange={(e) => {
-                    const time = e.target.value;
-                    const date =
-                      publishOptions.publishAt?.split("T")[0] ||
-                      new Date().toISOString().split("T")[0];
-                    setPublishOptions((prev) => ({
-                      ...prev,
-                      publishAt: `${date}T${time}`,
-                    }));
-                  }}
-                  className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                <p className="text-xs text-gray-500">
+                  현재 한국 시간:{" "}
+                  {new Date().toLocaleString("ko-KR", {
+                    timeZone: "Asia/Seoul",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
               </div>
             )}
           </div>
@@ -1625,11 +1638,21 @@ const PostManagement = () => {
             !post.title ||
             !post.description ||
             publishOptions.snsType === "" ||
-            checkingAccountStatus
+            checkingAccountStatus ||
+            isUploading
           }
-          className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
-          {checkingAccountStatus ? "계정 연동 확인 중..." : "업로드하기"}
+          {isUploading && (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          )}
+          <span>
+            {checkingAccountStatus
+              ? "계정 연동 확인 중..."
+              : isUploading
+              ? "업로드 중..."
+              : "업로드하기"}
+          </span>
         </button>
       </Card>
     </div>
