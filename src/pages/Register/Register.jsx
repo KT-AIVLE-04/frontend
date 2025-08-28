@@ -44,6 +44,7 @@ export function Register({onRegister, onLoginClick}) {
       if (onRegister) {
         onRegister();
       }
+      navigate(ROUTES.LOGIN.route);
     },
     onError: (error) => {
       console.error("회원가입 실패:", error);
