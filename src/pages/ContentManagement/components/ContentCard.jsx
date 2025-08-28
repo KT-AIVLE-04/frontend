@@ -113,18 +113,6 @@ export function ContentCard({
           {content.title || content.originalName}
         </h3>
 
-        {/* 파일 정보 */}
-        <div className="space-y-1 text-xs text-gray-500 mb-2">
-          {content.bytes && (
-            <div>파일 크기: {formatFileSize(content.bytes)}</div>
-          )}
-          {(content.width || content.height) && (
-            <div>
-              해상도: {content.width || 0} × {content.height || 0}
-            </div>
-          )}
-        </div>
-
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
           <Calendar size={12} />
           생성일 : {formatDateKorean(content.createdAt)}
