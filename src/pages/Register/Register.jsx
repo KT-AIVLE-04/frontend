@@ -3,13 +3,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../../api/auth";
 import { Alert, Button, Card } from "../../components";
-import { useApi, useForm, useNotification } from "../../hooks";
+import { useApi, useForm } from "../../hooks";
+import { formatPhoneNumber } from "../../utils/formatters";
 import { REGISTER_VALIDATION_SCHEMA } from "../../utils/validations";
 import { FieldsContainer } from "./components";
-import { formatPhoneNumber } from "../../utils/formatters";
-import { ROUTES } from "../../routes/routes";
+import { ROUTES } from "../../routes/routes.js";
 
-export function Register({ onRegister }) {
+export function Register({ onRegister, onLoginClick }) {
   const navigate = useNavigate();
   const { success } = useNotification();
 
@@ -25,14 +25,15 @@ export function Register({ onRegister }) {
     touched,
     handleChange,
     handleBlur,
-    setFieldError,
-    setTouched,
+    validateForm,
+    setAllErrors,
+    // resetForm,
   } = useForm(
     {
       name: "",
       email: "",
       phoneNumber: "",
-      age: "",
+      // age: "",
       password: "",
     },
     formatters
@@ -52,59 +53,30 @@ export function Register({ onRegister }) {
       if (onRegister) {
         onRegister();
       }
-      // 성공 시에만 로그인 페이지로 이동
       navigate(ROUTES.LOGIN.route);
     },
     onError: (error) => {
       console.error("회원가입 실패:", error);
       // 서버 에러를 폼 에러로 변환
       if (error.response?.data?.message) {
-        const errorMessage = error.response.data.message;
-
-        // 필드별로 에러 메시지 매핑 (더 구체적인 조건 추가)
-        if (
-          errorMessage.includes("이미 가입된 이메일") ||
-          errorMessage.includes("이메일이 이미 존재") ||
-          errorMessage.includes("중복된 이메일") ||
-          errorMessage.includes("이메일")
-        ) {
-          setFieldError("email", errorMessage);
-        } else if (
-          errorMessage.includes("이미 가입된 전화번호") ||
-          errorMessage.includes("전화번호가 이미 존재") ||
-          errorMessage.includes("중복된 전화번호") ||
-          errorMessage.includes("전화번호")
-        ) {
-          setFieldError("phoneNumber", errorMessage);
-        } else if (errorMessage.includes("비밀번호")) {
-          setFieldError("password", errorMessage);
-        } else if (errorMessage.includes("이름")) {
-          setFieldError("name", errorMessage);
-        } else if (errorMessage.includes("연령대")) {
-          setFieldError("age", errorMessage);
-        }
-        // } else {
-        //   // 일반적인 에러는 이메일 필드에 표시
-        //   setFieldError("email", errorMessage);
-        // }
-      } else if (error.response?.data?.errors) {
-        // Spring Boot validation 에러 형태 처리
-        const errors = error.response.data.errors;
-        if (Array.isArray(errors)) {
-          errors.forEach((err) => {
-            if (err.field) {
-              setFieldError(err.field, err.message);
-            }
-          });
-        }
+        setAllErrors({
+          email: error.response.data.message.includes("이메일")
+            ? error.response.data.message
+            : "",
+          password: error.response.data.message.includes("비밀번호")
+            ? error.response.data.message
+            : "",
+          name: error.response.data.message.includes("이름")
+            ? error.response.data.message
+            : "",
+          phoneNumber: error.response.data.message.includes("전화번호")
+            ? error.response.data.message
+            : "",
+          // age: error.response.data.message.includes("연령대")
+          //   ? error.response.data.message
+          //   : "",
+        });
       }
-      // else {
-      //   // 기본 에러 메시지
-      //   setFieldError(
-      //     "email",
-      //     "회원가입에 실패했습니다. 입력 정보를 확인해주세요."
-      //   );
-      // }
     },
   });
 

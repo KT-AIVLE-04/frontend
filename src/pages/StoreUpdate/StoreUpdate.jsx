@@ -43,7 +43,7 @@ export function StoreUpdate() {
   } = useApi(isEditMode ? storeApi.updateStore : storeApi.createStore, {
     onSuccess: (data, message) => {
       console.log("매장 저장 성공:", data, message);
-      // success('매장이 성공적으로 저장되었습니다.');
+      success("매장이 성공적으로 저장되었습니다.");
       navigate(ROUTES.STORE_MANAGEMENT.route);
     },
     onError: (error) => {
@@ -64,7 +64,9 @@ export function StoreUpdate() {
           fullData: data,
         });
 
-        const checkKakaoMapAPI = () => {
+        const checkKakaoMapAPI = (retryCount = 0) => {
+          const maxRetries = 50; // 최대 5초 대기 (50 * 100ms)
+
           if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
             const geocoder = new window.kakao.maps.services.Geocoder();
 
@@ -91,9 +93,16 @@ export function StoreUpdate() {
                 setFieldValue("longitude", null);
               }
             });
+          } else if (retryCount < maxRetries) {
+            console.log(
+              `카카오 맵 API 로드 대기 중... (${retryCount + 1}/${maxRetries})`
+            );
+            setTimeout(() => checkKakaoMapAPI(retryCount + 1), 100);
           } else {
-            console.log("카카오 맵 API 로드 대기 중...");
-            setTimeout(checkKakaoMapAPI, 100);
+            console.error("카카오 맵 API 로드 시간 초과. 주소만 저장합니다.");
+            setFieldValue("address", address);
+            setFieldValue("latitude", null);
+            setFieldValue("longitude", null);
           }
         };
 
@@ -118,15 +127,9 @@ export function StoreUpdate() {
       const storeRequest = new Store(formData);
       if (isEditMode) {
         await saveStore(editStore.id, storeRequest.toUpdateRequest());
-        success("매장 정보가 성공적으로 수정되었습니다.");
-        navigate(ROUTES.STORE_MANAGEMENT.route);
       } else {
         await saveStore(storeRequest.toCreateRequest());
-        success("새 매장이 추가되었습니다.");
       }
-
-      // 이전 페이지로 돌아가기
-      navigate(-1);
     } catch (error) {
       console.error("매장 저장 실패:", error);
       showError("매장 저장에 실패했습니다.");
