@@ -59,7 +59,9 @@ export function StoreUpdate() {
           fullData: data
         });
 
-        const checkKakaoMapAPI = () => {
+        const checkKakaoMapAPI = (retryCount = 0) => {
+          const maxRetries = 50; // 최대 5초 대기 (50 * 100ms)
+          
           if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
             const geocoder = new window.kakao.maps.services.Geocoder();
             
@@ -83,9 +85,14 @@ export function StoreUpdate() {
                 setFieldValue('longitude', null);
               }
             });
+          } else if (retryCount < maxRetries) {
+            console.log(`카카오 맵 API 로드 대기 중... (${retryCount + 1}/${maxRetries})`);
+            setTimeout(() => checkKakaoMapAPI(retryCount + 1), 100);
           } else {
-            console.log('카카오 맵 API 로드 대기 중...');
-            setTimeout(checkKakaoMapAPI, 100);
+            console.error('카카오 맵 API 로드 시간 초과. 주소만 저장합니다.');
+            setFieldValue('address', address);
+            setFieldValue('latitude', null);
+            setFieldValue('longitude', null);
           }
         };
 
