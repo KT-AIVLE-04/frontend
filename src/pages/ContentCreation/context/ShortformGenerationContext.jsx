@@ -48,6 +48,7 @@ export const ShortformGenerationProvider = ({ children }) => {
   const [jobStatus, setJobStatus] = useState(""); // QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELED
   const [location, setLocation] = useState("");
   const [progress, setProgress] = useState(0);
+  const [videoKey, setVideoKey] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [jobError, setJobError] = useState("");
 
