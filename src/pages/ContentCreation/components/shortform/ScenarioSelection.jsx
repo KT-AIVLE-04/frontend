@@ -1,7 +1,7 @@
-import { ArrowRight, CheckCircle } from 'lucide-react';
-import React from 'react';
+import { ArrowRight, CheckCircle } from "lucide-react";
+import React from "react";
 import { shortApi } from "../../../../api/short.js";
-import { useShortformGeneration } from '../../context/ShortformGenerationContext';
+import { useShortformGeneration } from "../../context/ShortformGenerationContext";
 
 export const ScenarioSelection = () => {
   const {
@@ -13,65 +13,67 @@ export const ScenarioSelection = () => {
     loading,
     setLoading,
     setActiveStep,
-    setVideoUrl,
-    setVideoKey,
-    sessionId
+    sessionId,
+    setJobId,
+    setJobStatus,
+    setLocation,
   } = useShortformGeneration();
 
   const handleCreateShorts = async () => {
     try {
       setLoading(true);
 
-      const selectedScenario = scenarios.find(scenario => scenario.id === selectedScenarioId);
+      const selectedScenario = scenarios.find(
+        (scenario) => scenario.id === selectedScenarioId
+      );
 
-      const durationNumber = parseInt(formData.adInfo.adDuration.replace('초', ''));
+      const durationNumber = parseInt(
+        formData.adInfo.adDuration.replace("초", "")
+      );
 
       const requestData = {
         sessionId: sessionId,
-        title: selectedScenario?.title || '',
-        content: selectedScenario?.description || '',
-        adDuration: durationNumber
+        title: selectedScenario?.title || "",
+        content: selectedScenario?.description || "",
+        adDuration: durationNumber,
       };
 
-      const images = formData.storeInfo.referenceFiles.map(file => file.file);
+      const images = formData.storeInfo.referenceFiles.map((file) => file.file);
 
-      console.log('숏폼 생성 요청 데이터:', requestData);
+      console.log("숏폼 생성 요청 데이터:", requestData);
+
+      // 3단계로 이동
       setActiveStep(3);
 
-      // 테스트용 - 2초 후 mock response 설정
-      // setTimeout(() => {
-      //   const mockResponse = {
-      //     data: {
-      //       contentId: 'test-content-id',
-      //       videoUrl: 'https://replicate.delivery/xezq/b6ALBNKtyR7rBVPf7fRpfm1SUbcNiSl9t15Uv9I5eJDmsbwUB/tmphu60dpzx.mp4',
-      //       key: 'key'
-      //     }
-      //   };
+      // POST /api/shorts 호출
+      const createShortResponse = await shortApi.createShorts(
+        requestData,
+        images
+      );
+      console.log("1.createShorts 숏폼 생성 응답:", createShortResponse);
 
-      //   console.log('숏폼 생성 응답 (테스트):', mockResponse.data);
+      if (createShortResponse.data.isSuccess) {
+        const createShortResponseData = createShortResponse.data.result;
 
-      //   // videoUrl과 key가 있으면 저장
-      //   if (mockResponse.data.videoUrl) {
-      //     setVideoUrl(mockResponse.data.videoUrl);
-      //   }
-      //   if (mockResponse.data.key) {
-      //     setVideoKey(mockResponse.data.key);
-      //   }
-      // }, 2000);
+        // API 응답에서 받은 데이터 저장
+        setJobId(createShortResponseData.jobId);
+        setJobStatus(createShortResponseData.status);
+        setLocation(createShortResponseData.location);
 
-      const response = await shortApi.createShorts(requestData, images);
-      console.log('숏폼 생성 응답:', response.data);
-
-      // videoUrl과 key가 있으면 저장
-      if (response.data?.result?.videoUrl) {
-        setVideoUrl(response.data.result.videoUrl);
-      }
-      if (response.data?.result?.key) {
-        setVideoKey(response.data.result.key);
+        console.log("Job 생성 성공:", {
+          jobId: createShortResponseData.jobId,
+          status: createShortResponseData.status,
+          location: createShortResponseData.location,
+        });
+      } else {
+        throw new Error(
+          createShortResponse.data.message || "숏폼 생성 요청 실패"
+        );
       }
     } catch (error) {
-      console.error('숏폼 생성 실패:', error);
-      alert('숏폼 생성에 실패했습니다.');
+      console.error("숏폼 생성 실패:", error);
+      alert("숏폼 생성에 실패했습니다.");
+      setActiveStep(2); // 실패 시 이전 단계로 돌아가기
     } finally {
       setLoading(false);
     }
@@ -87,16 +89,18 @@ export const ScenarioSelection = () => {
             onClick={() => setSelectedScenarioId(scenario.id)}
             className={`border rounded-lg p-6 hover:shadow-md transition-all cursor-pointer ${
               selectedScenarioId === scenario.id
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-blue-500'
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-blue-500"
             }`}
           >
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <div className="text-blue-600 font-semibold">시나리오{scenario.id}</div>
+                <div className="text-blue-600 font-semibold">
+                  시나리오{scenario.id}
+                </div>
                 {selectedScenarioId === scenario.id && (
                   <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                    <CheckCircle size={16} className="text-white"/>
+                    <CheckCircle size={16} className="text-white" />
                   </div>
                 )}
               </div>
@@ -106,9 +110,11 @@ export const ScenarioSelection = () => {
                 </div>
               )}
             </div>
-            <hr className="border-gray-200 mb-4"/>
+            <hr className="border-gray-200 mb-4" />
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">{scenario.title}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                {scenario.title}
+              </h3>
             </div>
             <div className="mb-2">
               <p className="text-gray-700 leading-relaxed whitespace-pre-line">
@@ -128,15 +134,18 @@ export const ScenarioSelection = () => {
         <button
           onClick={() => {
             if (selectedScenarioId) {
-              setFormData(prev => ({...prev, scenarioId: selectedScenarioId}));
+              setFormData((prev) => ({
+                ...prev,
+                scenarioId: selectedScenarioId,
+              }));
               handleCreateShorts();
             }
           }}
           disabled={loading || !selectedScenarioId}
           className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? '생성 중...' : '이 시나리오로 제작하기'}
-          <ArrowRight size={16} className="ml-2"/>
+          {loading ? "생성 중..." : "이 시나리오로 제작하기"}
+          <ArrowRight size={16} className="ml-2" />
         </button>
       </div>
     </div>

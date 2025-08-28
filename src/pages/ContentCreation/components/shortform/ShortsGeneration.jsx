@@ -7,74 +7,93 @@ import { VideoPreview } from "./VideoPreview";
 export const ShortsGeneration = ({ setContentType }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  // 카운트다운 상태 추가
-  const [timeRemaining, setTimeRemaining] = useState(10); // 10분에서 시작
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   const {
-    contentId,
-    contentStatus,
-    setContentStatus,
+    jobId,
+    jobStatus,
+    setJobStatus,
+    progress,
+    setProgress,
     videoUrl,
     videoKey,
+    setVideoKey,
+    setVideoUrl,
+    jobError,
+    setJobError,
     setActiveStep,
     resetToInputStep,
   } = useShortformGeneration();
 
-  // 카운트다운 타이머
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
+    if (
+      jobId &&
+      (jobStatus === "QUEUED" || jobStatus === "RUNNING" || !jobStatus)
+    ) {
+      const interval = setInterval(async () => {
+        try {
+          const getJobStatusResponse = await shortApi.getJobStatus(jobId);
+          console.log("Job 상태 조회 응답:", getJobStatusResponse);
+
+          if (getJobStatusResponse.data.isSuccess) {
+            const getJobStatusResponseData = getJobStatusResponse.data.result;
+
+            setJobStatus(getJobStatusResponseData.status);
+            setProgress(getJobStatusResponseData.progress || 0);
+
+            if (getJobStatusResponseData.status === "SUCCEEDED") {
+              setVideoKey(getJobStatusResponseData.key);
+              setVideoUrl(getJobStatusResponseData.videoUrl);
+              clearInterval(interval);
+              console.log(
+                "비디오 생성 완료:",
+                getJobStatusResponseData.key,
+                getJobStatusResponseData.videoUrl
+              );
+            } else if (
+              getJobStatusResponseData.status === "FAILED" ||
+              getJobStatusResponseData.status === "CANCELED"
+            ) {
+              setJobError(
+                getJobStatusResponseData.error || "작업이 실패했습니다."
+              );
+              clearInterval(interval);
+              console.error("작업 실패:", getJobStatusResponseData.error);
+            }
+          }
+        } catch (error) {
+          console.error("Job 상태 확인 실패:", error);
+          // 네트워크 에러 등의 경우 폴링을 계속 시도
         }
-        return prev - 1;
-      });
-    }, 60000); // 60초마다 1분씩 감소
+      }, 3000); // 3초마다 상태 확인
 
-    return () => clearInterval(timer);
-  }, []);
+      setPollingInterval(interval);
 
-  // 시간을 포맷하는 함수
-  const formatTime = (minutes) => {
-    if (minutes === 0) return "완료 예정";
-    return `약 ${minutes}분 남음`;
-  };
-
-  // 진행률 계산 (10분 → 0분)
-  const progressPercentage = ((10 - timeRemaining) / 10) * 100;
-
-  // useEffect(() => {
-  //   if (contentId) {
-  //     checkContentStatus();
-  //   }
-  // }, [contentId]);
-
-  // videoUrl 또는 videoKey가 설정되면 자동으로 VideoPreview 표시
-  useEffect(() => {
-    if (videoUrl) {
-      console.log("Video URL 설정됨:", { videoUrl });
+      return () => {
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
     }
-  }, [videoUrl]);
+  }, [
+    jobId,
+    jobStatus,
+    setJobStatus,
+    setProgress,
+    videoKey,
+    setVideoKey,
+    setVideoUrl,
+    setJobError,
+  ]);
 
-  // const checkContentStatus = async () => {
-  //   if (!contentId) return;
-
-  //   try {
-  //     const response = await contentApi.getContentStatus(contentId);
-  //     const status = response.data;
-  //     setContentStatus(status);
-
-  //     if (status.status === 'completed') {
-  //       // 영상 생성 완료 시 더 이상 자동으로 초기화하지 않음
-  //     } else if (status.status === 'failed') {
-  //       alert('콘텐츠 생성에 실패했습니다.');
-  //       setActiveStep(2);
-  //     }
-  //   } catch (error) {
-  //     console.error('콘텐츠 상태 확인 실패:', error);
-  //   }
-  // };
+  // 컴포넌트 언마운트 시 폴링 정리
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
 
   const handleRegenerate = () => {
     const userConfirmed = window.confirm(
@@ -87,7 +106,7 @@ export const ShortsGeneration = ({ setContentType }) => {
   };
 
   const handleSave = async () => {
-    if (!videoKey) {
+    if (!videoUrl) {
       alert("저장할 비디오가 없습니다.");
       return;
     }
@@ -98,7 +117,7 @@ export const ShortsGeneration = ({ setContentType }) => {
 
     try {
       setIsSaving(true);
-      console.log("숏폼 저장 시작:", videoKey);
+      console.log("숏폼 저장 시작 - VideoKey:", videoKey);
       const response = await shortApi.saveShorts(videoKey);
       console.log("숏폼 저장 성공:", response.data);
       alert("숏폼이 성공적으로 저장되었습니다!");
@@ -111,13 +130,43 @@ export const ShortsGeneration = ({ setContentType }) => {
     }
   };
 
-  if (videoUrl) {
-    // context에 videoUrl이 있거나 contentStatus가 완료 상태인 경우 VideoPreview 렌더링
-    // if (videoUrl || (contentStatus && contentStatus.status === 'completed')) {
-    const displayVideoUrl = videoUrl;
+  // 에러 상태 처리
+  if (jobStatus === "FAILED" || jobStatus === "CANCELED" || jobError) {
+    return (
+      <div>
+        <h2 className="text-lg font-semibold mb-4">콘텐츠 생성</h2>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="text-red-600 mb-4">⚠️</div>
+          <h3 className="text-lg font-medium mb-2 text-red-800">
+            콘텐츠 생성에 실패했습니다
+          </h3>
+          <p className="text-sm text-red-600 mb-6">
+            {jobError || "알 수 없는 오류가 발생했습니다."}
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => setActiveStep(2)}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
+            >
+              시나리오 다시 선택
+            </button>
+            <button
+              onClick={handleRegenerate}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+            >
+              처음부터 다시 시작
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 비디오 생성 완료 시 VideoPreview 표시
+  if (jobStatus === "SUCCEEDED" && videoUrl) {
     return (
       <VideoPreview
-        videoUrl={displayVideoUrl}
+        videoUrl={videoUrl}
         onRegenerate={handleRegenerate}
         onSave={handleSave}
         isSaving={isSaving}
@@ -126,6 +175,7 @@ export const ShortsGeneration = ({ setContentType }) => {
     );
   }
 
+  // 생성 중 상태 표시
   return (
     <div>
       <h2 className="text-lg font-semibold mb-4">콘텐츠 생성</h2>
@@ -138,15 +188,17 @@ export const ShortsGeneration = ({ setContentType }) => {
           선택한 시나리오를 바탕으로 고품질 숏폼을 제작 중입니다. 잠시만
           기다려주세요.
         </p>
+
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2 max-w-md mx-auto">
           <div
             className="bg-blue-600 h-2.5 rounded-full transition-all duration-1000 ease-linear"
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${progress}%` }}
           ></div>
         </div>
         <p className="text-xs text-gray-500 mb-8">
-          {formatTime(timeRemaining)}
+          {progress}% 완료 ({jobStatus || "대기 중"})
         </p>
+
         <div className="flex flex-col items-center space-y-2 max-w-xs mx-auto">
           <div className="flex items-center w-full">
             <CheckCircle size={16} className="text-green-500 mr-2" />
@@ -156,32 +208,35 @@ export const ShortsGeneration = ({ setContentType }) => {
             <CheckCircle size={16} className="text-green-500 mr-2" />
             <span className="text-sm">영상 소재 준비 완료</span>
           </div>
-          <div className="flex items-center w-full">
-            <Clock size={16} className="text-blue-500 mr-2" />
-            <span className="text-sm">영상 렌더링 중...</span>
+          <div
+            className={`flex items-center w-full ${
+              progress > 50 ? "text-green-600" : "text-blue-500"
+            }`}
+          >
+            {progress > 50 ? (
+              <CheckCircle size={16} className="text-green-500 mr-2" />
+            ) : (
+              <Clock size={16} className="text-blue-500 mr-2" />
+            )}
+            <span className="text-sm">
+              영상 렌더링 {progress > 50 ? "완료" : "중..."}
+            </span>
           </div>
-          <div className="flex items-center w-full text-gray-400">
-            <Clock size={16} className="mr-2" />
-            <span className="text-sm">최종 처리 대기 중</span>
+          <div
+            className={`flex items-center w-full ${
+              progress === 100 ? "text-green-600" : "text-gray-400"
+            }`}
+          >
+            {progress === 100 ? (
+              <CheckCircle size={16} className="text-green-500 mr-2" />
+            ) : (
+              <Clock size={16} className="mr-2" />
+            )}
+            <span className="text-sm">
+              최종 처리 {progress === 100 ? "완료" : "대기 중"}
+            </span>
           </div>
         </div>
-      </div>
-      <div className="mt-8 flex justify-between">
-        {/* <button 
-          onClick={() => setActiveStep(2)}
-          className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50"
-        >
-          이전
-        </button>
-        <button 
-          onClick={() => {
-            resetForm();
-            setContentType(null);
-          }}
-          className="px-6 py-2 bg-gray-800 text-white rounded-md text-sm font-medium hover:bg-gray-700"
-        >
-          취소
-        </button> */}
       </div>
     </div>
   );

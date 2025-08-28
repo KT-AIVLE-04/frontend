@@ -1,27 +1,27 @@
-import api from './axios';
+import api from "./axios";
 
-const BASE_URL = '/shorts'
+const BASE_URL = "/shorts";
 
 export const shortApi = {
-
   // 시나리오 생성 요청
-  createScenarios: (data) => api.post(`/shorts/scenario`, data, {
-    storeId: true,
-  }),
+  createScenarios: (data) =>
+    api.post(`/shorts/scenario`, data, {
+      storeId: true,
+    }),
 
   // 숏폼 생성 요청
   createShorts: (requestData, images) => {
     const formData = new FormData();
 
     const jsonBlob = new Blob([JSON.stringify(requestData)], {
-      type: 'application/json'
+      type: "application/json",
     });
-    formData.append('request', jsonBlob);
+    formData.append("request", jsonBlob);
 
     if (images && images.length > 0) {
       images.forEach((image, index) => {
         console.log(`Adding image ${index}:`, image);
-        formData.append('images', image);
+        formData.append("images", image);
       });
     }
 
@@ -29,16 +29,27 @@ export const shortApi = {
       console.log(key, value);
     }
 
-    return api.post('/shorts', formData, {
+    return api.post("/shorts", formData, {
       storeId: true,
     });
   },
 
-  // 숏폼 저장 요청 (API 명세서에 맞게 수정)
-  saveShorts: (sessionId, selectedScenario) => api.post('/shorts/save', { 
-    sessionId, 
-    selectedScenario 
-  }, {
-    storeId: true,
-  })
-}
+  // 작업 상태 조회
+  getJobStatus: (jobId) =>
+    api.get(`/shorts/jobs/${jobId}`, {
+      storeId: true,
+    }),
+
+  // 숏폼 저장 요청 (백엔드 API에 맞게 수정)
+  saveShorts: (sessionId, selectedScenario) =>
+    api.post(
+      "/shorts/save",
+      {
+        sessionId,
+        selectedScenario,
+      },
+      {
+        storeId: true,
+      }
+    ),
+};
