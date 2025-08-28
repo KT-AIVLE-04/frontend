@@ -1,14 +1,15 @@
-import { ArrowLeft } from "lucide-react";
+import {ArrowLeft} from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { authApi } from "../../api/auth";
-import { Alert, Button, Card } from "../../components";
-import { useApi, useForm } from "../../hooks";
-import { formatPhoneNumber } from "../../utils/formatters";
-import { REGISTER_VALIDATION_SCHEMA } from "../../utils/validations";
-import { FieldsContainer } from "./components";
+import {useNavigate} from "react-router-dom";
+import {authApi} from "../../api/auth";
+import {Alert, Button, Card} from "../../components";
+import {useApi, useForm} from "../../hooks";
+import {formatPhoneNumber} from "../../utils/formatters";
+import {REGISTER_VALIDATION_SCHEMA} from "../../utils/validations";
+import {FieldsContainer} from "./components";
+import {ROUTES} from "../../routes/routes.js";
 
-export function Register({ onRegister, onLoginClick }) {
+export function Register({onRegister, onLoginClick}) {
   const navigate = useNavigate();
   const formatters = {
     phoneNumber: formatPhoneNumber
@@ -23,14 +24,14 @@ export function Register({ onRegister, onLoginClick }) {
     handleBlur,
     validateForm,
     setAllErrors,
-    resetForm,
+    // resetForm,
   } = useForm({
     name: "",
     email: "",
     phoneNumber: "",
-    age: "",
+    // age: "",
     password: "",
-  },formatters);
+  }, formatters);
 
   // useApi 훅 사용
   const {
@@ -61,9 +62,9 @@ export function Register({ onRegister, onLoginClick }) {
           phoneNumber: error.response.data.message.includes("전화번호")
             ? error.response.data.message
             : "",
-          age: error.response.data.message.includes("연령대")
-            ? error.response.data.message
-            : "",
+          // age: error.response.data.message.includes("연령대")
+          //   ? error.response.data.message
+          //   : "",
         });
       }
     },
@@ -99,7 +100,7 @@ export function Register({ onRegister, onLoginClick }) {
           onClick={handleCancel}
           className="mr-2! p-3 text-gray-600 rounded-xl"
         >
-          <ArrowLeft size={20} strokeWidth={4} />
+          <ArrowLeft size={20} strokeWidth={4}/>
         </button>
         <h1 className="text-2xl font-bold">회원가입</h1>
       </div>
