@@ -25,9 +25,7 @@ export function Register({ onRegister }) {
     touched,
     handleChange,
     handleBlur,
-    validateForm,
-    setAllErrors,
-    resetForm,
+    setFieldError,
   } = useForm(
     {
       name: "",
