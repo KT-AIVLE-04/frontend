@@ -1,6 +1,6 @@
-import React from 'react';
-import { FormField } from '../../../components/molecules';
-import { ageOptions } from './AgeOptions';
+import React from "react";
+import { FormField } from "../../../components/molecules";
+import { ageOptions } from "./AgeOptions";
 
 export function FieldsContainer({
   formData,
@@ -8,7 +8,7 @@ export function FieldsContainer({
   handleBlur,
   touched,
   errors,
-  validationSchema
+  validationSchema,
 }) {
   return (
     <div className="space-y-6">
@@ -19,9 +19,7 @@ export function FieldsContainer({
         value={formData.name}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.name && errors.name}
-        validate={validationSchema.name}
-        touched={touched}
+        error={errors.name}
         placeholder="이름을 입력하세요"
         required
       />
@@ -33,24 +31,20 @@ export function FieldsContainer({
         value={formData.email}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.email && errors.email}
-        validate={validationSchema.email}
-        touched={touched}
-        placeholder="이메일 주소를 입력하세요"
+        error={errors.email}
+        placeholder="이메일 주소를 입력하세요 (예: user@example.com)"
         required
       />
 
       <FormField
         label="전화번호"
-        name="phone"
+        name="phoneNumber"
         type="tel"
-        value={formData.phone}
+        value={formData.phoneNumber}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.phone && errors.phone}
-        validate={validationSchema.phone}
-        touched={touched}
-        placeholder="전화번호를 입력하세요"
+        error={errors.phoneNumber}
+        placeholder="전화번호를 입력하세요 (예: 010-1234-5678)"
         required
       />
 
@@ -61,9 +55,7 @@ export function FieldsContainer({
         value={formData.age}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.age && errors.age}
-        validate={validationSchema.age}
-        touched={touched}
+        error={errors.age}
         placeholder="연령대를 선택하세요"
         required
         options={ageOptions}
@@ -76,9 +68,7 @@ export function FieldsContainer({
         value={formData.password}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.password && errors.password}
-        validate={validationSchema.password}
-        touched={touched}
+        error={errors.password}
         placeholder="비밀번호를 입력하세요"
         required
       />
