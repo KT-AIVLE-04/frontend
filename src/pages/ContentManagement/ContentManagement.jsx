@@ -21,7 +21,7 @@ export function ContentManagement() {
 
   useEffect(() => {
     fetchContents();
-  }, [sortBy]);
+  }, [sortBy, uploading]);
 
   const fetchContents = async () => {
     try {
