@@ -1,5 +1,5 @@
 import { Upload, X, Trash2 } from 'lucide-react';
-import { useShortformGeneration } from '../../context/ShortformGenerationContext';
+import { useShortformGeneration } from '../context/ShortformGenerationContext';
 
 export const StoreInfoSection = ({ 
   validationErrors, 
@@ -129,7 +129,7 @@ export const StoreInfoSection = ({
                 {formData.storeInfo.referenceFiles.map((file) => (
                   <div
                     key={file.id}
-                    className="relative group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200"
+                    className="relative bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200"
                   >
                     <div className="aspect-square relative w-full h-40">
                       <img
@@ -138,7 +138,7 @@ export const StoreInfoSection = ({
                         className="w-full h-full object-cover object-center"
                       />
                       <div
-                        className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                        className="absolute inset-0 bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                         <button
                           onClick={() => handleRemoveFile(file.id)}
                           className="p-1.5 bg-gray-600 text-white rounded-full hover:bg-gray-700 transition-colors"

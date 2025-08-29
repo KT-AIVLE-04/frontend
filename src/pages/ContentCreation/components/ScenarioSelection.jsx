@@ -1,7 +1,7 @@
 import { ArrowRight, CheckCircle } from "lucide-react";
 import React from "react";
-import { shortApi } from "../../../../api/short.js";
-import { useShortformGeneration } from "../../context/ShortformGenerationContext";
+import { shortApi } from "../../../api/short.js";
+import { useShortformGeneration } from "../context/ShortformGenerationContext.jsx";
 
 export const ScenarioSelection = () => {
   const {

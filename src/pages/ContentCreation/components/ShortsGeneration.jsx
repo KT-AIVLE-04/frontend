@@ -1,7 +1,7 @@
 import { CheckCircle, Clock, Sparkles } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useShortformGeneration } from "../../context/ShortformGenerationContext";
-import { shortApi } from "../../../../api/short";
+import { useShortformGeneration } from "../context/ShortformGenerationContext";
+import { shortApi } from "../../../api/short";
 import { VideoPreview } from "./VideoPreview";
 
 export const ShortsGeneration = ({ setContentType }) => {

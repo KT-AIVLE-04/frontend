@@ -36,9 +36,6 @@ export const ShortformGenerationProvider = ({ children }) => {
     },
   });
   const [loading, setLoading] = useState(false);
-  // const [contentStatus, setContentStatus] = useState(null);
-  // const [contentId, setContentId] = useState(null);
-  // const [videoKey, setVideoKey] = useState(null);
   const [error, setError] = useState(null);
   const [brandConceptInput, setBrandConceptInput] = useState("");
   const [fileInputRef, setFileInputRef] = useState(null);
