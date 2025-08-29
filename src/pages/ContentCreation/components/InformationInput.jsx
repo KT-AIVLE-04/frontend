@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { useValidation } from '../../hooks/useValidation';
-import { useInformationForm } from '../../hooks/useInformationForm';
+import { useValidation } from '../hooks/useValidation';
+import { useInformationForm } from '../hooks/useInformationForm';
 import { StoreInfoSection } from './StoreInfoSection';
 import { AdInfoSection } from './AdInfoSection';
 
