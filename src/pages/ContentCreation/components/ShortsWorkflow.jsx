@@ -1,9 +1,9 @@
 import React from "react";
-import { Card } from "../../../../components";
+import { Card } from "../../../components";
 import {
   ShortformGenerationProvider,
   useShortformGeneration,
-} from "../../context/ShortformGenerationContext";
+} from "../context/ShortformGenerationContext";
 import { InformationInput } from "./InformationInput";
 import { ScenarioSelection } from "./ScenarioSelection";
 import { ShortsGeneration } from "./ShortsGeneration";

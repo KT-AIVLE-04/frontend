@@ -1,5 +1,5 @@
 import { Upload, X, Trash2 } from 'lucide-react';
-import { useShortformGeneration } from '../../context/ShortformGenerationContext';
+import { useShortformGeneration } from '../context/ShortformGenerationContext';
 
 export const StoreInfoSection = ({ 
   validationErrors, 
