@@ -90,11 +90,9 @@ export const formatDateTime = (date) => {
   const d = new Date(date);
   if (isNaN(d.getTime())) return "";
 
-  // 한국 시간대(KST)로 명시적 변환
   return d.toLocaleString("ko-KR", {
-    timeZone: "Asia/Seoul",
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
@@ -201,4 +199,35 @@ export const capitalizeWords = (str) => {
     /\w\S*/g,
     (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
   );
+};
+
+export const formatDate_forPost = (date) => {
+  if (!date) return "";
+  // console.log("0. 확인 - date", date); // 2025-08-29T07:53:00+09:00 -> 백엔드에서 +09:00 추가됨 (?! 수정 필요)
+  const dateUtc = new Date(date);
+  // console.log("1. 확인 - dateUtc", dateUtc); // Fri Aug 29 2025 07:53:00 GMT+0900 (한국 표준시)
+  dateUtc.setHours(dateUtc.getHours() + 9); // Fri Aug 29 2025 16:53:00 GMT+0900 (한국 표준시)
+  // console.log("2. 확인 - dateUtc + 9", dateUtc);
+
+  return dateUtc.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};
+export const formatDateTime_forPost = (date) => {
+  if (!date) return "";
+  // console.log("0. 확인 - date", date); // 2025-08-29T07:53:00+09:00 -> 백엔드에서 +09:00 추가됨 (?! 수정 필요)
+  const dateUtc = new Date(date);
+  // console.log("1. 확인 - dateUtc", dateUtc); // Fri Aug 29 2025 07:53:00 GMT+0900 (한국 표준시)
+  dateUtc.setHours(dateUtc.getHours() + 9); // Fri Aug 29 2025 16:53:00 GMT+0900 (한국 표준시)
+  // console.log("2. 확인 - dateUtc + 9", dateUtc);
+
+  return dateUtc.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
