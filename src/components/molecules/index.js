@@ -6,4 +6,5 @@ export { ConfirmModal, Modal } from './Modal';
 export { Pagination } from './Pagination';
 export { SearchField } from './SearchField';
 export { TabPanel, Tabs } from './Tabs';
+export { WebSocketStatus } from './WebSocketStatus';
 
