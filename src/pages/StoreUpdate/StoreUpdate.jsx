@@ -32,7 +32,7 @@ export function StoreUpdate() {
     setAllErrors,
     setFieldValue,
   } = useForm(
-    editStore ? new Store(editStore) : Store.createEmpty(),
+    editStore ? Store.fromResponse(editStore) : Store.createEmpty(),
     formatters
   );
 
