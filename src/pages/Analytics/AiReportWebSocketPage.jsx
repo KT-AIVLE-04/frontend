@@ -1,16 +1,16 @@
 import {
   AlertCircle,
   BarChart3,
-  Brain,
-  Play
+  Brain
 } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../../components/atoms';
 import { Card, WebSocketStatus } from '../../components/molecules';
+import { SOCKET_STATUS } from '../../const/socketType';
 import { useWebSocket } from '../../hooks';
-import { AiReportDisplay } from './components/AiReportDisplay';
+import { AiReportStatusDisplay } from './components/AiReportStatusDisplay';
 
 /**
  * WebSocket 기반 AI 분석 보고서 페이지
@@ -23,8 +23,7 @@ export const AiReportWebSocketPage = () => {
   const { connections } = useSelector(state => state.sns);
   
   const {
-    isConnecting,
-    isConnected,
+    status,
     messages,
     error,
     recentMessage,
@@ -32,8 +31,44 @@ export const AiReportWebSocketPage = () => {
     disconnect,
     sendMessage,
     clearMessages,
-    clearError
-  } = useWebSocket('/api/analytics/report');
+    clearError,
+    setError
+  } = useWebSocket('/api/analytics/report', {
+    onOpen: () => {
+      // WebSocket 연결 성공 시 자동으로 분석 시작
+      console.log('onOpen 콜백 실행됨');
+      console.log('selectedStoreId:', selectedStoreId);
+      console.log('connections[snsType]:', connections[snsType]);
+      console.log('connections[snsType]?.accountInfo?.id:', connections[snsType]?.accountInfo?.id);
+      
+      if (selectedStoreId && connections[snsType]?.accountInfo?.id) {
+        console.log('WebSocket 연결 성공 시 자동으로 분석 시작');
+        const accountId = connections[snsType]?.accountInfo?.id;
+        const request = {
+          action: 'generate_report',
+          postId: parseInt(postId),
+          accountId,
+          storeId: selectedStoreId
+        };
+        console.log('전송할 메시지:', request);
+        const result = sendMessage(request);
+        console.log('sendMessage 결과:', result);
+      } else {
+        console.log('자동 분석 시작 조건 불충족');
+        console.log('- selectedStoreId:', selectedStoreId);
+        console.log('- connections[snsType]:', connections[snsType]);
+      }
+    },
+    onClose: (event) => {
+      // 연결이 끊어졌을 때 진행사항 확인
+      if (!recentMessage || recentMessage.type !== 'COMPLETE') {
+        // 진행사항이 완료되지 않았다면 에러 표시
+        console.log('event:', event);
+        console.log('WebSocket 연결이 예기치 않게 끊어졌습니다. 분석이 완료되지 않았을 수 있습니다.');
+        setError('WebSocket 연결이 예기치 않게 끊어졌습니다. 분석이 완료되지 않았을 수 있습니다.');
+      }
+    }
+  });
 
   // 컴포넌트 마운트 시 WebSocket 연결
   useEffect(() => {
@@ -44,22 +79,6 @@ export const AiReportWebSocketPage = () => {
       disconnect();
     };
   }, []); // 한 번만 실행
-
-  // WebSocket 연결 성공 시 자동으로 분석 시작
-  useEffect(() => {
-    if (isConnected && selectedStoreId && connections[snsType]?.accountInfo?.id) {
-      // 연결이 완료되고 필요한 정보가 있으면 자동으로 분석 시작
-      console.log('WebSocket 연결 성공 시 자동으로 분석 시작');
-      const accountId = connections[snsType]?.accountInfo?.id;
-      const request = {
-        action: 'generate_report',
-        postId: parseInt(postId),
-        accountId,
-        storeId: selectedStoreId
-      };
-      sendMessage(request);
-    }
-  }, [isConnected, selectedStoreId, connections, snsType, postId]); // sendMessage 제거
 
   // COMPLETE 메시지가 오면 자동으로 연결 해제
   useEffect(() => {
@@ -114,7 +133,7 @@ export const AiReportWebSocketPage = () => {
                   </div>
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-0!">
-                      AI 분석 보고서 (실시간)
+                      AI 분석 보고서
                     </h1>
                     <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
                       <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
@@ -132,8 +151,8 @@ export const AiReportWebSocketPage = () => {
             <div className="flex items-center space-x-3">
               {/* WebSocket 상태 표시 */}
               <WebSocketStatus 
-                isConnecting={isConnecting} 
-                isConnected={isConnected} 
+                isConnecting={status === SOCKET_STATUS.CONNECTING} 
+                isConnected={status === SOCKET_STATUS.CONNECTED} 
                 onDisconnect={handleStopGeneration}
               />
               <Button 
@@ -148,90 +167,17 @@ export const AiReportWebSocketPage = () => {
           </div>
         </div>
 
-        {/* WebSocket 상태 및 진행률 표시 */}
-        {recentMessage && recentMessage.type === 'PROGRESS' && (
-          <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-            <div className="text-center">
-              {/* 로딩 인디케이터 */}
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              </div>
-              
-              {/* 제목 */}
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                AI 분석 진행 중...
-              </h3>
-              
-              {/* 메시지 */}
-              <p className="text-gray-600 text-lg">
-                {recentMessage?.message || '분석을 진행하고 있습니다...'}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* 오류 표시 */}
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-6">
-            <div className="flex items-center space-x-3">
-              <AlertCircle className="w-6 h-6 text-red-500" />
-              <div>
-                <h3 className="text-lg font-semibold text-red-800">오류 발생</h3>
-                <p className="text-red-600">{error}</p>
-              </div>
-            </div>
-            <div className="mt-4 flex space-x-3">
-              <Button onClick={handleStopGeneration} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
-                재연결
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* AI 보고서 컴포넌트 */}
-        {recentMessage && recentMessage.type === 'COMPLETE' && recentMessage.result && (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50">
-            <AiReportDisplay 
-              snsType={snsType} 
-              postId={parseInt(postId)}
-              report={recentMessage.result}
-              loading={false}
-              error={null}
-              onRefresh={connect}
-              onReset={clearMessages}
-              className="p-0"
-            />
-          </div>
-        )}
-
-        {/* 초기 상태 또는 연결 대기 */}
-        {!recentMessage && !error && (
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-12">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Brain className="w-10 h-10 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                AI 분석 보고서 생성
-              </h3>
-              <p className="text-gray-600 mb-6">
-                {isConnecting 
-                  ? 'WebSocket 연결을 시도하고 있습니다...'
-                  : '분석 시작 버튼을 클릭하여 AI 분석을 시작하세요.'
-                }
-              </p>
-              {!isConnecting && (
-                <Button 
-                  onClick={connect}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Play className="mr-2 w-4 h-4" />
-                  분석 시작
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
+        {/* AI 보고서 상태별 UI 표시 */}
+        <AiReportStatusDisplay
+          status={status}
+          recentMessage={recentMessage}
+          error={error}
+          snsType={snsType}
+          postId={postId}
+          onConnect={connect}
+          onStopGeneration={handleStopGeneration}
+          onClearMessages={clearMessages}
+        />
 
         {/* 디버그용 메시지 로그 (개발 환경에서만) */}
         {import.meta.env.DEV && messages.length > 0 && (
