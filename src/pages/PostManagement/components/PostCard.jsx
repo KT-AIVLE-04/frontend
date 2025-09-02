@@ -11,9 +11,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { Card } from "../../../components/molecules";
-import { formatDateKorean } from "../../../utils/formatters";
 import { analyticsApi } from "../../../api/analytics";
 import { useApi } from "../../../hooks";
+import { formatDate_forPost } from "../../../utils/formatters";
 
 export function PostCard({ post, onClick, onDelete }) {
   const handleCardClick = () => {
@@ -193,7 +193,7 @@ export function PostCard({ post, onClick, onDelete }) {
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
           <Calendar size={12} />
-          게시일: {formatDateKorean(post.publishAt)}
+          게시일 : {formatDate_forPost(post.publishAt)}
         </div>
       </div>
     </Card>

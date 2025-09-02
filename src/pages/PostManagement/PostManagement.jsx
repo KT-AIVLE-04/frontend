@@ -41,9 +41,10 @@ const PostManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
-  const [selectedPost, setSelectedPost] = useState(null); // 게시물 상세보기 컴포넌트에서 사용 - null or post 객체
+  const [selectedPost, setSelectedPost] = useState(null); // 게시물 상세보기 컴포넌트에서 사용 - null or postList에서 뽑은 post 객체
   const [postList, setPostList] = useState([]);
   const [post, setPost] = useState({
+    // 업로드 폼에서 사용
     title: "",
     description: "",
     tags: [],
@@ -201,6 +202,7 @@ const PostManagement = () => {
    * 게시물 관련 함수
    ----------------------- */
   const handleCardClick = (post) => {
+    // 여기서 post는 postList에서 뽑은 post객체 하나
     setSelectedPost(post);
   };
   const handleCloseDetail = () => setSelectedPost(null);
@@ -547,7 +549,6 @@ const PostManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {postList.map((post) => (
               <PostCard
-                key={post.id}
                 post={post}
                 onClick={() => handleCardClick(post)}
                 onDelete={() => handleDeletePost(post.id)}
@@ -602,18 +603,10 @@ const PostManagement = () => {
         const getPublishAt = () => {
           if (publishOptions.isNow === false) {
             if (publishOptions.publishAt) {
-              const localDateTime = new Date(publishOptions.publishAt);
-              console.log("##Date.now()", Date.now());
-              console.log(
-                "##publishOptions.publishAt",
-                publishOptions.publishAt
-              );
-              console.log("##localDateTime", localDateTime);
-              console.log(
-                "##localDateTime.toISOString()",
-                localDateTime.toISOString()
-              );
-              return localDateTime.toISOString();
+              // 2025-08-29T16:53 로 입력받음
+              // new Date(publishOptions.publishAt).toISOString()해서 -> 2025-08-29T07:53:00.000Z 로 api 요청 보냄
+              const publishDate = new Date(publishOptions.publishAt); // 한국 시간
+              return publishDate.toISOString(); // UTC 시간으로 변환(한국시간-9시간)
             }
             // 기본값: 1시간 후 (한국 시간 기준)
             const oneHourLater = new Date(Date.now() + 60 * 60 * 1000);
@@ -632,6 +625,7 @@ const PostManagement = () => {
           isNow: publishOptions.isNow,
           publishAt: getPublishAt(),
         };
+        console.log("##uploadData", uploadData);
         await snsApi.post.uploadPost(uploadData);
         alert("게시물이 업로드되었습니다!");
       }

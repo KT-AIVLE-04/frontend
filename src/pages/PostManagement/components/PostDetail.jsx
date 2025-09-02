@@ -12,7 +12,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import { formatDateTime } from "../../../utils/formatters";
+import { formatDateTime_forPost } from "../../../utils/formatters";
 import { analyticsApi } from "../../../api/analytics";
 import { useApi } from "../../../hooks";
 
@@ -204,7 +204,7 @@ export function PostDetail({ post, onClose, onDelete }) {
                 <h3 className="font-semibold text-gray-900 mb-3">게시 정보</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar size={16} className="text-gray-400" />
-                  {formatDateTime(post.publishAt)}
+                  {formatDateTime_forPost(post.publishAt)}
                 </div>
               </div>
             </div>
