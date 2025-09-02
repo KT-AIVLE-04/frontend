@@ -136,24 +136,13 @@ export const AiReportWebSocketPage = () => {
                 isConnected={isConnected} 
                 onDisconnect={handleStopGeneration}
               />
-
-              {/* 보고서 생성/중지 버튼 */}
-              <Button 
-                onClick={connect}
-                disabled={isConnected || isConnecting}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
-              >
-                <Play className="mr-2 w-4 h-4" />
-                분석 시작
-              </Button>
-
               <Button 
                 onClick={() => navigate('/analytics')} 
                 variant="outline"
                 className="bg-white border-gray-300 hover:bg-gray-50 text-gray-700"
               >
                 <BarChart3 className="mr-2 w-4 h-4" />
-                성과분석
+                성과분석으로 돌아가기
               </Button>
             </div>
           </div>
@@ -161,23 +150,23 @@ export const AiReportWebSocketPage = () => {
 
         {/* WebSocket 상태 및 진행률 표시 */}
         {recentMessage && recentMessage.type === 'PROGRESS' && (
-          <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">AI 분석 진행 중...</h3>
-              <span className="text-2xl font-bold text-purple-600">{recentMessage.percentage || 0}%</span>
+          <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
+            <div className="text-center">
+              {/* 로딩 인디케이터 */}
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
+              
+              {/* 제목 */}
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                AI 분석 진행 중...
+              </h3>
+              
+              {/* 메시지 */}
+              <p className="text-gray-600 text-lg">
+                {recentMessage?.message || '분석을 진행하고 있습니다...'}
+              </p>
             </div>
-            
-            {/* 진행률 바 */}
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-              <div 
-                className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${recentMessage.percentage || 0}%` }}
-              />
-            </div>
-            
-            <p className="text-gray-600 text-center">
-              {recentMessage.message || '분석을 진행하고 있습니다...'}
-            </p>
           </div>
         )}
 
