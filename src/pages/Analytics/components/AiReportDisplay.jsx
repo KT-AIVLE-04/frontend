@@ -9,8 +9,8 @@ import {
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Alert } from '../../../components/molecules';
-import { LoadingSpinner } from '../../../components/organisms';
+import {Alert} from '../../../components/molecules';
+import {LoadingSpinner} from '../../../components/organisms';
 
 /**
  * AI 분석 보고서 표시 컴포넌트
@@ -104,12 +104,12 @@ export const AiReportDisplay = ({
             ),
             thead: ({children}) => (
               <thead className="bg-gray-50">
-                {children}
+              {children}
               </thead>
             ),
             tbody: ({children}) => (
               <tbody className="bg-white">
-                {children}
+              {children}
               </tbody>
             ),
             tr: ({children}) => (
@@ -172,7 +172,7 @@ export const AiReportDisplay = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm overflow-hidden">
               <div
                 className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700">
                 {renderMarkdownContent(report.markdownReport)}
