@@ -1,14 +1,14 @@
-import {ArrowLeft} from "lucide-react";
-import React from "react";
-import {useNavigate} from "react-router-dom";
-import {authApi} from "../../api/auth";
-import {Alert, Button, Card} from "../../components";
-import {useApi, useForm, useNotification} from "../../hooks";
-import {formatPhoneNumber, REGISTER_VALIDATION_SCHEMA} from "../../utils";
-import {FieldsContainer} from "./components";
-import {ROUTES} from "../../routes/routes.js";
+import { ArrowLeft } from "lucide-react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { authApi } from "../../api/auth";
+import { Alert, Button, Card } from "../../components";
+import { useApi, useForm, useNotification } from "../../hooks";
+import { ROUTES } from "../../routes/routes.js";
+import { formatPhoneNumber, REGISTER_VALIDATION_SCHEMA } from "../../utils";
+import { FieldsContainer } from "./components";
 
-export function Register({onRegister, onLoginClick}) {
+export function Register({onRegister}) {
   const navigate = useNavigate();
   const {success} = useNotification();
 
@@ -21,12 +21,11 @@ export function Register({onRegister, onLoginClick}) {
   const {
     values: formData,
     errors,
-    touched,
     handleChange,
     handleBlur,
     validateForm,
     setAllErrors,
-    // resetForm,
+    setFieldError,
   } = useForm(
     {
       name: "",
@@ -35,7 +34,8 @@ export function Register({onRegister, onLoginClick}) {
       // age: "",
       password: "",
     },
-    formatters
+    formatters,
+    REGISTER_VALIDATION_SCHEMA
   );
 
   // useApi 훅 사용
@@ -79,6 +79,11 @@ export function Register({onRegister, onLoginClick}) {
     },
   });
 
+  useEffect(() => {
+    console.log("폼 데이터 변경:", formData);
+    console.log("폼 에러 상태:", errors);
+  }, [formData, errors]);
+
   // 실시간 필드 검증 함수
   const validateField = (name, value) => {
     const validator = REGISTER_VALIDATION_SCHEMA[name];
@@ -95,8 +100,8 @@ export function Register({onRegister, onLoginClick}) {
     const {name, value} = e.target;
     handleChange(e);
 
-    // 실시간 검증 (필드가 touched 상태일 때만)
-    if (touched[name]) {
+    // 실시간 검증 (에러가 있을 때만)
+    if (errors[name]) {
       validateField(name, value);
     }
   };
@@ -113,35 +118,9 @@ export function Register({onRegister, onLoginClick}) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 모든 필드를 touched 상태로 만들기
-    const touchedFields = Object.keys(formData).reduce((acc, key) => {
-      acc[key] = true;
-      return acc;
-    }, {});
-
-    // touched 상태 업데이트
-    Object.keys(touchedFields).forEach((field) => {
-      setTouched((prev) => ({...prev, [field]: true}));
-    });
-
-    // 클라이언트 사이드 검증
-    let hasErrors = false;
-    const newErrors = {};
-
-    Object.keys(REGISTER_VALIDATION_SCHEMA).forEach((fieldName) => {
-      const validator = REGISTER_VALIDATION_SCHEMA[fieldName];
-      const error = validator(formData[fieldName]);
-      if (error) {
-        newErrors[fieldName] = error;
-        hasErrors = true;
-      }
-    });
-
-    // 에러가 있으면 상태 업데이트하고 제출 중단
-    if (hasErrors) {
-      Object.keys(newErrors).forEach((field) => {
-        setFieldError(field, newErrors[field]);
-      });
+    // validateForm으로 검증
+    const isValid = validateForm();
+    if (!isValid) {
       return;
     }
 
@@ -163,10 +142,9 @@ export function Register({onRegister, onLoginClick}) {
     navigate(ROUTES.LOGIN.route);
   };
 
-  // 현재 에러가 있는 필드 개수 계산 (touched된 필드만 고려)
+  // 현재 에러가 있는 필드 개수 계산
   const errorCount = Object.keys(errors).filter(
-    (fieldName) =>
-      touched[fieldName] && errors[fieldName] && errors[fieldName].trim() !== ""
+    (fieldName) => errors[fieldName] && errors[fieldName].trim() !== ""
   ).length;
 
   return (
@@ -210,9 +188,7 @@ export function Register({onRegister, onLoginClick}) {
             formData={formData}
             handleChange={handleEnhancedChange}
             handleBlur={handleEnhancedBlur}
-            touched={touched}
             errors={errors}
-            validationSchema={REGISTER_VALIDATION_SCHEMA}
           />
 
           <Button

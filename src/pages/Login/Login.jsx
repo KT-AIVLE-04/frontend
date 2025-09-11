@@ -1,13 +1,13 @@
 import React from 'react';
-import {useDispatch} from 'react-redux';
-import {Link, useNavigate} from 'react-router-dom';
-import {authApi} from '../../api/auth';
-import {Alert, Button, FormField} from '../../components';
-import {useApi, useForm} from '../../hooks';
-import {ROUTES} from '../../routes/routes.js';
-import {login} from '../../store/authSlice';
-import {LOGIN_VALIDATION_SCHEMA} from '../../utils/index.js';
-import {BackgroundElements, GoogleIcon, KakaoIcon} from './components';
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { authApi } from '../../api/auth';
+import { Alert, Button, FormField } from '../../components';
+import { useApi, useForm } from '../../hooks';
+import { ROUTES } from '../../routes/routes.js';
+import { login } from '../../store/authSlice';
+import { LOGIN_VALIDATION_SCHEMA } from '../../utils/index.js';
+import { BackgroundElements, GoogleIcon, KakaoIcon } from './components';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -23,7 +23,6 @@ export function Login() {
   const {
     values: formData,
     errors,
-    touched,
     handleChange,
     handleBlur,
     validateForm,
@@ -31,7 +30,7 @@ export function Login() {
   } = useForm({
     email: '',
     password: ''
-  });
+  }, {}, LOGIN_VALIDATION_SCHEMA);
 
   // useApi 훅 사용
   const {loading, error, execute: loginUser} = useApi(
@@ -61,7 +60,7 @@ export function Login() {
     e.preventDefault();
 
     // 클라이언트 사이드 검증
-    const isValid = validateForm(LOGIN_VALIDATION_SCHEMA);
+    const isValid = validateForm();
     if (!isValid) {
       return;
     }
@@ -142,7 +141,7 @@ export function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.email && errors.email}
+                error={errors.email}
                 placeholder="이메일 주소를 입력하세요"
                 required
               />
@@ -153,7 +152,7 @@ export function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.password && errors.password}
+                error={errors.password}
                 placeholder="비밀번호를 입력하세요"
                 required
               />

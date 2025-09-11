@@ -3,13 +3,11 @@ import { FormField } from "../../../components/molecules";
 import { ageOptions } from "./AgeOptions";
 
 export function FieldsContainer({
-  formData,
-  handleChange,
-  handleBlur,
-  touched,
-  errors,
-  validationSchema,
-}) {
+                                  formData,
+                                  handleChange,
+                                  handleBlur,
+                                  errors,
+                                }) {
   return (
     <div className="space-y-6">
       <FormField
@@ -19,7 +17,7 @@ export function FieldsContainer({
         value={formData.name}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.name && errors.name}
+        error={errors.name}
         placeholder="이름을 입력하세요"
         required
       />
@@ -31,7 +29,7 @@ export function FieldsContainer({
         value={formData.email}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.email && errors.email}
+        error={errors.email}
         placeholder="이메일 주소를 입력하세요 (예: user@example.com)"
         required
       />
@@ -43,7 +41,7 @@ export function FieldsContainer({
         value={formData.phoneNumber}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.phoneNumber && errors.phoneNumber}
+        error={errors.phoneNumber}
         placeholder="전화번호를 입력하세요 (예: 010-1234-5678)"
         required
       />
@@ -55,7 +53,7 @@ export function FieldsContainer({
         value={formData.age}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.age && errors.age}
+        error={errors.age}
         placeholder="연령대를 선택하세요"
         required
         options={ageOptions}
@@ -68,7 +66,7 @@ export function FieldsContainer({
         value={formData.password}
         onChange={handleChange}
         onBlur={handleBlur}
-        error={touched.password && errors.password}
+        error={errors.password}
         placeholder="비밀번호를 입력하세요"
         required
       />

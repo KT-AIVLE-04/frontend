@@ -1,13 +1,13 @@
 import React from "react";
-import {useLocation, useNavigate} from "react-router-dom";
-import {storeApi} from "../../api/store";
-import {Button, FormPageLayout} from "../../components";
-import {INDUSTRY_OPTIONS} from "../../const/industries";
-import {useApi, useForm, useNotification} from "../../hooks";
-import {Store} from "../../models/Store";
-import {ROUTES} from "../../routes/routes.js";
-import {formatPhoneNumber, STORE_VALIDATION_SCHEMA} from "../../utils";
-import {FieldsContainer} from "./components";
+import { useLocation, useNavigate } from "react-router-dom";
+import { storeApi } from "../../api/store";
+import { Button, FormPageLayout } from "../../components";
+import { INDUSTRY_OPTIONS } from "../../const/industries";
+import { useApi, useForm, useNotification } from "../../hooks";
+import { Store } from "../../models/Store";
+import { ROUTES } from "../../routes/routes.js";
+import { formatPhoneNumber, STORE_VALIDATION_SCHEMA } from "../../utils";
+import { FieldsContainer } from "./components";
 
 export function StoreUpdate() {
   const location = useLocation();
@@ -22,7 +22,6 @@ export function StoreUpdate() {
   const {
     values: formData,
     errors,
-    touched,
     handleChange,
     handleBlur,
     validateForm,
@@ -30,7 +29,8 @@ export function StoreUpdate() {
     setFieldValue,
   } = useForm(
     editStore ? Store.fromResponse(editStore) : Store.createEmpty(),
-    formatters
+    formatters,
+    STORE_VALIDATION_SCHEMA
   );
 
   const {
@@ -117,7 +117,7 @@ export function StoreUpdate() {
     console.log("폼 제출됨!", formData);
 
     // 클라이언트 사이드 검증
-    const isValid = validateForm(STORE_VALIDATION_SCHEMA);
+    const isValid = validateForm();
     if (!isValid) return;
 
     try {
@@ -176,7 +176,6 @@ export function StoreUpdate() {
         formData={formData}
         handleChange={handleChange}
         handleBlur={handleBlur}
-        touched={touched}
         errors={errors}
         handleAddressSearch={handleAddressSearch}
         validationSchema={STORE_VALIDATION_SCHEMA}
