@@ -24,7 +24,6 @@ export function Login() {
     values: formData,
     errors,
     handleChange,
-    handleBlur,
     validateForm,
     setAllErrors
   } = useForm({
@@ -140,7 +139,6 @@ export function Login() {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                onBlur={handleBlur}
                 error={errors.email}
                 placeholder="이메일 주소를 입력하세요"
                 required
@@ -151,7 +149,6 @@ export function Login() {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                onBlur={handleBlur}
                 error={errors.password}
                 placeholder="비밀번호를 입력하세요"
                 required

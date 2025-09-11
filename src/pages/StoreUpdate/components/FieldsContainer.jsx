@@ -6,7 +6,6 @@ import { FormField } from '../../../components/molecules';
 export function FieldsContainer({
   formData,
   handleChange,
-  handleBlur,
   errors,
   handleAddressSearch,
   validationSchema,
@@ -20,7 +19,6 @@ export function FieldsContainer({
         type="text"
         value={formData.name}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.name}
         validate={validationSchema.name}
         placeholder="매장명을 입력하세요"
@@ -64,7 +62,6 @@ export function FieldsContainer({
         type="tel"
         value={formData.phoneNumber}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.phoneNumber}
         validate={validationSchema.phoneNumber}
         placeholder="02-1234-5678 또는 010-1234-5678"
@@ -77,7 +74,6 @@ export function FieldsContainer({
         type="text"
         value={formData.businessNumber}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.businessNumber}
         validate={validationSchema.businessNumber}
         placeholder="사업자등록번호 (선택사항)"
@@ -89,7 +85,6 @@ export function FieldsContainer({
         type="select"
         value={formData.industry}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.industry}
         validate={validationSchema.industry}
         placeholder="업종을 선택하세요"

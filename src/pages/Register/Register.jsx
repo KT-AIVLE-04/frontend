@@ -22,7 +22,6 @@ export function Register({onRegister}) {
     values: formData,
     errors,
     handleChange,
-    handleBlur,
     validateForm,
     setAllErrors,
     setFieldError,
@@ -84,36 +83,6 @@ export function Register({onRegister}) {
     console.log("폼 에러 상태:", errors);
   }, [formData, errors]);
 
-  // 실시간 필드 검증 함수
-  const validateField = (name, value) => {
-    const validator = REGISTER_VALIDATION_SCHEMA[name];
-    if (validator) {
-      const error = validator(value);
-      setFieldError(name, error || "");
-      return error;
-    }
-    return "";
-  };
-
-  // 향상된 handleChange
-  const handleEnhancedChange = (e) => {
-    const {name, value} = e.target;
-    handleChange(e);
-
-    // 실시간 검증 (에러가 있을 때만)
-    if (errors[name]) {
-      validateField(name, value);
-    }
-  };
-
-  // 향상된 handleBlur
-  const handleEnhancedBlur = (e) => {
-    const {name, value} = e.target;
-    handleBlur(e);
-
-    // 블러 시 항상 검증 실행
-    validateField(name, value);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -186,8 +155,7 @@ export function Register({onRegister}) {
         <form onSubmit={handleSubmit} noValidate>
           <FieldsContainer
             formData={formData}
-            handleChange={handleEnhancedChange}
-            handleBlur={handleEnhancedBlur}
+            handleChange={handleChange}
             errors={errors}
           />
 

@@ -9,7 +9,6 @@ import { useCallback, useState } from "react";
  * @returns {Object} returns.values - 현재 폼 값들
  * @returns {Object} returns.errors - 필드별 에러 메시지들
  * @returns {Function} returns.handleChange - 값 변경 핸들러 (nameOrEvent, value?) => void
- * @returns {Function} returns.handleBlur - 블러 핸들러 (nameOrEvent) => void
  * @returns {Function} returns.setFieldValue - 특정 필드 값 설정 (name, value) => void
  * @returns {Function} returns.setFieldError - 특정 필드 에러 설정 (name, error) => void
  * @returns {Function} returns.setAllErrors - 모든 에러 설정 (errors) => void
@@ -64,9 +63,6 @@ export const useForm = (initialValues = {}, formatters = {}, validationSchema = 
     [errors, formatters]
   );
 
-  const handleBlur = useCallback((nameOrEvent) => {
-    // 블러 이벤트 처리 (현재는 빈 함수)
-  }, []);
 
   const setFieldValue = useCallback(
     (name, value) => {
@@ -130,7 +126,6 @@ export const useForm = (initialValues = {}, formatters = {}, validationSchema = 
     values,
     errors,
     handleChange,
-    handleBlur,
     setFieldValue,
     setFieldError,
     setAllErrors,

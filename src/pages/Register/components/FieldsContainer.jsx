@@ -5,7 +5,6 @@ import { ageOptions } from "./AgeOptions";
 export function FieldsContainer({
                                   formData,
                                   handleChange,
-                                  handleBlur,
                                   errors,
                                 }) {
   return (
@@ -16,7 +15,6 @@ export function FieldsContainer({
         type="text"
         value={formData.name}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.name}
         placeholder="이름을 입력하세요"
         required
@@ -28,7 +26,6 @@ export function FieldsContainer({
         type="email"
         value={formData.email}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.email}
         placeholder="이메일 주소를 입력하세요 (예: user@example.com)"
         required
@@ -40,7 +37,6 @@ export function FieldsContainer({
         type="tel"
         value={formData.phoneNumber}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.phoneNumber}
         placeholder="전화번호를 입력하세요 (예: 010-1234-5678)"
         required
@@ -52,7 +48,6 @@ export function FieldsContainer({
         type="select"
         value={formData.age}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.age}
         placeholder="연령대를 선택하세요"
         required
@@ -65,7 +60,6 @@ export function FieldsContainer({
         type="password"
         value={formData.password}
         onChange={handleChange}
-        onBlur={handleBlur}
         error={errors.password}
         placeholder="비밀번호를 입력하세요"
         required

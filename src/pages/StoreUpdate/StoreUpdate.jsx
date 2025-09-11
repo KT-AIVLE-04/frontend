@@ -23,7 +23,6 @@ export function StoreUpdate() {
     values: formData,
     errors,
     handleChange,
-    handleBlur,
     validateForm,
     setAllErrors,
     setFieldValue,
@@ -175,7 +174,6 @@ export function StoreUpdate() {
       <FieldsContainer
         formData={formData}
         handleChange={handleChange}
-        handleBlur={handleBlur}
         errors={errors}
         handleAddressSearch={handleAddressSearch}
         validationSchema={STORE_VALIDATION_SCHEMA}
