@@ -1,10 +1,9 @@
-import { Upload, Video } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { contentApi } from "../../api/content";
-import { EmptyState, ErrorPage, LoadingSpinner } from "../../components";
-import { Content } from "../../models";
-import { SearchFilter, ContentCard } from "./components";
-import { ContentDetail } from "./components/ContentDetail";
+import {Upload, Video} from "lucide-react";
+import React, {useEffect, useState} from "react";
+import {contentApi} from "../../api/content";
+import {EmptyState, ErrorPage, LoadingSpinner} from "../../components";
+import {Content} from "../../models";
+import {SearchFilter, ContentCard, ContentDetail} from "./components";
 
 export function ContentManagement() {
   const [contents, setContents] = useState([]);
@@ -167,11 +166,11 @@ export function ContentManagement() {
   };
 
   if (error) {
-    return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error} />;
+    return <ErrorPage title="콘텐츠 목록 로딩 실패" message={error}/>;
   }
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner/>;
   }
 
   return (
@@ -181,8 +180,9 @@ export function ContentManagement() {
 
         {/* 파일 업로드 버튼 */}
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
-            <Upload size={16} />
+          <label
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
+            <Upload size={16}/>
             {uploading ? "업로드 중..." : "파일 업로드"}
             <input
               type="file"

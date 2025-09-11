@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { Card } from "../../../components/molecules/Card";
+import React, {useState} from "react";
+import {Card} from "../../../components";
 
 export function CommentsDisplay({
-  realtimeComments,
-  historyComments,
-  comparisonPeriod,
-}) {
+                                  realtimeComments,
+                                  historyComments,
+                                  comparisonPeriod,
+                                }) {
   const [activeTab, setActiveTab] = useState("realtime");
 
   const getComparisonLabel = () => {
@@ -107,15 +107,15 @@ export function CommentsDisplay({
 
       {activeTab === "realtime"
         ? renderComments(
-            realtimeComments,
-            "실시간 댓글",
-            "실시간 댓글이 없습니다."
-          )
+          realtimeComments,
+          "실시간 댓글",
+          "실시간 댓글이 없습니다."
+        )
         : renderComments(
-            historyComments,
-            `${getComparisonLabel()} 댓글`,
-            `${getComparisonLabel()} 댓글이 없습니다.`
-          )}
+          historyComments,
+          `${getComparisonLabel()} 댓글`,
+          `${getComparisonLabel()} 댓글이 없습니다.`
+        )}
 
       {/* 댓글 통계 */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
@@ -138,11 +138,11 @@ export function CommentsDisplay({
             <span className="font-medium text-blue-600">
               {realtimeComments && realtimeComments.length > 0
                 ? Math.round(
-                    realtimeComments.reduce(
-                      (sum, comment) => sum + (comment.likeCount || 0),
-                      0
-                    ) / realtimeComments.length
-                  )
+                  realtimeComments.reduce(
+                    (sum, comment) => sum + (comment.likeCount || 0),
+                    0
+                  ) / realtimeComments.length
+                )
                 : 0}
             </span>
           </div>

@@ -1,13 +1,13 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
-import { authApi } from '../../api/auth';
-import { Alert, Button, FormField } from '../../components';
-import { useApi, useForm } from '../../hooks';
-import { ROUTES } from '../../routes/routes.js';
-import { login } from '../../store/authSlice';
-import { LOGIN_VALIDATION_SCHEMA } from '../../utils/validations';
-import { BackgroundElements, GoogleIcon, KakaoIcon } from './components';
+import {useDispatch} from 'react-redux';
+import {Link, useNavigate} from 'react-router-dom';
+import {authApi} from '../../api/auth';
+import {Alert, Button, FormField} from '../../components';
+import {useApi, useForm} from '../../hooks';
+import {ROUTES} from '../../routes/routes.js';
+import {login} from '../../store/authSlice';
+import {LOGIN_VALIDATION_SCHEMA} from '../../utils/index.js';
+import {BackgroundElements, GoogleIcon, KakaoIcon} from './components';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -34,7 +34,7 @@ export function Login() {
   });
 
   // useApi 훅 사용
-  const { loading, error, execute: loginUser } = useApi(
+  const {loading, error, execute: loginUser} = useApi(
     authApi.login,
     {
       onSuccess: (data, message) => {
@@ -57,7 +57,6 @@ export function Login() {
   );
 
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -75,7 +74,6 @@ export function Login() {
       // onError에서 자동으로 처리됨
     }
   };
-
 
 
   const onRegisterClick = () => {
@@ -113,8 +111,8 @@ export function Login() {
 
   return (
     <div className="bg-gradient-to-br h-screen from-pink-300 via-purple-300 to-indigo-400 relative overflow-hidden">
-      <BackgroundElements />
-      
+      <BackgroundElements/>
+
       <div className="z-10 flex items-center justify-center min-h-[500px] p-4">
         <div
           className="bg-white z-10 rounded-[1.5rem] border-2 border-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.8)] p-8 w-full max-w-md">
@@ -199,8 +197,8 @@ export function Login() {
                   disabled={socialLoading}
                 >
                   <div className="flex items-center space-x-3">
-                    <GoogleIcon size={20} />
-                    <span >{socialLoading ? '구글 로그인 중...' : '구글로 로그인'}</span>
+                    <GoogleIcon size={20}/>
+                    <span>{socialLoading ? '구글 로그인 중...' : '구글로 로그인'}</span>
                   </div>
                 </button>
 

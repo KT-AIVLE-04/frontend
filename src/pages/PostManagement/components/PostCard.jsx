@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, {useEffect} from "react";
 import {
   Calendar,
   Eye,
@@ -10,12 +10,12 @@ import {
   ExternalLink,
   Trash2,
 } from "lucide-react";
-import { Card } from "../../../components/molecules";
-import { analyticsApi } from "../../../api/analytics";
-import { useApi } from "../../../hooks";
-import { formatDate_forPost } from "../../../utils/formatters";
+import {Card} from "../../../components";
+import {analyticsApi} from "../../../api/analytics";
+import {useApi} from "../../../hooks";
+import {formatDate_forPost} from "../../../utils";
 
-export function PostCard({ post, onClick, onDelete }) {
+export function PostCard({post, onClick, onDelete}) {
   const handleCardClick = () => {
     if (onClick) {
       onClick(post);
@@ -37,16 +37,16 @@ export function PostCard({ post, onClick, onDelete }) {
   };
 
   const getSnsIcon = (snsType) => {
-    const iconProps = { size: 12 };
+    const iconProps = {size: 12};
     switch (snsType) {
       case "youtube":
-        return <Youtube {...iconProps} className="text-red-500" />;
+        return <Youtube {...iconProps} className="text-red-500"/>;
       case "instagram":
-        return <Instagram {...iconProps} className="text-pink-500" />;
+        return <Instagram {...iconProps} className="text-pink-500"/>;
       case "facebook":
-        return <Facebook {...iconProps} className="text-blue-600" />;
+        return <Facebook {...iconProps} className="text-blue-600"/>;
       default:
-        return <ExternalLink {...iconProps} className="text-gray-500" />;
+        return <ExternalLink {...iconProps} className="text-gray-500"/>;
     }
   };
 
@@ -110,14 +110,15 @@ export function PostCard({ post, onClick, onDelete }) {
   return (
     <Card variant="interactive" onClick={handleCardClick}>
       {/* 상단 액션 버튼들 - 호버시에만 표시 */}
-      <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+      <div
+        className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
         {getOriginalPostUrl(post.snsType, post.snsPostId) && (
           <button
             onClick={handleLinkClick}
             className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1.5 shadow-lg"
             title="원본 게시물 보기"
           >
-            <ExternalLink size={14} />
+            <ExternalLink size={14}/>
           </button>
         )}
         <button
@@ -125,7 +126,7 @@ export function PostCard({ post, onClick, onDelete }) {
           className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg"
           title="삭제"
         >
-          <Trash2 size={14} />
+          <Trash2 size={14}/>
         </button>
       </div>
 
@@ -172,27 +173,27 @@ export function PostCard({ post, onClick, onDelete }) {
           </div>
         )}
         {/* 선 추가 */}
-        <div className="h-px bg-gray-200 my-3" />
+        <div className="h-px bg-gray-200 my-3"/>
 
         {/* 통계 정보 */}
         <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
           <div className="flex items-center gap-1">
-            <Eye size={12} className="text-emerald-500" />
+            <Eye size={12} className="text-emerald-500"/>
             {formatNumber(viewCount)}
           </div>
 
           <div className="flex items-center gap-1">
-            <Heart size={12} className="text-red-500" />
+            <Heart size={12} className="text-red-500"/>
             {formatNumber(likeCount)}
           </div>
 
           <div className="flex items-center gap-1">
-            <MessageCircle size={12} className="text-blue-500" />
+            <MessageCircle size={12} className="text-blue-500"/>
             {formatNumber(commentCount)}
           </div>
         </div>
         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-          <Calendar size={12} />
+          <Calendar size={12}/>
           게시일 : {formatDate_forPost(post.publishAt)}
         </div>
       </div>

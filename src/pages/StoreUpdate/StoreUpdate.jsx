@@ -1,16 +1,13 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { storeApi } from "../../api/store";
-import { Button, FormPageLayout } from "../../components";
-import { INDUSTRY_OPTIONS } from "../../const/industries";
-import { useApi, useForm, useNotification } from "../../hooks";
-import { Store } from "../../models/Store";
-import { ROUTES } from "../../routes/routes.js";
-import {
-  formatPhoneNumber,
-  STORE_VALIDATION_SCHEMA,
-} from "../../utils/index.js";
-import { FieldsContainer } from "./components";
+import {useLocation, useNavigate} from "react-router-dom";
+import {storeApi} from "../../api/store";
+import {Button, FormPageLayout} from "../../components";
+import {INDUSTRY_OPTIONS} from "../../const/industries";
+import {useApi, useForm, useNotification} from "../../hooks";
+import {Store} from "../../models/Store";
+import {ROUTES} from "../../routes/routes.js";
+import {formatPhoneNumber, STORE_VALIDATION_SCHEMA} from "../../utils";
+import {FieldsContainer} from "./components";
 
 export function StoreUpdate() {
   const location = useLocation();
@@ -52,7 +49,7 @@ export function StoreUpdate() {
     },
   });
 
-  const { success, error: showError } = useNotification();
+  const {success, error: showError} = useNotification();
 
   const handleAddressSearch = () => {
     new window.daum.Postcode({

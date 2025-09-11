@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, {useEffect} from "react";
 import {
   Calendar,
   Tag,
@@ -12,11 +12,11 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import { formatDateTime_forPost } from "../../../utils/formatters";
-import { analyticsApi } from "../../../api/analytics";
-import { useApi } from "../../../hooks";
+import {formatDateTime_forPost} from "../../../utils";
+import {analyticsApi} from "../../../api/analytics";
+import {useApi} from "../../../hooks";
 
-export function PostDetail({ post, onClose, onDelete }) {
+export function PostDetail({post, onClose, onDelete}) {
   const {
     data: metricsData,
     loading: metricsLoading,
@@ -45,16 +45,16 @@ export function PostDetail({ post, onClose, onDelete }) {
   };
 
   const getSnsIcon = (snsType) => {
-    const iconProps = { size: 20 };
+    const iconProps = {size: 20};
     switch (snsType) {
       case "youtube":
-        return <Youtube {...iconProps} className="text-red-500" />;
+        return <Youtube {...iconProps} className="text-red-500"/>;
       case "instagram":
-        return <Instagram {...iconProps} className="text-pink-500" />;
+        return <Instagram {...iconProps} className="text-pink-500"/>;
       case "facebook":
-        return <Facebook {...iconProps} className="text-blue-600" />;
+        return <Facebook {...iconProps} className="text-blue-600"/>;
       default:
-        return <ExternalLink {...iconProps} className="text-gray-500" />;
+        return <ExternalLink {...iconProps} className="text-gray-500"/>;
     }
   };
 
@@ -109,7 +109,7 @@ export function PostDetail({ post, onClose, onDelete }) {
             onClick={handleCloseDetail}
             className="text-gray-400 hover:text-gray-600 p-1"
           >
-            <X className="w-6 h-6" />
+            <X className="w-6 h-6"/>
           </button>
         </div>
 
@@ -147,7 +147,7 @@ export function PostDetail({ post, onClose, onDelete }) {
               {post.tags && post.tags.length > 0 && (
                 <div className="mb-6 pb-6 border-b border-gray-300">
                   <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Tag size={16} />
+                    <Tag size={16}/>
                     태그
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -169,7 +169,7 @@ export function PostDetail({ post, onClose, onDelete }) {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-center mb-1 gap-1">
-                      <Eye size={16} className="text-emerald-500" />
+                      <Eye size={16} className="text-emerald-500"/>
                       <span className="text-xs text-gray-500">조회수</span>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
@@ -179,7 +179,7 @@ export function PostDetail({ post, onClose, onDelete }) {
 
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-center mb-1 gap-1">
-                      <Heart size={16} className="text-red-500" />
+                      <Heart size={16} className="text-red-500"/>
                       <span className="text-xs text-gray-500">좋아요</span>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
@@ -189,7 +189,7 @@ export function PostDetail({ post, onClose, onDelete }) {
 
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-center mb-1 gap-1">
-                      <MessageCircle size={16} className="text-blue-500" />
+                      <MessageCircle size={16} className="text-blue-500"/>
                       <span className="text-xs text-gray-500">댓글</span>
                     </div>
                     <div className="text-sm font-semibold text-gray-900">
@@ -203,7 +203,7 @@ export function PostDetail({ post, onClose, onDelete }) {
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-900 mb-3">게시 정보</h3>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Calendar size={16} className="text-gray-400" />
+                  <Calendar size={16} className="text-gray-400"/>
                   {formatDateTime_forPost(post.publishAt)}
                 </div>
               </div>
@@ -225,7 +225,7 @@ export function PostDetail({ post, onClose, onDelete }) {
                     }}
                     className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                   >
-                    <ExternalLink size={16} />
+                    <ExternalLink size={16}/>
                     원본 보기
                   </button>
                 )}
@@ -234,7 +234,7 @@ export function PostDetail({ post, onClose, onDelete }) {
                   onClick={handleDeletePost}
                   className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={16}/>
                   삭제
                 </button>
               </div>

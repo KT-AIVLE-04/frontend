@@ -9,8 +9,7 @@ import {
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import {Alert} from '../../../components/molecules';
-import {LoadingSpinner} from '../../../components/organisms';
+import {Alert, LoadingSpinner} from '../../../components';
 
 /**
  * AI 분석 보고서 표시 컴포넌트

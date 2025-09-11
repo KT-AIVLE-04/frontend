@@ -5,27 +5,26 @@ import {
   RefreshCw
 } from 'lucide-react';
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { analyticsApi } from '../../api/analytics';
-import { Button } from '../../components/atoms';
-import { Card } from '../../components/molecules';
-import { useApi } from '../../hooks';
-import { AiReportDisplay } from './components/AiReportDisplay';
+import {useNavigate, useParams} from 'react-router-dom';
+import {analyticsApi} from '../../api/analytics';
+import {Card, Button} from '../../components';
+import {useApi} from '../../hooks';
+import {AiReportDisplay} from './components';
 
 /**
  * AI 분석 보고서 전용 페이지
  * URL 파라미터: snsType, postId
  */
 export const AiReportPage = () => {
-  const { snsType, postId } = useParams();
+  const {snsType, postId} = useParams();
   const navigate = useNavigate();
 
-  const { 
-    data: report, 
-    loading, 
-    error, 
-    execute: getReport, 
-    reset 
+  const {
+    data: report,
+    loading,
+    error,
+    execute: getReport,
+    reset
   } = useApi(analyticsApi.getAiReport, {
     autoExecute: true,
     autoExecuteArgs: [snsType, postId],
@@ -47,7 +46,7 @@ export const AiReportPage = () => {
         <div className="max-w-4xl mx-auto px-4">
           <Card className="p-6">
             <div className="text-center py-8">
-              <AlertCircle className="mx-auto mb-4 text-4xl text-red-500" />
+              <AlertCircle className="mx-auto mb-4 text-4xl text-red-500"/>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 잘못된 접근
               </h2>
@@ -75,8 +74,9 @@ export const AiReportPage = () => {
             <div className="flex items-center space-x-4">
               <div>
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-10 h-10 bg-gradient-to-r from-[#984fff] to-purple-600 rounded-lg flex items-center justify-center pr-1">
-                    <Brain className="text-white text-lg" />
+                  <div
+                    className="w-10 h-10 bg-gradient-to-r from-[#984fff] to-purple-600 rounded-lg flex items-center justify-center pr-1">
+                    <Brain className="text-white text-lg"/>
                   </div>
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-0!">
@@ -93,24 +93,24 @@ export const AiReportPage = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* 액션 버튼 영역 */}
             <div className="flex items-center space-x-3">
-              <Button 
-                onClick={handleRefresh} 
+              <Button
+                onClick={handleRefresh}
                 variant="outline"
                 className="bg-white border-gray-300 hover:bg-gray-50 text-gray-700"
               >
-                <RefreshCw className="mr-2 w-4 h-4" />
+                <RefreshCw className="mr-2 w-4 h-4"/>
                 새로고침
               </Button>
-              
-              <Button 
-                onClick={() => navigate('/analytics')} 
+
+              <Button
+                onClick={() => navigate('/analytics')}
                 variant="outline"
                 className="bg-white border-gray-300 hover:bg-gray-50 text-gray-700"
               >
-                <BarChart3 className="mr-2 w-4 h-4" />
+                <BarChart3 className="mr-2 w-4 h-4"/>
                 성과분석
               </Button>
             </div>
@@ -119,8 +119,8 @@ export const AiReportPage = () => {
 
         {/* AI 보고서 컴포넌트 */}
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50">
-          <AiReportDisplay 
-            snsType={snsType} 
+          <AiReportDisplay
+            snsType={snsType}
             postId={parseInt(postId)}
             report={report}
             loading={loading}

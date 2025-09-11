@@ -3,25 +3,24 @@ import {
   BarChart3,
   Brain
 } from 'lucide-react';
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '../../components/atoms';
-import { Card, WebSocketStatus } from '../../components/molecules';
-import { SOCKET_STATUS } from '../../const/socketType';
-import { useWebSocket } from '../../hooks';
-import { AiReportStatusDisplay } from './components/AiReportStatusDisplay';
+import React, {useEffect} from 'react';
+import {useSelector} from 'react-redux';
+import {useNavigate, useParams} from 'react-router-dom';
+import {Card, WebSocketStatus, Button} from '../../components';
+import {SOCKET_STATUS} from '../../const/socketType';
+import {useWebSocket} from '../../hooks';
+import {AiReportStatusDisplay} from './components/AiReportStatusDisplay';
 
 /**
  * WebSocket 기반 AI 분석 보고서 페이지
  * 실시간으로 보고서 생성을 진행하고 결과를 표시
  */
 export const AiReportWebSocketPage = () => {
-  const { snsType, postId } = useParams();
+  const {snsType, postId} = useParams();
   const navigate = useNavigate();
-  const { selectedStoreId } = useSelector(state => state.auth);
-  const { connections } = useSelector(state => state.sns);
-  
+  const {selectedStoreId} = useSelector(state => state.auth);
+  const {connections} = useSelector(state => state.sns);
+
   const {
     status,
     messages,
@@ -40,7 +39,7 @@ export const AiReportWebSocketPage = () => {
       console.log('selectedStoreId:', selectedStoreId);
       console.log('connections[snsType]:', connections[snsType]);
       console.log('connections[snsType]?.accountInfo?.id:', connections[snsType]?.accountInfo?.id);
-      
+
       if (selectedStoreId && connections[snsType]?.accountInfo?.id) {
         console.log('WebSocket 연결 성공 시 자동으로 분석 시작');
         const accountId = connections[snsType]?.accountInfo?.id;
@@ -100,7 +99,7 @@ export const AiReportWebSocketPage = () => {
         <div className="max-w-4xl mx-auto px-4">
           <Card className="p-6">
             <div className="text-center py-8">
-              <AlertCircle className="mx-auto mb-4 text-4xl text-red-500" />
+              <AlertCircle className="mx-auto mb-4 text-4xl text-red-500"/>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 잘못된 접근
               </h2>
@@ -128,8 +127,9 @@ export const AiReportWebSocketPage = () => {
             <div className="flex items-center space-x-4">
               <div>
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-10 h-10 bg-gradient-to-r from-[#984fff] to-purple-600 rounded-lg flex items-center justify-center pr-1">
-                    <Brain className="text-white text-lg" />
+                  <div
+                    className="w-10 h-10 bg-gradient-to-r from-[#984fff] to-purple-600 rounded-lg flex items-center justify-center pr-1">
+                    <Brain className="text-white text-lg"/>
                   </div>
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-0!">
@@ -146,21 +146,21 @@ export const AiReportWebSocketPage = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* 액션 버튼 영역 */}
             <div className="flex items-center space-x-3">
               {/* WebSocket 상태 표시 */}
-              <WebSocketStatus 
-                isConnecting={status === SOCKET_STATUS.CONNECTING} 
-                isConnected={status === SOCKET_STATUS.CONNECTED} 
+              <WebSocketStatus
+                isConnecting={status === SOCKET_STATUS.CONNECTING}
+                isConnected={status === SOCKET_STATUS.CONNECTED}
                 onDisconnect={handleStopGeneration}
               />
-              <Button 
-                onClick={() => navigate('/analytics')} 
+              <Button
+                onClick={() => navigate('/analytics')}
                 variant="outline"
                 className="bg-white border-gray-300 hover:bg-gray-50 text-gray-700"
               >
-                <BarChart3 className="mr-2 w-4 h-4" />
+                <BarChart3 className="mr-2 w-4 h-4"/>
                 성과분석으로 돌아가기
               </Button>
             </div>

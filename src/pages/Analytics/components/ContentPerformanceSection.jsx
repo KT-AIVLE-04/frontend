@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { LoadingSpinner } from "../../../components";
-import { Card } from "../../../components/molecules/Card";
-import { PostTableRow } from "./";
+import React, {useEffect, useState} from "react";
+import {LoadingSpinner, Card} from "../../../components";
+import {PostTableRow} from "./";
 
-export function ContentPerformanceSection({ 
-  selectedSnsType, 
-  postsData, 
-  postsLoading, 
-  postsError,
-  onPostSelect
-}) {
+export function ContentPerformanceSection({
+                                            selectedSnsType,
+                                            postsData,
+                                            postsLoading,
+                                            postsError,
+                                            onPostSelect
+                                          }) {
   // 선택된 포스트 ID 상태 관리
   const [selectedPostId, setSelectedPostId] = useState(null);
 
@@ -51,7 +50,7 @@ export function ContentPerformanceSection({
         <h2 className="text-xl font-semibold mb-4 text-gray-800">
           콘텐츠 성과 분석
         </h2>
-        <LoadingSpinner message="콘텐츠 성과 데이터를 불러오는 중..." />
+        <LoadingSpinner message="콘텐츠 성과 데이터를 불러오는 중..."/>
       </div>
     );
   }
@@ -79,43 +78,43 @@ export function ContentPerformanceSection({
           표에서 게시물을 선택 시 분석데이터를 확인하실 수 있습니다
         </p>
       </div>
-      
+
       {/* 최근 5개 게시물 테이블 */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-medium text-gray-700">
-                게시물
-              </th>
-              <th className="text-center py-3 px-4 font-medium text-gray-700">
-                조회수
-              </th>
-              <th className="text-center py-3 px-4 font-medium text-gray-700">
-                좋아요
-              </th>
-              <th className="text-center py-3 px-4 font-medium text-gray-700">
-                댓글
-              </th>
-              <th className="text-center py-3 px-4 font-medium text-gray-700">
-                공유
-              </th>
-              <th className="text-center py-3 px-4 font-medium text-gray-700">
-                분석보고서
-              </th>
-            </tr>
+          <tr className="border-b border-gray-200">
+            <th className="text-left py-3 px-4 font-medium text-gray-700">
+              게시물
+            </th>
+            <th className="text-center py-3 px-4 font-medium text-gray-700">
+              조회수
+            </th>
+            <th className="text-center py-3 px-4 font-medium text-gray-700">
+              좋아요
+            </th>
+            <th className="text-center py-3 px-4 font-medium text-gray-700">
+              댓글
+            </th>
+            <th className="text-center py-3 px-4 font-medium text-gray-700">
+              공유
+            </th>
+            <th className="text-center py-3 px-4 font-medium text-gray-700">
+              분석보고서
+            </th>
+          </tr>
           </thead>
           <tbody>
-            {filteredPosts.slice(0, 5).map((post, index) => (
-              <PostTableRow
-                key={post.id}
-                post={post}
-                index={index}
-                selectedSnsType={selectedSnsType}
-                isSelected={selectedPostId === post.id}
-                onSelect={handlePostSelect}
-              />
-            ))}
+          {filteredPosts.slice(0, 5).map((post, index) => (
+            <PostTableRow
+              key={post.id}
+              post={post}
+              index={index}
+              selectedSnsType={selectedSnsType}
+              isSelected={selectedPostId === post.id}
+              onSelect={handlePostSelect}
+            />
+          ))}
           </tbody>
         </table>
       </div>

@@ -1,13 +1,12 @@
-import { Eye, Heart, MessageCircle, Share2 } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { analyticsApi } from "../../../api/analytics";
-import { LoadingSpinner } from "../../../components";
-import { Card } from "../../../components/molecules/Card";
-import { useMultipleApi } from "../../../hooks";
-import { getDateFromRange } from "../../../utils";
-import { CommentsDisplay, EmotionAnalysis } from "./";
+import {Eye, Heart, MessageCircle, Share2} from "lucide-react";
+import React, {useEffect, useState} from "react";
+import {analyticsApi} from "../../../api/analytics";
+import {LoadingSpinner, Card} from "../../../components";
+import {useMultipleApi} from "../../../hooks";
+import {getDateFromRange} from "../../../utils";
+import {CommentsDisplay, EmotionAnalysis} from "./";
 
-export function PostAnalytics({ selectedSnsType, selectedPostId }) {
+export function PostAnalytics({selectedSnsType, selectedPostId}) {
   const [dateRange, setDateRange] = useState("last7");
 
   // 실시간 메트릭들
@@ -110,10 +109,10 @@ export function PostAnalytics({ selectedSnsType, selectedPostId }) {
           <span className="text-sm font-medium text-gray-700">비교 기간:</span>
           <div className="flex bg-gray-100 rounded-lg p-1">
             {[
-              { value: "today", label: "오늘" },
-              { value: "yesterday", label: "어제" },
-              { value: "last7", label: "7일" },
-              { value: "last30", label: "30일" },
+              {value: "today", label: "오늘"},
+              {value: "yesterday", label: "어제"},
+              {value: "last7", label: "7일"},
+              {value: "last30", label: "30일"},
             ].map((period) => (
               <button
                 key={period.value}
@@ -135,7 +134,7 @@ export function PostAnalytics({ selectedSnsType, selectedPostId }) {
       <>
         {/* 포스트 메트릭 */}
         {realtimeLoading || historyLoading ? (
-          <LoadingSpinner message="포스트 메트릭을 불러오는 중..." />
+          <LoadingSpinner message="포스트 메트릭을 불러오는 중..."/>
         ) : realtimeError || historyError ? (
           <div className="text-center py-8 text-red-500">
             포스트 메트릭을 불러오는데 실패했습니다
@@ -154,7 +153,7 @@ export function PostAnalytics({ selectedSnsType, selectedPostId }) {
                     </p>
                   </div>
                   <div className="text-green-500">
-                    <Eye size={24} />
+                    <Eye size={24}/>
                   </div>
                 </div>
                 {historyData?.views && (
@@ -174,7 +173,7 @@ export function PostAnalytics({ selectedSnsType, selectedPostId }) {
                     </p>
                   </div>
                   <div className="text-red-500">
-                    <Heart size={24} />
+                    <Heart size={24}/>
                   </div>
                 </div>
                 {historyData?.likes && (
@@ -194,7 +193,7 @@ export function PostAnalytics({ selectedSnsType, selectedPostId }) {
                     </p>
                   </div>
                   <div className="text-purple-500">
-                    <MessageCircle size={24} />
+                    <MessageCircle size={24}/>
                   </div>
                 </div>
                 {historyData?.comments && (
@@ -214,7 +213,7 @@ export function PostAnalytics({ selectedSnsType, selectedPostId }) {
                     </p>
                   </div>
                   <div className="text-orange-500">
-                    <Share2 size={24} />
+                    <Share2 size={24}/>
                   </div>
                 </div>
                 {historyData?.shares && (

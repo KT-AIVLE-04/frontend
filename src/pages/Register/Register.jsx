@@ -1,17 +1,16 @@
-import { ArrowLeft } from "lucide-react";
+import {ArrowLeft} from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { authApi } from "../../api/auth";
-import { Alert, Button, Card } from "../../components";
-import { useApi, useForm } from "../../hooks";
-import { formatPhoneNumber } from "../../utils/formatters";
-import { REGISTER_VALIDATION_SCHEMA } from "../../utils/validations";
-import { FieldsContainer } from "./components";
-import { ROUTES } from "../../routes/routes.js";
+import {useNavigate} from "react-router-dom";
+import {authApi} from "../../api/auth";
+import {Alert, Button, Card} from "../../components";
+import {useApi, useForm, useNotification} from "../../hooks";
+import {formatPhoneNumber, REGISTER_VALIDATION_SCHEMA} from "../../utils";
+import {FieldsContainer} from "./components";
+import {ROUTES} from "../../routes/routes.js";
 
-export function Register({ onRegister, onLoginClick }) {
+export function Register({onRegister, onLoginClick}) {
   const navigate = useNavigate();
-  const { success } = useNotification();
+  const {success} = useNotification();
 
   // useForm 훅 사용 (포맷터 추가)
   const formatters = {
@@ -93,7 +92,7 @@ export function Register({ onRegister, onLoginClick }) {
 
   // 향상된 handleChange
   const handleEnhancedChange = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     handleChange(e);
 
     // 실시간 검증 (필드가 touched 상태일 때만)
@@ -104,7 +103,7 @@ export function Register({ onRegister, onLoginClick }) {
 
   // 향상된 handleBlur
   const handleEnhancedBlur = (e) => {
-    const { name, value } = e.target;
+    const {name, value} = e.target;
     handleBlur(e);
 
     // 블러 시 항상 검증 실행
@@ -122,7 +121,7 @@ export function Register({ onRegister, onLoginClick }) {
 
     // touched 상태 업데이트
     Object.keys(touchedFields).forEach((field) => {
-      setTouched((prev) => ({ ...prev, [field]: true }));
+      setTouched((prev) => ({...prev, [field]: true}));
     });
 
     // 클라이언트 사이드 검증
@@ -177,7 +176,7 @@ export function Register({ onRegister, onLoginClick }) {
           onClick={handleCancel}
           className="mr-2! p-3 text-gray-600 rounded-xl"
         >
-          <ArrowLeft size={20} strokeWidth={4} />
+          <ArrowLeft size={20} strokeWidth={4}/>
         </button>
         <h1 className="text-2xl font-bold">회원가입</h1>
       </div>

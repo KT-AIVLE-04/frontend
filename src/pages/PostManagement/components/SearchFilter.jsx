@@ -1,13 +1,13 @@
-import { ChevronDown, Filter, Search, X } from "lucide-react";
-import { Card } from "../../../components/molecules";
+import {ChevronDown, Filter, Search, X} from "lucide-react";
+import {Card} from "../../../components";
 
 export const SearchFilter = ({
-  searchTerm,
-  setSearchTerm,
-  sortBy,
-  setSortBy,
-  onSearch,
-}) => {
+                               searchTerm,
+                               setSearchTerm,
+                               sortBy,
+                               setSortBy,
+                               onSearch,
+                             }) => {
   const handleClearSearch = () => {
     setSearchTerm("");
   };
@@ -47,7 +47,7 @@ export const SearchFilter = ({
                   onClick={handleClearSearch}
                   className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <X size={18} />
+                  <X size={18}/>
                 </button>
               )}
             </div>
@@ -74,7 +74,7 @@ export const SearchFilter = ({
               <option value="comments">댓글순</option>
             </select>
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <ChevronDown size={16} className="text-gray-400" />
+              <ChevronDown size={16} className="text-gray-400"/>
             </div>
           </div>
         </div>
