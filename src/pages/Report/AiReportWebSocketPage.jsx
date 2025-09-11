@@ -6,10 +6,10 @@ import {
 import React, {useEffect} from 'react';
 import {useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
-import {Card, WebSocketStatus, Button} from '../../components';
+import {Button, Card, WebSocketStatus} from '../../components';
 import {SOCKET_STATUS} from '../../const/socketType';
 import {useWebSocket} from '../../hooks';
-import {AiReportStatusDisplay} from './components/AiReportStatusDisplay';
+import {AiReportStatusDisplay} from './components';
 
 /**
  * WebSocket 기반 AI 분석 보고서 페이지

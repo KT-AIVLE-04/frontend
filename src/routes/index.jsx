@@ -13,7 +13,7 @@ import {
     StoreSelection,
     StoreUpdate,
 } from "../pages";
-import { AiReportWebSocketPage } from "../pages/Analytics/AiReportWebSocketPage";
+import { AiReportWebSocketPage } from "../pages/Report";
 import { ROUTES } from "./routes.js";
 
 const ProtectedRoute = () => {
@@ -117,7 +117,6 @@ function AppRoutes() {
           
           {/* AI 분석 보고서 페이지 - MainLayout 외부에 배치 */}
           <Route path={ROUTES.AI_REPORT.route} element={<AiReportWebSocketPage/>}/>
-          <Route path={ROUTES.AI_REPORT_WEBSOCKET.route} element={<AiReportWebSocketPage/>}/>
         </Route>
       </Route>
       <Route path="*" element={<NotFoundRoute/>}/>

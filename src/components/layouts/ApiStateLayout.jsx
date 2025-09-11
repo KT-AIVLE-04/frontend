@@ -9,30 +9,18 @@ export const ApiStateLayout = ({
   // 메인 콘텐츠
   children,
   
-  // 상단 영역 (검색, 필터, 액션 등)
-  topSection,
-  
   // 상태별 커스텀 컴포넌트
   loadingComponent,
   errorComponent,
   emptyComponent,
   
-  // 기본 컴포넌트들 (fallback)
-  defaultLoadingComponent,
-  defaultErrorComponent,
-  defaultEmptyComponent,
-  
   // 클래스명
-  className = "",
-  containerClassName = ""
+  className = ""
 }) => {
   // 로딩 상태
   if (loading) {
     if (loadingComponent) {
       return loadingComponent;
-    }
-    if (defaultLoadingComponent) {
-      return defaultLoadingComponent;
     }
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -48,9 +36,6 @@ export const ApiStateLayout = ({
   if (error) {
     if (errorComponent) {
       return errorComponent;
-    }
-    if (defaultErrorComponent) {
-      return defaultErrorComponent;
     }
     
     // 기본 에러 처리 (ApiPageLayout과 동일)
@@ -90,30 +75,20 @@ export const ApiStateLayout = ({
   }
 
   return (
-    <div className={`flex-1 w-full ${className}`}>
-      {/* 상단 영역 (검색, 필터, 액션 등) */}
-      {topSection && (
-        <div className="mb-6">
-          {topSection}
-        </div>
-      )}
-
-      {/* 메인 콘텐츠 */}
-      <div className={containerClassName}>
-        {isEmpty ? (
-          emptyComponent || defaultEmptyComponent || (
-            <div className="flex items-center justify-center min-h-[200px]">
-              <div className="text-center">
-                <div className="text-gray-400 text-4xl mb-4">📭</div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">데이터가 없습니다</h3>
-                <p className="text-gray-600">표시할 데이터가 없습니다.</p>
-              </div>
+    <div className={className}>
+      {isEmpty ? (
+        emptyComponent || (
+          <div className="flex items-center justify-center min-h-[200px]">
+            <div className="text-center">
+              <div className="text-gray-400 text-4xl mb-4">📭</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">데이터가 없습니다</h3>
+              <p className="text-gray-600">표시할 데이터가 없습니다.</p>
             </div>
-          )
-        ) : (
-          children
-        )}
-      </div>
+          </div>
+        )
+      ) : (
+        children
+      )}
     </div>
   );
 };

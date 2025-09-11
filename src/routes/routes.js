@@ -9,11 +9,6 @@ export const ROUTES = {
     krName: "AI 분석 보고서",
     inMenu: false,
   },
-  AI_REPORT_WEBSOCKET: {
-    route: "/analytics/ai-report-ws/:snsType/:postId",
-    krName: "AI 분석 보고서 (실시간)",
-    inMenu: false,
-  },
   CONTENT_CREATION: {
     route: "/content-creation",
     krName: "콘텐츠 제작",

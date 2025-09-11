@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ApiError } from '../utils';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {ApiError} from '../utils';
 
 /**
  * API 호출을 위한 커스텀 훅
@@ -15,42 +15,48 @@ import { ApiError } from '../utils';
  * @returns {ApiError|null} returns.error - API 에러 객체 (message, status 포함)
  * @returns {Function} returns.execute - API 실행 함수 (...args) => Promise<any>
  * @returns {Function} returns.reset - 상태 초기화 함수 () => void
+ * @returns {Function} returns.setArgs - autoExecuteArgs 동적 설정 함수 (args) => void
  */
 export const useApi = (apiFunction, options = {}) => {
-  const { onSuccess, onError, autoExecute = false, autoExecuteArgs = [] } = options;
+  const {onSuccess, onError, autoExecute = false, autoExecuteArgs = []} = options;
   // 성공시 ({데이터,메세지}) 줌, 실패시 에러객체 제공
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const hasAutoExecuted = useRef(false);
+  // 내부 args 상태 관리
+  const [internalArgs, setInternalArgs] = useState(autoExecuteArgs);
+
+  // 내부 args를 메모이제이션해서 무한 실행 방지
+  const memoizedArgs = useMemo(() => internalArgs, [JSON.stringify(internalArgs)]);
 
   const execute = useCallback(async (...args) => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiFunction(...args);
+      let errorMessage = '요청이 실패했습니다.';
       if (typeof response === 'object' && response?.data) {
         const {isSuccess, result, message} = response.data;
-        if(isSuccess){
+        if (isSuccess) {
           setData(result);
-          if(onSuccess){
+          if (onSuccess) {
             onSuccess(result, message);
           }
           return result;
         }
+        errorMessage = message || errorMessage;
       }
-      const errorMessage = message || '요청이 실패했습니다.';
       throw new ApiError(errorMessage, 400);
     } catch (err) {
       console.log("useApierr", err);
       let apiError;
-      
+
       if (err.response?.data?.isSuccess === false) {
         apiError = new ApiError(err.response.data.message || '요청이 실패했습니다.', err.response.status);
       } else if (err.response) {
         apiError = new ApiError(err.response.data?.message || '요청이 실패했습니다.', err.response.status);
       } else {
-        apiError = new ApiError(err.message || '요청이 실패했습니다.', err.status||500);
+        apiError = new ApiError(err.message || '요청이 실패했습니다.', err.status || 500);
       }
       setError(apiError);
       if (onError) onError(apiError);
@@ -65,19 +71,19 @@ export const useApi = (apiFunction, options = {}) => {
     setError(null);
   }, []);
 
-  // autoExecute가 true인 경우 컴포넌트 마운트 시 자동 실행
+  // autoExecute가 true인 경우 자동 실행 (의존성 변경 시에도)
   useEffect(() => {
-    if (autoExecute && !hasAutoExecuted.current) {
-      hasAutoExecuted.current = true;
-      execute(...autoExecuteArgs);
+    if (autoExecute) {
+      execute(...memoizedArgs);
     }
-  }, [autoExecute, autoExecuteArgs, execute]);
+  }, [autoExecute, memoizedArgs]);
 
   return {
     data,
     loading,
     error,
     execute,
-    reset
+    reset,
+    setArgs: setInternalArgs
   };
 };

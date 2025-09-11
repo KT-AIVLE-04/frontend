@@ -1,33 +1,30 @@
 import { BarChart3, Frown, Meh, MessageSquare, Smile } from "lucide-react";
-import { ProgressBar } from "../../../components";
-import { Card } from "../../../components/molecules/Card";
+import React from "react";
+import { analyticsApi } from "../../../api/analytics";
+import { ApiStateLayout, Card, ProgressBar } from "../../../components";
+import { useApi } from "../../../hooks";
+import { getDateFromRange } from "../../../utils";
 
-export const EmotionAnalysis = ({ emotionAnalysis }) => {
-  if (!emotionAnalysis || !emotionAnalysis.emotionSummary) {
-    return (
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
-          <BarChart3 size={18} className="mr-2 text-purple-600" />
-          댓글 감정분석
-        </h2>
-        <div className="text-center text-gray-500 py-8">
-          <MessageSquare size={48} className="mx-auto mb-4 text-gray-300" />
-          <p>감정분석 데이터가 없습니다.</p>
-          <p className="text-sm mt-2">
-            게시물을 선택하면 감정분석 결과를 확인할 수 있습니다.
-          </p>
-        </div>
-      </Card>
-    );
-  }
+export const EmotionAnalysis = ({ selectedSnsType, selectedPostId, dateRange }) => {
+  const {
+    loading: emotionLoading,
+    error: emotionError,
+    data: emotionData,
+  } = useApi(analyticsApi.getHistoryEmotionAnalysis, {
+    autoExecute: true,
+    autoExecuteArgs: [getDateFromRange(dateRange), selectedSnsType, selectedPostId],
+  });
 
-  const { emotionSummary, keywords } = emotionAnalysis;
-  const total = emotionSummary.totalCount || 0;
+  const isEmpty = !emotionData || !emotionData.emotionSummary;
+
+  // emotionData가 있을 때만 destructuring
+  const { emotionSummary, keywords } = emotionData || {};
+  const total = emotionSummary?.totalCount || 0;
 
   const getSentimentData = () => {
     const data = [];
 
-    if (emotionSummary.positiveCount > 0) {
+    if (emotionSummary?.positiveCount > 0) {
       data.push({
         sentiment: "positive",
         count: emotionSummary.positiveCount,
@@ -38,7 +35,7 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
       });
     }
 
-    if (emotionSummary.neutralCount > 0) {
+    if (emotionSummary?.neutralCount > 0) {
       data.push({
         sentiment: "neutral",
         count: emotionSummary.neutralCount,
@@ -49,7 +46,7 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
       });
     }
 
-    if (emotionSummary.negativeCount > 0) {
+    if (emotionSummary?.negativeCount > 0) {
       data.push({
         sentiment: "negative",
         count: emotionSummary.negativeCount,
@@ -105,29 +102,57 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
   const sentimentData = getSentimentData();
 
   return (
-    <Card variant="default" className="p-6">
+    <Card className="p-6">
       <h2 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
         <BarChart3 size={18} className="mr-2 text-purple-600" />
         댓글 감정분석
       </h2>
+      
+      <ApiStateLayout
+        loading={emotionLoading}
+        error={emotionError}
+        isEmpty={isEmpty}
+        loadingComponent={
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">감정분석 데이터를 불러오는 중...</p>
+            </div>
+          </div>
+        }
+        errorComponent={
+          <div className="text-center text-red-500 py-8">
+            감정분석 데이터를 불러오는데 실패했습니다
+          </div>
+        }
+        emptyComponent={
+          <div className="text-center text-gray-500 py-8">
+            <MessageSquare size={48} className="mx-auto mb-4 text-gray-300" />
+            <p>감정분석 데이터가 없습니다.</p>
+            <p className="text-sm mt-2">
+              게시물을 선택하면 감정분석 결과를 확인할 수 있습니다.
+            </p>
+          </div>
+        }
+      >
 
       {/* 전체 통계 */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center p-3 bg-green-50 rounded-lg">
           <div className="text-2xl font-bold text-green-600">
-            {emotionSummary.positiveCount || 0}
+            {emotionSummary?.positiveCount || 0}
           </div>
           <div className="text-sm text-green-700">긍정적</div>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <div className="text-2xl font-bold text-gray-600">
-            {emotionSummary.neutralCount || 0}
+            {emotionSummary?.neutralCount || 0}
           </div>
           <div className="text-sm text-gray-700">중립적</div>
         </div>
         <div className="text-center p-3 bg-red-50 rounded-lg">
           <div className="text-2xl font-bold text-red-600">
-            {emotionSummary.negativeCount || 0}
+            {emotionSummary?.negativeCount || 0}
           </div>
           <div className="text-sm text-red-700">부정적</div>
         </div>
@@ -207,6 +232,7 @@ export const EmotionAnalysis = ({ emotionAnalysis }) => {
             )}
           </div>
         )}
+      </ApiStateLayout>
     </Card>
   );
 };

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { snsApi } from "../../../api/sns";
 import { useApi } from "../../../hooks";
 import {
-    AccountAnalytics,
-    ContentPerformanceSection,
-    PostAnalytics,
+  AccountAnalytics,
+  ContentPerformanceSection,
+  PostAnalytics,
 } from "./index";
 
-export function AnalyticsSections({ selectedSnsType }) {
+export function AnalyticsSections({selectedSnsType}) {
   // 선택된 포스트 ID 상태 관리
   const [selectedPostId, setSelectedPostId] = useState(null);
 
@@ -33,22 +33,23 @@ export function AnalyticsSections({ selectedSnsType }) {
   return (
     <div className="space-y-6">
       {/* 1. 계정 분석 섹션 */}
-      <AccountAnalytics selectedSnsType={selectedSnsType} />
+      <AccountAnalytics selectedSnsType={selectedSnsType}/>
 
       {/* 2. 콘텐츠 성과 분석 섹션 */}
-      <ContentPerformanceSection 
+      <ContentPerformanceSection
         selectedSnsType={selectedSnsType}
         postsData={postsData}
         postsLoading={postsLoading}
         postsError={postsError}
         onPostSelect={handlePostSelect}
       />
+      {(selectedPostId && selectedSnsType) && (
+        <PostAnalytics
+          selectedSnsType={selectedSnsType}
+          selectedPostId={selectedPostId}
+        />
+      )}
 
-      {/* 3. 포스트 분석 섹션 */}
-      <PostAnalytics 
-        selectedSnsType={selectedSnsType}
-        selectedPostId={selectedPostId}
-      />
     </div>
   );
 }

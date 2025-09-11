@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { Alert } from "../../components";
-import { SNS_TYPES, SNS_TYPE_LABELS } from "../../models/SnsAccount";
-import { ROUTES } from "../../routes/routes";
-import { AnalyticsSections } from "./components";
+import React, {useState} from "react";
+import {useSelector} from "react-redux";
+import {useNavigate} from "react-router-dom";
+import {Alert} from "../../components";
+import {SNS_TYPES, SNS_TYPE_LABELS} from "../../models";
+import {ROUTES} from "../../routes/routes";
+import {AnalyticsSections} from "./components";
 
 export function Analytics() {
   const navigate = useNavigate();
-  const { connections } = useSelector((state) => state.sns);
+  const {connections} = useSelector((state) => state.sns);
 
   const [selectedSnsType, setSelectedSnsType] = useState(SNS_TYPES.YOUTUBE);
 
@@ -77,7 +77,8 @@ export function Analytics() {
     return (
       <div className="flex-1 w-full p-6">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-8 shadow-lg">
+          <div
+            className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-8 shadow-lg">
             <div className="text-yellow-600 text-6xl mb-4 animate-bounce">
               🔗
             </div>
@@ -177,7 +178,7 @@ export function Analytics() {
       </div>
 
       {/* 3개 섹션으로 나누어진 분석 */}
-      <AnalyticsSections selectedSnsType={selectedSnsType} />
+      <AnalyticsSections selectedSnsType={selectedSnsType}/>
     </div>
   );
 }

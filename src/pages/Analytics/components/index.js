@@ -7,6 +7,8 @@ export { ContentPerformanceSection } from './ContentPerformanceSection';
 export { ContentPerformanceTable } from './ContentPerformanceTable';
 export { DateRangeSelector } from './DateRangeSelector';
 export { EmotionAnalysis } from './EmotionAnalysis';
+export { MetricCard } from './MetricCard';
 export { PostAnalytics } from './PostAnalytics';
+export { PostMetrics } from './PostMetrics';
 export { PostTableRow } from './PostTableRow';
 
