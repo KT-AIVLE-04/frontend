@@ -46,6 +46,16 @@ export function CommentsPagination({
           다음
         </button>
       )}
+
+      {/* 마지막 페이지이고 1페이지가 아닐 때 처음으로 돌아가기 버튼 */}
+      {isLastPage && currentPage > 1 && currentComments.length > 0 && (
+        <button
+          onClick={onGoToFirst}
+          className="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700"
+        >
+          처음으로 돌아가기
+        </button>
+      )}
     </div>
   );
 }

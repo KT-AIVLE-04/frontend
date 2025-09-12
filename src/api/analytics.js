@@ -26,7 +26,7 @@ export const analyticsApi = {
     const params = {size};
     if (postId) params.postId = postId;
     if (pageToken) params.pageToken = pageToken;
-    return api.get(`${BASE_URL}/posts/comments`, {
+    return api.get(`${BASE_URL}/realtime/posts/comments`, {
       snsType,
       params
     });

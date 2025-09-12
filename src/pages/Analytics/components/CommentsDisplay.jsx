@@ -87,13 +87,13 @@ export function CommentsDisplay({
   // 이전 페이지로 이동 (캐시 사용)
   const handlePreviousPage = () => {
     const prevPage = currentPage - 1;
-    setCurrentPage(prevPage);
     
     // 캐시에서 데이터 복원
     const cachedData = pageCache.get(prevPage);
     if (cachedData) {
       setNextPageToken(cachedData.nextPageToken);
       setHasNextPage(cachedData.hasNextPage);
+      setCurrentPage(prevPage);
     }
   };
 
@@ -200,9 +200,9 @@ export function CommentsDisplay({
           <h4 className="font-medium text-blue-900 mb-3">댓글 통계</h4>
           <div className="grid grid-cols-1 gap-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-700">현재 페이지 댓글:</span>
+                  <span className="text-gray-700">총 조회된 댓글:</span>
                   <span className="font-medium text-blue-600">
-                    {currentComments.length}개
+                    {Array.from(pageCache.values()).reduce((total, pageData) => total + pageData.comments.length, 0)}개
                   </span>
                 </div>
           </div>
