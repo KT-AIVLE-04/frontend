@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDate } from "../../../utils";
+import { formatDateTimeKorean } from "../../../utils";
 
 export function CommentItem({ comment, userNumber }) {
   return (
@@ -9,7 +9,7 @@ export function CommentItem({ comment, userNumber }) {
           사용자 {userNumber}
         </div>
         <div className="text-xs text-gray-500">
-          {formatDate(comment.publishedAt)}
+          {formatDateTimeKorean(comment.publishedAt)}
         </div>
       </div>
 

@@ -72,7 +72,7 @@ export const getDaysDifference = (date1, date2) => {
  * @param {string|Date} dateString - 날짜 문자열 또는 Date 객체
  * @returns {string} YYYY.MM.DD HH:MM 형식의 문자열
  */
-export const formatDate = (dateString) => {
+export const formatDateTimeKorean = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleString("ko-KR", {
     year: "numeric",
