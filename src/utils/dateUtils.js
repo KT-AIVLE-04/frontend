@@ -66,3 +66,19 @@ export const getDaysDifference = (date1, date2) => {
   
   return diffDays;
 };
+
+/**
+ * 날짜를 한국 형식의 날짜시간 문자열로 포맷팅
+ * @param {string|Date} dateString - 날짜 문자열 또는 Date 객체
+ * @returns {string} YYYY.MM.DD HH:MM 형식의 문자열
+ */
+export const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};

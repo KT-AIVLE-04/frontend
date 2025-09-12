@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { analyticsApi } from "../../../api/analytics";
 import { ApiStateLayout, Card } from "../../../components";
 import { useApi } from "../../../hooks";
+import { CommentsList } from "./CommentsList";
+import { CommentsPagination } from "./CommentsPagination";
 
 export function CommentsDisplay({
                                   selectedSnsType,
@@ -9,7 +11,10 @@ export function CommentsDisplay({
                                 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [userSet, setUserSet] = useState(new Set());
-  const commentsPerPage = 5;
+  const [nextPageToken, setNextPageToken] = useState(null);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [pageCache, setPageCache] = useState(new Map()); // 페이지별 데이터 캐시
+  const COMMENTS_PER_PAGE = 5;
 
 
   // 실시간 댓글 API 호출
@@ -20,128 +25,100 @@ export function CommentsDisplay({
     setArgs: setCommentsArgs,
   } = useApi(analyticsApi.getRealtimeComments, {
     autoExecute: true,
-    autoExecuteArgs: [selectedSnsType, selectedPostId, 0, commentsPerPage], // pageIndex: 0, size: 5
+    autoExecuteArgs: [selectedSnsType, selectedPostId, null, COMMENTS_PER_PAGE], // snsType, postId, pageToken, size
   });
 
-  // 사용자 ID Set 관리 (전체적으로 일관된 번호 유지)
-  useEffect(() => {
-    if (realtimeCommentsData) {
-      setUserSet(prevSet => {
-        const newSet = new Set(prevSet);
-        realtimeCommentsData.forEach((comment) => {
-          if (comment.snsAuthorId) {
-            newSet.add(comment.snsAuthorId);
-          }
-        });
-        return newSet;
+  // 실시간 데이터 처리 함수
+  const processRealtimeData = (data) => {
+    const { data: comments = [], nextPageToken, hasNextPage } = data;
+    
+    setNextPageToken(nextPageToken);
+    setHasNextPage(hasNextPage);
+    
+    // 현재 페이지 데이터를 캐시에 저장
+    setPageCache(prevCache => {
+      const newCache = new Map(prevCache);
+      newCache.set(currentPage, {
+        data: data,
+        comments: comments,
+        nextPageToken: nextPageToken,
+        hasNextPage: hasNextPage
       });
-    }
-  }, [realtimeCommentsData]);
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
+      return newCache;
+    });
+    
+    // 사용자 ID Set 업데이트
+    setUserSet(prevSet => {
+      const newSet = new Set(prevSet);
+      comments.forEach((comment) => {
+        if (comment.snsAuthorId) {
+          newSet.add(comment.snsAuthorId);
+        }
+      });
+      return newSet;
     });
   };
 
-  // 페이지네이션 계산 (서버 사이드)
-  const currentComments = realtimeCommentsData || [];
-  const isLastPage = currentComments.length < commentsPerPage;
+  
+
+
+  // 페이지네이션 계산 (캐시 우선, 서버 데이터 보조)
+  const getCurrentComments = () => {
+    const cachedData = pageCache.get(currentPage);
+    if (cachedData) {
+      return cachedData.comments;
+    }
+    return realtimeCommentsData?.data || [];
+  };
+  
+  
 
   // 페이지 변경 시 서버에 새로운 페이지 요청
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-    const pageIndex = newPage - 1; // 0부터 시작하는 pageIndex
     
     if (setCommentsArgs) {
-      setCommentsArgs([selectedSnsType, selectedPostId, pageIndex, commentsPerPage]);
+      // pageToken 기반 페이지네이션
+      const token = newPage === 1 ? null : nextPageToken;
+      setCommentsArgs([selectedSnsType, selectedPostId, token, COMMENTS_PER_PAGE]);
     }
   };
 
-  const isEmpty = !realtimeCommentsData || realtimeCommentsData.length === 0;
-
-  const renderComments = (comments) => {
-
-    return (
-      <div className="space-y-3">
-        {comments.map((comment, index) => {
-          // snsAuthorId가 있으면 Set에서의 인덱스 + 1을 사용자 번호로 사용
-          const userNumber = comment.snsAuthorId 
-            ? Array.from(userSet).indexOf(comment.snsAuthorId) + 1
-            : (currentPage - 1) * commentsPerPage + index + 1;
-
-          return (
-            <div
-              key={comment.commentId || index}
-              className="bg-gray-50 rounded-lg p-3"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="text-sm font-medium text-gray-900">
-                  사용자 {userNumber}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {formatDate(comment.publishedAt)}
-                </div>
-              </div>
-
-              <div className="text-sm text-gray-700 mb-2">{comment.text}</div>
-
-              <div className="flex items-center text-xs text-gray-500">
-                <span className="mr-3">👍 {comment.likeCount || 0}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderPagination = () => {
-    // 첫 페이지이고 데이터가 없으면 페이지네이션 숨김
-    if (currentPage === 1 && currentComments.length === 0) return null;
+  // 이전 페이지로 이동 (캐시 사용)
+  const handlePreviousPage = () => {
+    const prevPage = currentPage - 1;
+    setCurrentPage(prevPage);
     
-    // 첫 페이지이고 마지막 페이지면 페이지네이션 숨김
-    if (currentPage === 1 && isLastPage) return null;
-
-    return (
-      <div className="flex items-center justify-center space-x-2 mt-4">
-        {/* 빈 데이터이고 1페이지가 아닐 때 처음으로 돌아가기 버튼 */}
-        {currentComments.length === 0 && currentPage > 1 && (
-          <button
-            onClick={() => handlePageChange(1)}
-            className="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700"
-          >
-            처음으로 돌아가기
-          </button>
-        )}
-        
-        {/* 이전 버튼 - 첫 페이지가 아니고 빈 데이터가 아닐 때만 표시 */}
-        {currentPage > 1 && currentComments.length > 0 && (
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            className="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700"
-          >
-            이전
-          </button>
-        )}
-
-        {/* 다음 버튼 - 마지막 페이지가 아닐 때만 표시 */}
-        {!isLastPage && (
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            className="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700"
-          >
-            다음
-          </button>
-        )}
-      </div>
-    );
+    // 캐시에서 데이터 복원
+    const cachedData = pageCache.get(prevPage);
+    if (cachedData) {
+      setNextPageToken(cachedData.nextPageToken);
+      setHasNextPage(cachedData.hasNextPage);
+    }
   };
+
+  // 처음으로 돌아가기 (초기화)
+  const handleGoToFirst = () => {
+    setCurrentPage(1);
+    setPageCache(new Map()); // 캐시 초기화
+    setNextPageToken(null);
+    setHasNextPage(false);
+    
+    if (setCommentsArgs) {
+      setCommentsArgs([selectedSnsType, selectedPostId, null, COMMENTS_PER_PAGE]);
+    }
+  };
+
+  const isEmpty = !realtimeCommentsData || !realtimeCommentsData.data || realtimeCommentsData.data.length === 0;
+  const currentComments = getCurrentComments();
+  const isLastPage = !hasNextPage;
+
+  // 사용자 ID Set 관리 및 페이지네이션 상태 업데이트
+  useEffect(() => {
+    if (realtimeCommentsData) {
+      processRealtimeData(realtimeCommentsData);
+    }
+  }, [realtimeCommentsData, currentPage]);
 
   return (
     <Card variant="default" className="p-6">
@@ -177,7 +154,7 @@ export function CommentsDisplay({
             {currentPage > 1 && (
               <div className="mt-4">
                 <button
-                  onClick={() => handlePageChange(1)}
+                  onClick={handleGoToFirst}
                   className="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700"
                 >
                   처음으로 돌아가기
@@ -192,17 +169,30 @@ export function CommentsDisplay({
         <div className="mb-4">
           <div className="flex items-center justify-between text-sm text-gray-600">
             <span>
-              댓글 {(currentPage - 1) * commentsPerPage + 1}-{(currentPage - 1) * commentsPerPage + currentComments.length} 
-              {isLastPage ? ` (총 ${(currentPage - 1) * commentsPerPage + currentComments.length}개)` : ''}
+              댓글 {currentComments.length}개
+              {isLastPage ? ' (마지막 페이지)' : ''}
             </span>
             <span className="text-xs">실시간 데이터</span>
           </div>
         </div>
       )}
 
-      {renderComments(currentComments)}
+      <CommentsList
+        comments={currentComments}
+        userSet={userSet}
+        currentPage={currentPage}
+        commentsPerPage={COMMENTS_PER_PAGE}
+      />
 
-      {renderPagination()}
+      <CommentsPagination
+        currentPage={currentPage}
+        currentComments={currentComments}
+        isLastPage={isLastPage}
+        hasNextPage={hasNextPage}
+        onGoToFirst={handleGoToFirst}
+        onPreviousPage={handlePreviousPage}
+        onNextPage={() => handlePageChange(currentPage + 1)}
+      />
 
       {/* 댓글 통계 */}
       {currentComments.length > 0 && isLastPage && (
@@ -210,9 +200,9 @@ export function CommentsDisplay({
           <h4 className="font-medium text-blue-900 mb-3">댓글 통계</h4>
           <div className="grid grid-cols-1 gap-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-700">실시간 댓글:</span>
+                  <span className="text-gray-700">현재 페이지 댓글:</span>
                   <span className="font-medium text-blue-600">
-                    {(currentPage - 1) * commentsPerPage + currentComments.length}개
+                    {currentComments.length}개
                   </span>
                 </div>
           </div>
